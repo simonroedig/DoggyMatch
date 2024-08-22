@@ -10,6 +10,8 @@ class FilterMenu extends StatefulWidget {
 
 class FilterMenuState extends State<FilterMenu> {
   double _currentDistanceValue = 0.1; // Initial distance value
+  bool _isDogSelected = true; // Track if "Dog" is selected
+  bool _isBorrowersSelected = false; // Track if "Borrowers" is selected
 
   @override
   Widget build(BuildContext context) {
@@ -32,52 +34,145 @@ class FilterMenuState extends State<FilterMenu> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const Center(
+              child: Text(
+                "Search Filter",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.customBlack,
+                  fontFamily: 'Poppins',
+                ),
+              ),
+            ),
+            const SizedBox(height: 16.0),
             const Text(
-              "Filter Settings",
+              "Looking For",
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: AppColors.customBlack,
                 fontFamily: 'Poppins',
               ),
             ),
-            const SizedBox(height: 20),
-            Slider(
-              thumbColor: AppColors.pastelPurple,
-              activeColor: AppColors.pastelPurple,
-              // color for the slider's track
-              inactiveColor: AppColors.pastelPurple,
-
-              value: _currentDistanceValue,
-              min: 0.1,
-              max: 30.0,
-              divisions: 300, // Dividing the range to allow finer adjustments
-              label: _currentDistanceValue.toStringAsFixed(1),
-              onChanged: (double value) {
+            const SizedBox(height: 10.0),
+            _buildSelectionMenu(
+              icon: Icons.pets,
+              text: "Dogs",
+              isSelected: _isDogSelected,
+              onTap: () {
                 setState(() {
-                  _currentDistanceValue = value;
+                  _isDogSelected = !_isDogSelected;
+                  _ensureAtLeastOneSelected();
                 });
               },
             ),
-            Text(
-              // if the value smaller than 0.3, show "Nearby", else show the distance
-              // if the value is larger than 30, show "Distance: >30 km"
-              _currentDistanceValue >= 30
-                  ? "Distance: >30 km"
-                  : _currentDistanceValue <= 0.1
-                      ? "Distance: <0.1 km"
-                      : "Distance: ${_currentDistanceValue.toStringAsFixed(1)} km",
-
-              style: const TextStyle(
-                fontSize: 18,
-                color: AppColors.customBlack,
-                fontFamily: 'Poppins',
-              ),
+            const SizedBox(height: 10.0),
+            _buildSelectionMenu(
+              icon: Icons.person,
+              text: "Borrowers",
+              isSelected: _isBorrowersSelected,
+              onTap: () {
+                setState(() {
+                  _isBorrowersSelected = !_isBorrowersSelected;
+                  _ensureAtLeastOneSelected();
+                });
+              },
             ),
             const SizedBox(height: 20),
+            Text(
+              _currentDistanceValue >= 30
+                  ? "Distance >30 km"
+                  : _currentDistanceValue <= 0.1
+                      ? "Distance <0.1 km"
+                      : "Distance ${_currentDistanceValue.toStringAsFixed(1)} km",
+              style: const TextStyle(
+                fontSize: 16,
+                color: AppColors.customBlack,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 0),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: MediaQuery.of(context).size.width *
+                      1, // Adjust slider width here
+                  child: Slider(
+                    thumbColor: AppColors.brownDarkest,
+                    activeColor: AppColors.brownLight,
+                    inactiveColor: AppColors.brownLight,
+                    value: _currentDistanceValue,
+                    min: 0.1,
+                    max: 30.0,
+                    divisions: 300,
+                    onChanged: (double value) {
+                      setState(() {
+                        _currentDistanceValue = value;
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildSelectionMenu({
+    required IconData icon,
+    required String text,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.greyLightest,
+          borderRadius: BorderRadius.circular(50.0),
+          border: Border.all(
+            color: isSelected ? AppColors.customBlack : AppColors.grey,
+            width: 3.0,
+          ),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? AppColors.customBlack : AppColors.grey,
+            ),
+            const SizedBox(width: 10.0),
+            Expanded(
+              child: Text(
+                text,
+                style: TextStyle(
+                  fontSize: 18,
+                  color: isSelected ? AppColors.customBlack : AppColors.grey,
+                  fontFamily: 'Poppins',
+                ),
+              ),
+            ),
+            if (isSelected)
+              const Icon(
+                Icons.check,
+                color: AppColors.customBlack,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _ensureAtLeastOneSelected() {
+    if (!_isDogSelected && !_isBorrowersSelected) {
+      // If both are deselected, automatically select Dogs by default
+      _isDogSelected = true;
+    }
   }
 }

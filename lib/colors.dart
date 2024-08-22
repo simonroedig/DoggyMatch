@@ -10,6 +10,8 @@ class AppColors {
   static const Color deepPurple = Color(0xFF061939);
   static const Color lightPurple = Color(0xFF8485AD);
   static const Color pastelPurple = Color(0xFF9074d0);
+
+  static const Color grey = Color(0xFF7E7E7E);
   static const Color greyLightest = Color(0xFFE1E1E1);
 
   static const Color highlight = pastelPurple;
