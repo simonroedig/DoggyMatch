@@ -26,6 +26,7 @@ class SearchPageState extends State<SearchPage> {
         CustomAppBar(
           isFilterOpen: _isFilterOpen,
           toggleFilter: _toggleFilter,
+          showFilterIcon: true,
         ),
         Expanded(
           child: Stack(

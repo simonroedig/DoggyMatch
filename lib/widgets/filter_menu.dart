@@ -10,8 +10,8 @@ class FilterMenu extends StatefulWidget {
 
 class FilterMenuState extends State<FilterMenu> {
   double _currentDistanceValue = 0.1; // Initial distance value
-  bool _isDogSelected = true; // Track if "Dog" is selected
-  bool _isBorrowersSelected = false; // Track if "Borrowers" is selected
+  bool _isDogOwnerSelected = true; // Track if "Dog" is selected
+  bool _isDogSitterSelected = false; // Track if "Borrowers" is selected
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +24,7 @@ class FilterMenuState extends State<FilterMenu> {
         height: MediaQuery.of(context).size.height * 0.5,
         decoration: BoxDecoration(
           color: AppColors.greyLightest,
-          borderRadius: BorderRadius.circular(35.0),
+          borderRadius: BorderRadius.circular(24.0),
           border: Border.all(
             color: AppColors.customBlack,
             width: 3.0,
@@ -58,11 +58,11 @@ class FilterMenuState extends State<FilterMenu> {
             const SizedBox(height: 10.0),
             _buildSelectionMenu(
               icon: Icons.pets,
-              text: "Dogs",
-              isSelected: _isDogSelected,
+              text: "Dog Owner",
+              isSelected: _isDogOwnerSelected,
               onTap: () {
                 setState(() {
-                  _isDogSelected = !_isDogSelected;
+                  _isDogOwnerSelected = !_isDogOwnerSelected;
                   _ensureAtLeastOneSelected();
                 });
               },
@@ -70,11 +70,11 @@ class FilterMenuState extends State<FilterMenu> {
             const SizedBox(height: 10.0),
             _buildSelectionMenu(
               icon: Icons.person,
-              text: "Borrowers",
-              isSelected: _isBorrowersSelected,
+              text: "Dog Sitter",
+              isSelected: _isDogSitterSelected,
               onTap: () {
                 setState(() {
-                  _isBorrowersSelected = !_isBorrowersSelected;
+                  _isDogSitterSelected = !_isDogSitterSelected;
                   _ensureAtLeastOneSelected();
                 });
               },
@@ -102,7 +102,7 @@ class FilterMenuState extends State<FilterMenu> {
                       1, // Adjust slider width here
                   child: Slider(
                     thumbColor: AppColors.brownDarkest,
-                    activeColor: AppColors.brownLight,
+                    activeColor: AppColors.brownDarkest,
                     inactiveColor: AppColors.brownLight,
                     value: _currentDistanceValue,
                     min: 0.1,
@@ -160,7 +160,7 @@ class FilterMenuState extends State<FilterMenu> {
             ),
             if (isSelected)
               const Icon(
-                Icons.check,
+                Icons.check_rounded,
                 color: AppColors.customBlack,
               ),
           ],
@@ -170,9 +170,9 @@ class FilterMenuState extends State<FilterMenu> {
   }
 
   void _ensureAtLeastOneSelected() {
-    if (!_isDogSelected && !_isBorrowersSelected) {
+    if (!_isDogOwnerSelected && !_isDogSitterSelected) {
       // If both are deselected, automatically select Dogs by default
-      _isDogSelected = true;
+      _isDogOwnerSelected = true;
     }
   }
 }

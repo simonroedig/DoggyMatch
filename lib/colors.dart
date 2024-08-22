@@ -6,6 +6,7 @@ class AppColors {
   static const Color brownDarkest = Color(0xFF9C4116);
 
   static const Color bg = Color(0xFFFEF6ED);
+  static const Color bg2 = Color(0xFFfef7ff);
   static const Color customBlack = Color(0xFF222222);
   static const Color deepPurple = Color(0xFF061939);
   static const Color lightPurple = Color(0xFF8485AD);
