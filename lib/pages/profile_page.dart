@@ -1,7 +1,7 @@
 import 'package:doggymatch_flutter/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/widgets/custom_app_bar.dart';
-import 'package:doggymatch_flutter/pages/setting_page.dart';
+import 'package:doggymatch_flutter/pages/settings_page.dart';
 import 'package:doggymatch_flutter/widgets/profile_widget.dart';
 
 class ProfilePage extends StatelessWidget {

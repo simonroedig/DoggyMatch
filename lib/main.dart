@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/pages/main_screen.dart';
+import 'package:doggymatch_flutter/pages/welcome_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,7 +16,7 @@ class MyApp extends StatelessWidget {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'DoggyMatch',
-      home: MainScreen(),
+      home: WelcomePage(),
     );
   }
 }
