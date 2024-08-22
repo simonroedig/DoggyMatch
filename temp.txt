@@ -1,0 +1,130 @@
+import 'package:flutter/material.dart';
+import 'package:doggymatch_flutter/colors.dart';
+
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(80.0), // Matching height with bottom navigation bar
+        child: Padding(
+          padding: const EdgeInsets.only(top: 20.0, left: 16.0, right: 16.0), // Adjust padding to align contents
+          child: Center(
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: MediaQuery.of(context).size.width * 0.9,
+                  height: 60.0,
+                  decoration: BoxDecoration(
+                    color: AppColors.brownLightest,
+                    borderRadius: BorderRadius.circular(80.0),
+                    border: Border.all(
+                      color: AppColors.customBlack,
+                      width: 3.0,
+                    ),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween, // Aligns content within the row
+                    children: [
+                      Row(
+                        children: [
+                          Image.asset(
+                            'assets/icons/logo.png',
+                            height: 60, // Adjusted logo height
+                          ),
+                          const SizedBox(width: 10), // Spacing between icon and text
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start, // Aligns text to the left
+                            mainAxisSize: MainAxisSize.min,
+                            children: const [
+                              Text(
+                                'Doggy',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: 'Poppins',
+                                  color: AppColors.customBlack,
+                                  height: 0.9,
+                                ),
+                              ),
+                              SizedBox(height: 0),
+                              Text(
+                                'Match',
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w800,
+                                  fontFamily: 'Poppins',
+                                  color: AppColors.customBlack,
+                                  height: 1.0,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.filter_list, size: 30.0),
+                        onPressed: () {},
+                        color: AppColors.customBlack,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      body: Container(
+        color: AppColors.bg, // Set the background color for the body
+        child: const Center(
+          child: Text("Content goes here"),
+        ),
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.only(bottom: 16.0),
+        child: BottomAppBar(
+          shape: const CircularNotchedRectangle(), // Adds rounded corners
+          child: Container(
+            height: 80.0, // Fixed height
+            decoration: BoxDecoration(
+              color: AppColors.brownLightest,
+              borderRadius: BorderRadius.circular(80.0),
+              border: Border.all(
+                color: Colors.black,
+                width: 3.0,
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.search, size: 30.0),
+                  onPressed: () {},
+                  color: AppColors.customBlack,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.chat, size: 30.0),
+                  onPressed: () {},
+                  color: AppColors.customBlack,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.person, size: 30.0),
+                  onPressed: () {},
+                  color: AppColors.customBlack,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+if the filter icon is clicked, i want the appBar to increase to about half the size of the phones height. The icon and the text doggy match as well as the filter icon should still be at the same location. Only the space should extend so that there is place below it for the filter options. If this filter option are clicked i want the filter icon to resemble a X for close. When this close icon is clicked i want it to resize to the initial app bar and the x icon resemble a filter icon again
