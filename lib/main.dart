@@ -2,8 +2,7 @@
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:doggymatch_flutter/pages/main_screen.dart';
-import 'package:doggymatch_flutter/pages/welcome_page.dart';
+import 'package:doggymatch_flutter/services/auth_gate.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,7 +20,7 @@ class MyApp extends StatelessWidget {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'DoggyMatch',
-      home: WelcomePage(),
+      home: AuthGate(),
     );
   }
 }

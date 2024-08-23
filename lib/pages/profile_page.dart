@@ -1,11 +1,14 @@
-import 'package:doggymatch_flutter/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:doggymatch_flutter/colors.dart';
 import 'package:doggymatch_flutter/widgets/custom_app_bar.dart';
 import 'package:doggymatch_flutter/pages/settings_page.dart';
 import 'package:doggymatch_flutter/widgets/profile_widget.dart';
+import 'package:doggymatch_flutter/profile/profile.dart';
 
 class ProfilePage extends StatelessWidget {
-  const ProfilePage({super.key});
+  final Profile profile;
+
+  const ProfilePage({super.key, required this.profile});
 
   void _navigateToSettings(BuildContext context) {
     Navigator.of(context).push(
@@ -25,8 +28,8 @@ class ProfilePage extends StatelessWidget {
             showFilterIcon: false,
             onSettingsPressed: () => _navigateToSettings(context),
           ),
-          const Expanded(
-            child: ProfileWidget(),
+          Expanded(
+            child: ProfileWidget(profile: profile),
           ),
         ],
       ),
