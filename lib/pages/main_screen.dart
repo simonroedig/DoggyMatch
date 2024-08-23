@@ -22,7 +22,7 @@ class MainScreenState extends State<MainScreen> {
     userName: 'Andi',
     userAge: 26,
     aboutText: 'I am a student in Munich looking for some dogs to walk with.',
-    profileColor: AppColors.accent1,
+    profileColor: AppColors.accent2,
     images: [
       'assets/icons/zz.png',
       'assets/icons/zz.png',
@@ -49,7 +49,7 @@ class MainScreenState extends State<MainScreen> {
     _pages = [
       const SearchPage(),
       const ChatPage(),
-      ProfilePage(profile: dogOwnerProfile), // Use the desired profile here
+      ProfilePage(profile: dogSitterProfile), // Use the desired profile here
     ];
   }
 

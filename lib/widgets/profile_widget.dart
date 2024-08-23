@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/profile/profile.dart';
 import 'package:doggymatch_flutter/colors.dart';
+import 'package:doggymatch_flutter/widgets/profile_img_fullscreen.dart';
 
 class ProfileWidget extends StatefulWidget {
   final Profile profile;
@@ -9,6 +10,7 @@ class ProfileWidget extends StatefulWidget {
   const ProfileWidget({super.key, required this.profile});
 
   @override
+  // ignore: library_private_types_in_public_api
   _ProfileWidgetState createState() => _ProfileWidgetState();
 }
 
@@ -37,7 +39,12 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                   children: [
                     Stack(
                       children: [
-                        _buildProfileImageSlider(),
+                        GestureDetector(
+                          onTap: () {
+                            _openFullScreenImageView(context);
+                          },
+                          child: _buildProfileImageSlider(),
+                        ),
                         Positioned(
                           bottom: 8.0,
                           left: 0,
@@ -66,8 +73,13 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                             children: [
                               Row(
                                 children: [
-                                  const Icon(Icons.person,
-                                      color: AppColors.customBlack),
+                                  Icon(
+                                    widget.profile is DogSitterProfile
+                                        ? Icons
+                                            .person_rounded // Icon for Dog Sitter
+                                        : Icons.pets, // Icon for Dog Owner
+                                    color: AppColors.customBlack,
+                                  ),
                                   const SizedBox(width: 8.0),
                                   Text(
                                     widget.profile is DogSitterProfile
@@ -83,7 +95,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                 ],
                               ),
                               IconButton(
-                                icon: const Icon(CupertinoIcons.pencil_circle,
+                                icon: const Icon(Icons.border_color_rounded,
                                     color: AppColors.customBlack),
                                 onPressed: () {
                                   // Edit functionality here
@@ -95,6 +107,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                           if (widget.profile is DogOwnerProfile)
                             _buildDogInfoSection(
                                 widget.profile as DogOwnerProfile),
+                          _buildAboutSection(),
                         ],
                       ),
                     ),
@@ -147,6 +160,10 @@ class _ProfileWidgetState extends State<ProfileWidget> {
           width: 10.0,
           height: 10.0,
           decoration: BoxDecoration(
+            border: Border.all(
+              color: AppColors.customBlack,
+              width: 2.0,
+            ),
             shape: BoxShape.circle,
             color: Colors.white
                 .withOpacity(_currentImageIndex == index ? 1.0 : 0.5),
@@ -154,6 +171,17 @@ class _ProfileWidgetState extends State<ProfileWidget> {
         );
       }),
     );
+  }
+
+  void _openFullScreenImageView(BuildContext context) {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (context) => FullScreenImageView(
+        images: widget.profile.images.isNotEmpty
+            ? widget.profile.images
+            : ['assets/icons/placeholder.png'], // Pass images or placeholder
+        initialIndex: _currentImageIndex,
+      ),
+    ));
   }
 
   Widget _buildUserInfoSection() {
@@ -173,7 +201,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
         children: [
           Row(
             children: [
-              const Icon(Icons.person, color: AppColors.customBlack),
+              const Icon(Icons.person_rounded, color: AppColors.customBlack),
               const SizedBox(width: 8.0),
               Text(
                 widget.profile.userName,
@@ -195,6 +223,42 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                 style: const TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 14,
+                  color: AppColors.customBlack,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAboutSection() {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.all(12.0),
+      decoration: BoxDecoration(
+        color: AppColors.bg,
+        borderRadius: BorderRadius.circular(18.0),
+        border: Border.all(
+          color: AppColors.customBlack,
+          width: 3.0,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.info_outline_rounded,
+                  color: AppColors.customBlack),
+              const SizedBox(width: 8.0),
+              Text(
+                'About',
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
                   color: AppColors.customBlack,
                 ),
               ),
@@ -231,7 +295,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
         children: [
           Row(
             children: [
-              const Icon(Icons.pets, color: AppColors.customBlack),
+              const Icon(Icons.pets_rounded, color: AppColors.customBlack),
               const SizedBox(width: 8.0),
               Text(
                 dogOwnerProfile.dogName,
@@ -246,7 +310,8 @@ class _ProfileWidgetState extends State<ProfileWidget> {
           const SizedBox(height: 8.0),
           Row(
             children: [
-              const Icon(Icons.list, color: AppColors.customBlack),
+              const Icon(CupertinoIcons.heart_circle,
+                  color: AppColors.customBlack),
               const SizedBox(width: 8.0),
               Text(
                 dogOwnerProfile.dogBreed,

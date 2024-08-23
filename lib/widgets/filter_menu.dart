@@ -57,7 +57,7 @@ class FilterMenuState extends State<FilterMenu> {
             ),
             const SizedBox(height: 10.0),
             _buildSelectionMenu(
-              icon: Icons.pets,
+              icon: Icons.pets_rounded,
               text: "Dog Owner",
               isSelected: _isDogOwnerSelected,
               onTap: () {
@@ -69,7 +69,7 @@ class FilterMenuState extends State<FilterMenu> {
             ),
             const SizedBox(height: 10.0),
             _buildSelectionMenu(
-              icon: Icons.person,
+              icon: Icons.person_rounded,
               text: "Dog Sitter",
               isSelected: _isDogSitterSelected,
               onTap: () {
