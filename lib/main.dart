@@ -1,10 +1,15 @@
 // File: main.dart
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/pages/main_screen.dart';
 import 'package:doggymatch_flutter/pages/welcome_page.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp();
+
   runApp(const MyApp());
 }
 

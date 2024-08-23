@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "193586085616",
+    "project_id": "doggymatch-bb17f",
+    "storage_bucket": "doggymatch-bb17f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:193586085616:android:c9f1982151dbc619738c35",
+        "android_client_info": {
+          "package_name": "com.example.doggymatch_flutter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAizDfFo7oevGDIq3jg3C2jA-nuLVGY9cY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

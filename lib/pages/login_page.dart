@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:doggymatch_flutter/pages/main_screen.dart';
 import 'package:doggymatch_flutter/colors.dart';
 import 'package:doggymatch_flutter/pages/welcome_page.dart';
+import 'package:doggymatch_flutter/services/auth.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -10,7 +12,18 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final _auth = AuthService();
+
   bool _isPasswordVisible = false;
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,16 +85,16 @@ class _LoginPageState extends State<LoginPage> {
                 Center(
                   child: _buildInputField(
                     label: 'Email..',
+                    controller: _emailController,
                     obscureText: false,
-                    onChanged: (value) {},
                   ),
                 ),
                 const SizedBox(height: 20),
                 Center(
                   child: _buildInputField(
                     label: 'Password..',
+                    controller: _passwordController,
                     obscureText: !_isPasswordVisible,
-                    onChanged: (value) {},
                     suffixIcon: IconButton(
                       icon: Icon(
                         _isPasswordVisible
@@ -121,13 +134,13 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _buildInputField({
     required String label,
+    required TextEditingController controller,
     required bool obscureText,
-    required ValueChanged<String> onChanged,
     Widget? suffixIcon,
   }) {
     return TextField(
+      controller: controller,
       obscureText: obscureText,
-      onChanged: onChanged,
       decoration: InputDecoration(
         hintText: label,
         hintStyle: const TextStyle(color: AppColors.grey),
@@ -171,7 +184,12 @@ class _LoginPageState extends State<LoginPage> {
       height: 50.0,
       child: ElevatedButton(
         onPressed: () {
+          // Access the text input
+          final email = _emailController.text;
+          final password = _passwordController.text;
+
           // Handle login logic
+          _signin(email, password);
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.lightPurple,
@@ -195,5 +213,21 @@ class _LoginPageState extends State<LoginPage> {
         ),
       ),
     );
+  }
+
+  goToHome() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const MainScreen(),
+      ),
+    );
+  }
+
+  _signin(String email, String password) async {
+    final user = await _auth.signInWithEmailAndPassword(email, password);
+    if (user != null) {
+      goToHome();
+    } else {}
   }
 }

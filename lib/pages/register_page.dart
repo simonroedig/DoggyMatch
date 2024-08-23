@@ -1,6 +1,8 @@
+import 'package:doggymatch_flutter/pages/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
 import 'package:doggymatch_flutter/pages/welcome_page.dart';
+import 'package:doggymatch_flutter/services/auth.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -10,10 +12,23 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
+  final _auth = AuthService();
+
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
-  String _password = '';
-  String _confirmPassword = '';
+
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,20 +91,16 @@ class _RegisterPageState extends State<RegisterPage> {
                 Center(
                   child: _buildInputField(
                     label: 'Email..',
+                    controller: _emailController,
                     obscureText: false,
-                    onChanged: (value) {},
                   ),
                 ),
                 const SizedBox(height: 20),
                 Center(
                   child: _buildInputField(
                     label: 'Password..',
+                    controller: _passwordController,
                     obscureText: !_isPasswordVisible,
-                    onChanged: (value) {
-                      setState(() {
-                        _password = value;
-                      });
-                    },
                     suffixIcon: IconButton(
                       icon: Icon(
                         _isPasswordVisible
@@ -109,12 +120,8 @@ class _RegisterPageState extends State<RegisterPage> {
                 Center(
                   child: _buildInputField(
                     label: 'Confirm Password..',
+                    controller: _confirmPasswordController,
                     obscureText: !_isConfirmPasswordVisible,
-                    onChanged: (value) {
-                      setState(() {
-                        _confirmPassword = value;
-                      });
-                    },
                     suffixIcon: IconButton(
                       icon: Icon(
                         _isConfirmPasswordVisible
@@ -156,14 +163,14 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Widget _buildInputField({
     required String label,
+    required TextEditingController controller,
     required bool obscureText,
-    required ValueChanged<String> onChanged,
     Widget? suffixIcon,
     Color? borderColor,
   }) {
     return TextField(
+      controller: controller,
       obscureText: obscureText,
-      onChanged: onChanged,
       decoration: InputDecoration(
         hintText: label,
         hintStyle: const TextStyle(color: AppColors.grey),
@@ -202,10 +209,13 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Color _getConfirmPasswordBorderColor() {
-    if (_password.isEmpty && _confirmPassword.isEmpty) {
+    final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+
+    if (password.isEmpty && confirmPassword.isEmpty) {
       return AppColors.customBlack;
     }
-    return _password == _confirmPassword ? Colors.green : Colors.red;
+    return password == confirmPassword ? Colors.green : Colors.red;
   }
 
   Widget _buildRegisterButton(double screenWidth) {
@@ -214,7 +224,13 @@ class _RegisterPageState extends State<RegisterPage> {
       height: 50.0,
       child: ElevatedButton(
         onPressed: () {
+          // Access the text input
+          final email = _emailController.text;
+          final password = _passwordController.text;
+          final confirmPassword = _confirmPasswordController.text;
+
           // Handle register logic
+          _signup(email, password, confirmPassword);
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.lightPurple,
@@ -238,5 +254,25 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
       ),
     );
+  }
+
+  goToHome() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const MainScreen(),
+      ),
+    );
+  }
+
+  _signup(String email, String password, String confirmPassword) async {
+    if (password != confirmPassword) {
+      return;
+    }
+
+    final user = await _auth.createUserWithEmailAndPassword(email, password);
+    if (user != null) {
+      goToHome();
+    } else {}
   }
 }
