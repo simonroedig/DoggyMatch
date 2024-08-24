@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:doggymatch_flutter/colors.dart';
+import 'package:doggymatch_flutter/constants/colors.dart';
 import 'package:doggymatch_flutter/widgets/custom_app_bar.dart';
 import 'package:doggymatch_flutter/pages/settings_page.dart';
 import 'package:doggymatch_flutter/widgets/profile/profile_widget.dart';

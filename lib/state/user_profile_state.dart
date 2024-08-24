@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/profile/profile.dart';
-import 'package:doggymatch_flutter/colors.dart';
+import 'package:doggymatch_flutter/constants/colors.dart';
 
 class UserProfileState extends ChangeNotifier {
   UserProfile _userProfile = UserProfile(
     userName: 'Sara',
-    userAge: 30,
+    userBirthday: DateTime(1993, 4, 15),
     aboutText: 'I love my dog and am looking for a trustworthy sitter.',
     profileColor: AppColors.accent1,
     images: ['assets/icons/zz.png', 'assets/icons/zz.png'],
@@ -34,7 +34,7 @@ class UserProfileState extends ChangeNotifier {
 
   void updateUserProfile({
     required String name,
-    required int age,
+    required DateTime userBirthday,
     required String location,
     required String aboutText,
     String? dogName,
@@ -43,7 +43,7 @@ class UserProfileState extends ChangeNotifier {
   }) {
     _userProfile = _userProfile.copyWith(
       userName: name,
-      userAge: age,
+      userBirthday: userBirthday,
       location: location,
       aboutText: aboutText,
       dogName: dogName,

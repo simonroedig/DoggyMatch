@@ -1,12 +1,12 @@
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:doggymatch_flutter/state/user_profile_state.dart';
 import 'package:doggymatch_flutter/profile/profile.dart';
-import 'package:doggymatch_flutter/colors.dart';
+import 'package:doggymatch_flutter/constants/colors.dart';
+import 'package:intl/intl.dart';
 
 class EditProfileDialog extends StatefulWidget {
   final UserProfile profile;
@@ -14,25 +14,27 @@ class EditProfileDialog extends StatefulWidget {
   const EditProfileDialog({super.key, required this.profile});
 
   @override
-  // ignore: library_private_types_in_public_api
   _EditProfileDialogState createState() => _EditProfileDialogState();
 }
 
 class _EditProfileDialogState extends State<EditProfileDialog> {
   late TextEditingController _nameController;
-  late TextEditingController _ageController;
+  late TextEditingController _birthdayController;
   late TextEditingController _locationController;
   late TextEditingController _aboutController;
   late TextEditingController _dogNameController;
   late TextEditingController _dogBreedController;
   late TextEditingController _dogAgeController;
   bool _isLoadingLocation = false;
+  late DateTime _selectedBirthday;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.profile.userName);
-    _ageController = TextEditingController(text: '${widget.profile.userAge}');
+    _selectedBirthday = widget.profile.userBirthday;
+    _birthdayController = TextEditingController(
+        text: DateFormat('yyyy-MM-dd').format(_selectedBirthday));
     _locationController = TextEditingController(text: widget.profile.location);
     _aboutController = TextEditingController(text: widget.profile.aboutText);
     _dogNameController = TextEditingController(text: widget.profile.dogName);
@@ -45,7 +47,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
   @override
   void dispose() {
     _nameController.dispose();
-    _ageController.dispose();
+    _birthdayController.dispose();
     _locationController.dispose();
     _aboutController.dispose();
     _dogNameController.dispose();
@@ -64,7 +66,6 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
 
       serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        // Location services are not enabled, show a message to the user.
         return;
       }
 
@@ -72,20 +73,17 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          // Permissions are denied, show a message to the user.
           return;
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
-        // Permissions are permanently denied, show a message to the user.
         return;
       }
 
       Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
 
-      // Get human-readable address from coordinates
       List<Placemark> placemarks =
           await placemarkFromCoordinates(position.latitude, position.longitude);
       Placemark place = placemarks[0];
@@ -96,7 +94,6 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
         _locationController.text = location;
       });
     } catch (e) {
-      // Handle the error appropriately in your app
       log('Error fetching location: $e');
     } finally {
       if (mounted) {
@@ -104,6 +101,31 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
           _isLoadingLocation = false;
         });
       }
+    }
+  }
+
+  int _calculateAge(DateTime birthday) {
+    DateTime now = DateTime.now();
+    int age = now.year - birthday.year;
+    if (now.month < birthday.month ||
+        (now.month == birthday.month && now.day < birthday.day)) {
+      age--;
+    }
+    return age;
+  }
+
+  Future<void> _selectBirthday(BuildContext context) async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedBirthday,
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && picked != _selectedBirthday) {
+      setState(() {
+        _selectedBirthday = picked;
+        _birthdayController.text = DateFormat('yyyy-MM-dd').format(picked);
+      });
     }
   }
 
@@ -120,17 +142,24 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
               decoration: const InputDecoration(labelText: 'Name'),
             ),
             TextField(
-              controller: _ageController,
-              decoration: const InputDecoration(labelText: 'Age'),
-              keyboardType: TextInputType.number,
+              controller: _birthdayController,
+              decoration: const InputDecoration(labelText: 'Birthday'),
+              readOnly: true,
+              onTap: () => _selectBirthday(context),
             ),
+            if (_selectedBirthday != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child:
+                    Text('Current Age: ${_calculateAge(_selectedBirthday!)}'),
+              ),
             TextField(
               controller: _locationController,
               decoration: InputDecoration(
                 labelText: 'Location',
                 suffixIcon: _isLoadingLocation
                     ? Transform.scale(
-                        scale: 0.4, // Adjust the scale to change the size
+                        scale: 0.4,
                         child: const CircularProgressIndicator(
                           strokeWidth: 6.0,
                           color: AppColors.customBlack,
@@ -145,11 +174,9 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
             TextField(
               controller: _aboutController,
               decoration: const InputDecoration(labelText: 'About'),
-              maxLines: null, // Allows for multiline input
-              keyboardType:
-                  TextInputType.multiline, // Allows for multiline text input
-              textInputAction: TextInputAction
-                  .newline, // Adds a new line instead of submitting the form
+              maxLines: null,
+              keyboardType: TextInputType.multiline,
+              textInputAction: TextInputAction.newline,
             ),
             if (widget.profile.isDogOwner) ...[
               TextField(
@@ -179,8 +206,6 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
         TextButton(
           onPressed: () {
             final updatedName = _nameController.text;
-            final updatedAge =
-                int.tryParse(_ageController.text) ?? widget.profile.userAge;
             final updatedLocation = _locationController.text;
             final updatedAbout = _aboutController.text;
             final updatedDogName = _dogNameController.text;
@@ -191,7 +216,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
             Provider.of<UserProfileState>(context, listen: false)
                 .updateUserProfile(
               name: updatedName,
-              age: updatedAge,
+              userBirthday: _selectedBirthday,
               location: updatedLocation,
               aboutText: updatedAbout,
               dogName: widget.profile.isDogOwner ? updatedDogName : null,

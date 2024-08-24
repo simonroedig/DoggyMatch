@@ -2,7 +2,7 @@ import 'dart:ui';
 
 class UserProfile {
   final String userName;
-  final int userAge;
+  final DateTime userBirthday;
   final String aboutText;
   final Color profileColor;
   final List<String> images;
@@ -15,7 +15,7 @@ class UserProfile {
 
   UserProfile({
     required this.userName,
-    required this.userAge,
+    required this.userBirthday,
     required this.aboutText,
     required this.profileColor,
     required this.images,
@@ -27,9 +27,20 @@ class UserProfile {
     this.dogAge,
   });
 
+  // Method to calculate the user's age based on their birthday
+  int get userAge {
+    final now = DateTime.now();
+    int age = now.year - userBirthday.year;
+    if (now.month < userBirthday.month ||
+        (now.month == userBirthday.month && now.day < userBirthday.day)) {
+      age--;
+    }
+    return age;
+  }
+
   UserProfile copyWith({
     String? userName,
-    int? userAge,
+    DateTime? userBirthday,
     String? aboutText,
     Color? profileColor,
     List<String>? images,
@@ -42,7 +53,7 @@ class UserProfile {
   }) {
     return UserProfile(
       userName: userName ?? this.userName,
-      userAge: userAge ?? this.userAge,
+      userBirthday: userBirthday ?? this.userBirthday,
       aboutText: aboutText ?? this.aboutText,
       profileColor: profileColor ?? this.profileColor,
       images: images ?? this.images,

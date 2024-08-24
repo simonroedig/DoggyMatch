@@ -1,4 +1,4 @@
-import 'package:doggymatch_flutter/colors.dart';
+import 'package:doggymatch_flutter/constants/colors.dart';
 import 'package:flutter/material.dart';
 
 class FullScreenImageView extends StatefulWidget {

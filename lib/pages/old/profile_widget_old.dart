@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/profile/profile.dart';
-import 'package:doggymatch_flutter/colors.dart';
+import 'package:doggymatch_flutter/constants/colors.dart';
 import 'package:doggymatch_flutter/widgets/profile/profile_img_fullscreen.dart';
 import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/state/user_profile_state.dart';
@@ -212,7 +212,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
           const SizedBox(height: 8.0),
           _buildInfoRow(
             icon: Icons.access_time,
-            text: '${widget.profile.userAge}',
+            text: '${widget.profile.userBirthday}',
           ),
           const SizedBox(height: 8.0),
           _buildInfoRow(
@@ -375,7 +375,8 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.profile.userName);
-    _ageController = TextEditingController(text: '${widget.profile.userAge}');
+    _ageController =
+        TextEditingController(text: '${widget.profile.userBirthday}');
     _locationController = TextEditingController(text: widget.profile.location);
     _aboutController = TextEditingController(text: widget.profile.aboutText);
     _dogNameController = TextEditingController(text: widget.profile.dogName);
@@ -449,7 +450,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
         TextButton(
           onPressed: () {
             final updatedName = _nameController.text;
-            final updatedAge =
+            final updatedUserBirthday =
                 int.tryParse(_ageController.text) ?? widget.profile.userAge;
             final updatedLocation = _locationController.text;
             final updatedAbout = _aboutController.text;
@@ -461,7 +462,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
             Provider.of<UserProfileState>(context, listen: false)
                 .updateUserProfile(
               name: updatedName,
-              age: updatedAge,
+              userBirthday: updatedUserBirthday,
               location: updatedLocation,
               aboutText: updatedAbout,
               dogName: widget.profile.isDogOwner ? updatedDogName : null,

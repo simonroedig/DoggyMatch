@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:doggymatch_flutter/colors.dart';
+import 'package:doggymatch_flutter/constants/colors.dart';
 import 'package:doggymatch_flutter/profile/profile.dart';
 
 class UserInfoSection extends StatelessWidget {
@@ -21,7 +21,7 @@ class UserInfoSection extends StatelessWidget {
           const SizedBox(height: 8.0),
           _buildInfoRow(
             icon: Icons.access_time,
-            text: '${profile.userAge}',
+            text: '${profile.userBirthday}',
           ),
           const SizedBox(height: 8.0),
           _buildInfoRow(
