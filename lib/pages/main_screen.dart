@@ -1,3 +1,4 @@
+import 'package:doggymatch_flutter/colors.dart';
 import 'package:doggymatch_flutter/state/user_profile_state.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/pages/search_page.dart';
@@ -12,6 +13,7 @@ class MainScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.bg,
       body: Consumer<UserProfileState>(
         builder: (context, userProfileState, child) {
           final profile = userProfileState.userProfile;

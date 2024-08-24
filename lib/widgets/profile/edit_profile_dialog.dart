@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:doggymatch_flutter/state/user_profile_state.dart';
 import 'package:doggymatch_flutter/profile/profile.dart';
+import 'package:doggymatch_flutter/colors.dart';
 
 class EditProfileDialog extends StatefulWidget {
   final UserProfile profile;
@@ -98,9 +99,11 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
       // Handle the error appropriately in your app
       log('Error fetching location: $e');
     } finally {
-      setState(() {
-        _isLoadingLocation = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoadingLocation = false;
+        });
+      }
     }
   }
 
@@ -126,7 +129,13 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
               decoration: InputDecoration(
                 labelText: 'Location',
                 suffixIcon: _isLoadingLocation
-                    ? const CircularProgressIndicator()
+                    ? Transform.scale(
+                        scale: 0.4, // Adjust the scale to change the size
+                        child: const CircularProgressIndicator(
+                          strokeWidth: 6.0,
+                          color: AppColors.customBlack,
+                        ),
+                      )
                     : IconButton(
                         icon: const Icon(Icons.location_on),
                         onPressed: _getCurrentLocation,

@@ -145,6 +145,18 @@ class _SettingsPageState extends State<SettingsPage> {
                               .updateProfileColor(AppColors.accent3);
                         },
                       ),
+                      const SizedBox(width: 20.0),
+                      _buildColorOption(
+                        color: AppColors.brownLightest,
+                        isSelected: selectedColor == AppColors.brownLightest,
+                        onTap: () {
+                          setState(() {
+                            selectedColor = AppColors.brownLightest;
+                          });
+                          userProfileState
+                              .updateProfileColor(AppColors.brownLightest);
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -328,7 +340,9 @@ class _SettingsPageState extends State<SettingsPage> {
           color: color,
           shape: BoxShape.circle,
           border: Border.all(
-            color: isSelected ? AppColors.customBlack : Colors.transparent,
+            color: isSelected
+                ? AppColors.customBlack
+                : const Color.fromARGB(113, 34, 34, 34),
             width: 3.0,
           ),
         ),
