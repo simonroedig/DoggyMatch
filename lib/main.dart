@@ -3,6 +3,8 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/services/auth_gate.dart';
+import 'package:provider/provider.dart';
+import 'package:doggymatch_flutter/state/user_profile_state.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,10 +19,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'DoggyMatch',
-      home: AuthGate(),
+    return ChangeNotifierProvider(
+      create: (_) => UserProfileState(),
+      child: const MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'DoggyMatch',
+        home: AuthGate(),
+      ),
     );
   }
 }

@@ -6,10 +6,10 @@ class FullScreenImageView extends StatefulWidget {
   final int initialIndex;
 
   const FullScreenImageView({
-    Key? key,
+    super.key,
     required this.images,
     this.initialIndex = 0,
-  }) : super(key: key);
+  });
 
   @override
   // ignore: library_private_types_in_public_api
