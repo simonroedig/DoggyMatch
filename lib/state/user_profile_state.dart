@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/profile/profile.dart';
 import 'package:doggymatch_flutter/colors.dart';
+import 'package:doggymatch_flutter/services/auth.dart';
 
 class UserProfileState extends ChangeNotifier {
+  final _auth = AuthService();
+
   UserProfile _userProfile = UserProfile(
     userName: 'Sara',
     birthday: DateTime(1994, 7, 14),
@@ -10,7 +13,6 @@ class UserProfileState extends ChangeNotifier {
     profileColor: AppColors.accent1,
     images: ['assets/icons/zz.png', 'assets/icons/zz.png'],
     location: 'Munich',
-    distance: '5.2 km',
     isDogOwner: true,
     dogName: 'Buddy',
     dogBreed: 'Golden Retriever',
@@ -25,22 +27,25 @@ class UserProfileState extends ChangeNotifier {
   UserProfile get userProfile => _userProfile;
   int get currentIndex => _currentIndex;
 
-  void updateDogOwnerStatus(bool isDogOwner) {
+  Future<void> updateDogOwnerStatus(bool isDogOwner) async {
     _userProfile = _userProfile.copyWith(isDogOwner: isDogOwner);
     notifyListeners();
+    await _auth.addUserProfileData(_userProfile);
   }
 
-  void updateProfileColor(Color color) {
+  Future<void> updateProfileColor(Color color) async {
     _userProfile = _userProfile.copyWith(profileColor: color);
     notifyListeners();
+    await _auth.addUserProfileData(_userProfile);
   }
 
-  void updateUserProfileImages(List<String> images) {
+  Future<void> updateUserProfileImages(List<String> images) async {
     _userProfile = _userProfile.copyWith(images: images);
     notifyListeners();
+    await _auth.addUserProfileData(_userProfile);
   }
 
-  void updateUserProfile({
+  Future<void> updateUserProfile({
     required String name,
     required DateTime? birthday,
     required String location,
@@ -48,7 +53,7 @@ class UserProfileState extends ChangeNotifier {
     String? dogName,
     String? dogBreed,
     String? dogAge,
-  }) {
+  }) async {
     _userProfile = _userProfile.copyWith(
       userName: name,
       birthday: birthday,
@@ -59,19 +64,21 @@ class UserProfileState extends ChangeNotifier {
       dogAge: dogAge,
     );
     notifyListeners();
+    await _auth.addUserProfileData(_userProfile);
   }
 
-  void updateFilterSettings({
+  Future<void> updateFilterSettings({
     required bool filterLookingForDogOwner,
     required bool filterLookingForDogSitter,
     required double filterDistance,
-  }) {
+  }) async {
     _userProfile = _userProfile.copyWith(
       filterLookingForDogOwner: filterLookingForDogOwner,
       filterLookingForDogSitter: filterLookingForDogSitter,
       filterDistance: filterDistance,
     );
     notifyListeners();
+    await _auth.addUserProfileData(_userProfile);
   }
 
   void updateCurrentIndex(int index) {

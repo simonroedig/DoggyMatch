@@ -273,6 +273,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
     final user = await _auth.createUserWithEmailAndPassword(email, password);
     if (user != null) {
+      _auth.createUserDocument(user);
       goToHome();
     } else {}
   }

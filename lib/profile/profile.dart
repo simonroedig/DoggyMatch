@@ -7,7 +7,6 @@ class UserProfile {
   final Color profileColor;
   final List<String> images;
   final String location;
-  final String distance;
   final bool isDogOwner;
   final String? dogName;
   final String? dogBreed;
@@ -23,11 +22,10 @@ class UserProfile {
     required this.profileColor,
     required this.images,
     required this.location,
-    required this.distance,
     required this.isDogOwner,
-    this.dogName,
-    this.dogBreed,
-    this.dogAge,
+    this.dogName = '',
+    this.dogBreed = '',
+    this.dogAge = '',
     this.filterLookingForDogOwner = true,
     this.filterLookingForDogSitter = true,
     this.filterDistance = 10.0,
@@ -51,7 +49,6 @@ class UserProfile {
     Color? profileColor,
     List<String>? images,
     String? location,
-    String? distance,
     bool? isDogOwner,
     String? dogName,
     String? dogBreed,
@@ -67,7 +64,6 @@ class UserProfile {
       profileColor: profileColor ?? this.profileColor,
       images: images ?? this.images,
       location: location ?? this.location,
-      distance: distance ?? this.distance,
       isDogOwner: isDogOwner ?? this.isDogOwner,
       dogName: dogName ?? this.dogName,
       dogBreed: dogBreed ?? this.dogBreed,

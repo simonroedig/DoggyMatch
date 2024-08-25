@@ -31,7 +31,7 @@ class UserInfoSection extends StatelessWidget {
           const SizedBox(height: 8.0),
           _buildInfoRow(
             icon: Icons.social_distance_rounded,
-            text: profile.distance,
+            text: "10 km",
           ),
         ],
       ),
