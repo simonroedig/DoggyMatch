@@ -15,6 +15,9 @@ class UserProfileState extends ChangeNotifier {
     dogName: 'Buddy',
     dogBreed: 'Golden Retriever',
     dogAge: 'ca. 4',
+    filterLookingForDogOwner: true,
+    filterLookingForDogSitter: true,
+    filterDistance: 5.0,
   );
 
   int _currentIndex = 0;
@@ -54,6 +57,19 @@ class UserProfileState extends ChangeNotifier {
       dogName: dogName,
       dogBreed: dogBreed,
       dogAge: dogAge,
+    );
+    notifyListeners();
+  }
+
+  void updateFilterSettings({
+    required bool filterLookingForDogOwner,
+    required bool filterLookingForDogSitter,
+    required double filterDistance,
+  }) {
+    _userProfile = _userProfile.copyWith(
+      filterLookingForDogOwner: filterLookingForDogOwner,
+      filterLookingForDogSitter: filterLookingForDogSitter,
+      filterDistance: filterDistance,
     );
     notifyListeners();
   }

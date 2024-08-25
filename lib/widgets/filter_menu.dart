@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:doggymatch_flutter/state/user_profile_state.dart';
 import 'package:doggymatch_flutter/colors.dart';
 
 class FilterMenu extends StatefulWidget {
@@ -9,12 +11,26 @@ class FilterMenu extends StatefulWidget {
 }
 
 class FilterMenuState extends State<FilterMenu> {
-  double _currentDistanceValue = 0.1; // Initial distance value
-  bool _isDogOwnerSelected = true; // Track if "Dog" is selected
-  bool _isDogSitterSelected = false; // Track if "Borrowers" is selected
+  late double _currentDistanceValue;
+  late bool _isDogOwnerSelected;
+  late bool _isDogSitterSelected;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize filter values based on the UserProfileState
+    final userProfileState =
+        Provider.of<UserProfileState>(context, listen: false);
+    _currentDistanceValue = userProfileState.userProfile.filterDistance;
+    _isDogOwnerSelected = userProfileState.userProfile.filterLookingForDogOwner;
+    _isDogSitterSelected =
+        userProfileState.userProfile.filterLookingForDogSitter;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final userProfileState = Provider.of<UserProfileState>(context);
+
     return Positioned(
       top: 0.0,
       left: MediaQuery.of(context).size.width * 0.05,
@@ -64,6 +80,7 @@ class FilterMenuState extends State<FilterMenu> {
                 setState(() {
                   _isDogOwnerSelected = !_isDogOwnerSelected;
                   _ensureAtLeastOneSelected();
+                  _updateFilterSettings(userProfileState);
                 });
               },
             ),
@@ -76,6 +93,7 @@ class FilterMenuState extends State<FilterMenu> {
                 setState(() {
                   _isDogSitterSelected = !_isDogSitterSelected;
                   _ensureAtLeastOneSelected();
+                  _updateFilterSettings(userProfileState);
                 });
               },
             ),
@@ -98,8 +116,7 @@ class FilterMenuState extends State<FilterMenu> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 SizedBox(
-                  width: MediaQuery.of(context).size.width *
-                      1, // Adjust slider width here
+                  width: MediaQuery.of(context).size.width * 1,
                   child: Slider(
                     thumbColor: AppColors.brownDarkest,
                     activeColor: AppColors.brownDarkest,
@@ -111,6 +128,7 @@ class FilterMenuState extends State<FilterMenu> {
                     onChanged: (double value) {
                       setState(() {
                         _currentDistanceValue = value;
+                        _updateFilterSettings(userProfileState);
                       });
                     },
                   ),
@@ -171,8 +189,15 @@ class FilterMenuState extends State<FilterMenu> {
 
   void _ensureAtLeastOneSelected() {
     if (!_isDogOwnerSelected && !_isDogSitterSelected) {
-      // If both are deselected, automatically select Dogs by default
       _isDogOwnerSelected = true;
     }
+  }
+
+  void _updateFilterSettings(UserProfileState userProfileState) {
+    userProfileState.updateFilterSettings(
+      filterLookingForDogOwner: _isDogOwnerSelected,
+      filterLookingForDogSitter: _isDogSitterSelected,
+      filterDistance: _currentDistanceValue,
+    );
   }
 }

@@ -12,6 +12,9 @@ class UserProfile {
   final String? dogName;
   final String? dogBreed;
   final String? dogAge;
+  final bool filterLookingForDogOwner;
+  final bool filterLookingForDogSitter;
+  final double filterDistance;
 
   UserProfile({
     required this.userName,
@@ -25,6 +28,9 @@ class UserProfile {
     this.dogName,
     this.dogBreed,
     this.dogAge,
+    this.filterLookingForDogOwner = true,
+    this.filterLookingForDogSitter = true,
+    this.filterDistance = 10.0,
   });
 
   int get userAge {
@@ -50,6 +56,9 @@ class UserProfile {
     String? dogName,
     String? dogBreed,
     String? dogAge,
+    bool? filterLookingForDogOwner,
+    bool? filterLookingForDogSitter,
+    double? filterDistance,
   }) {
     return UserProfile(
       userName: userName ?? this.userName,
@@ -63,6 +72,11 @@ class UserProfile {
       dogName: dogName ?? this.dogName,
       dogBreed: dogBreed ?? this.dogBreed,
       dogAge: dogAge ?? this.dogAge,
+      filterLookingForDogOwner:
+          filterLookingForDogOwner ?? this.filterLookingForDogOwner,
+      filterLookingForDogSitter:
+          filterLookingForDogSitter ?? this.filterLookingForDogSitter,
+      filterDistance: filterDistance ?? this.filterDistance,
     );
   }
 }
