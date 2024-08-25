@@ -62,7 +62,7 @@ class DogInfoSection extends StatelessWidget {
           const SizedBox(height: 8.0),
           _buildInfoRow(
             icon: Icons.access_time,
-            text: '${profile.dogAge ?? ''} years old',
+            text: profile.dogAge ?? '',
           ),
         ],
       ),
@@ -122,12 +122,16 @@ Widget _buildInfoRow({required IconData icon, required String text}) {
     children: [
       Icon(icon, color: AppColors.customBlack),
       const SizedBox(width: 8.0),
-      Text(
-        text,
-        style: const TextStyle(
-          fontFamily: 'Poppins',
-          fontSize: 14,
-          color: AppColors.customBlack,
+      Expanded(
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 14,
+            color: AppColors.customBlack,
+          ),
+          softWrap: true,
+          overflow: TextOverflow.visible,
         ),
       ),
     ],

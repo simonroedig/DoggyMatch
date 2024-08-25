@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
 import 'package:doggymatch_flutter/widgets/profile/profile_img_fullscreen.dart';
 import 'package:doggymatch_flutter/profile/profile.dart';
+import 'package:doggymatch_flutter/widgets/profile/profile_image_edit.dart';
 
 class ProfileImageStack extends StatefulWidget {
   final UserProfile profile;
@@ -37,6 +38,15 @@ class _ProfileImageStackState extends State<ProfileImageStack> {
           child: Container(
             height: 3.0,
             color: AppColors.customBlack,
+          ),
+        ),
+        Positioned(
+          top: 2.0,
+          right: 2.0,
+          child: IconButton(
+            icon: const Icon(Icons.edit_square,
+                color: AppColors.customBlack, size: 20.0),
+            onPressed: () => _openEditImagePage(context),
           ),
         ),
       ],
@@ -104,5 +114,15 @@ class _ProfileImageStackState extends State<ProfileImageStack> {
         initialIndex: _currentImageIndex,
       ),
     ));
+  }
+
+  void _openEditImagePage(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ProfileImageEdit(
+          profile: widget.profile,
+        ),
+      ),
+    );
   }
 }

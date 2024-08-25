@@ -2,7 +2,7 @@ import 'dart:ui';
 
 class UserProfile {
   final String userName;
-  final int userAge;
+  final DateTime? birthday;
   final String aboutText;
   final Color profileColor;
   final List<String> images;
@@ -11,11 +11,11 @@ class UserProfile {
   final bool isDogOwner;
   final String? dogName;
   final String? dogBreed;
-  final int? dogAge;
+  final String? dogAge;
 
   UserProfile({
     required this.userName,
-    required this.userAge,
+    required this.birthday,
     required this.aboutText,
     required this.profileColor,
     required this.images,
@@ -27,9 +27,20 @@ class UserProfile {
     this.dogAge,
   });
 
+  int get userAge {
+    if (birthday == null) return 0;
+    final today = DateTime.now();
+    int age = today.year - birthday!.year;
+    if (today.month < birthday!.month ||
+        (today.month == birthday!.month && today.day < birthday!.day)) {
+      age--;
+    }
+    return age;
+  }
+
   UserProfile copyWith({
     String? userName,
-    int? userAge,
+    DateTime? birthday,
     String? aboutText,
     Color? profileColor,
     List<String>? images,
@@ -38,11 +49,11 @@ class UserProfile {
     bool? isDogOwner,
     String? dogName,
     String? dogBreed,
-    int? dogAge,
+    String? dogAge,
   }) {
     return UserProfile(
       userName: userName ?? this.userName,
-      userAge: userAge ?? this.userAge,
+      birthday: birthday ?? this.birthday,
       aboutText: aboutText ?? this.aboutText,
       profileColor: profileColor ?? this.profileColor,
       images: images ?? this.images,

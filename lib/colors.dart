@@ -13,7 +13,7 @@ class AppColors {
   static const Color pastelPurple = Color(0xFF9074d0);
 
   static const Color grey = Color(0xFF7E7E7E);
-  static const Color greyLightest = Color(0xFFE1E1E1);
+  static const Color greyLightest = Color.fromARGB(255, 236, 236, 236);
 
   static const Color highlight = pastelPurple;
   static const Color accent1 = Color(0xFFC5D7ED);

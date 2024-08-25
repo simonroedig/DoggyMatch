@@ -5,7 +5,7 @@ import 'package:doggymatch_flutter/colors.dart';
 class UserProfileState extends ChangeNotifier {
   UserProfile _userProfile = UserProfile(
     userName: 'Sara',
-    userAge: 30,
+    birthday: DateTime(1994, 7, 14),
     aboutText: 'I love my dog and am looking for a trustworthy sitter.',
     profileColor: AppColors.accent1,
     images: ['assets/icons/zz.png', 'assets/icons/zz.png'],
@@ -14,7 +14,7 @@ class UserProfileState extends ChangeNotifier {
     isDogOwner: true,
     dogName: 'Buddy',
     dogBreed: 'Golden Retriever',
-    dogAge: 5,
+    dogAge: 'ca. 4',
   );
 
   int _currentIndex = 0;
@@ -32,18 +32,23 @@ class UserProfileState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateUserProfileImages(List<String> images) {
+    _userProfile = _userProfile.copyWith(images: images);
+    notifyListeners();
+  }
+
   void updateUserProfile({
     required String name,
-    required int age,
+    required DateTime? birthday,
     required String location,
     required String aboutText,
     String? dogName,
     String? dogBreed,
-    int? dogAge,
+    String? dogAge,
   }) {
     _userProfile = _userProfile.copyWith(
       userName: name,
-      userAge: age,
+      birthday: birthday,
       location: location,
       aboutText: aboutText,
       dogName: dogName,
