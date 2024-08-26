@@ -4,7 +4,9 @@ import 'package:doggymatch_flutter/state/user_profile_state.dart';
 import 'package:doggymatch_flutter/colors.dart';
 
 class FilterMenu extends StatefulWidget {
-  const FilterMenu({super.key});
+  final Function(bool, bool) onFilterChanged;
+
+  const FilterMenu({super.key, required this.onFilterChanged});
 
   @override
   FilterMenuState createState() => FilterMenuState();
@@ -111,7 +113,7 @@ class FilterMenuState extends State<FilterMenu> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 0),
+            const SizedBox(height: 10.0),
             Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -128,7 +130,7 @@ class FilterMenuState extends State<FilterMenu> {
                     onChanged: (double value) {
                       setState(() {
                         _currentDistanceValue = value;
-                        _updateFilterSettings(userProfileState);
+                        // The distance value updates in the UI, but doesn't impact the filtering yet
                       });
                     },
                   ),
@@ -141,6 +143,7 @@ class FilterMenuState extends State<FilterMenu> {
     );
   }
 
+  // The method to build the selection menu for the filter options
   Widget _buildSelectionMenu({
     required IconData icon,
     required String text,
@@ -199,5 +202,6 @@ class FilterMenuState extends State<FilterMenu> {
       filterLookingForDogSitter: _isDogSitterSelected,
       filterDistance: _currentDistanceValue,
     );
+    widget.onFilterChanged(_isDogOwnerSelected, _isDogSitterSelected);
   }
 }

@@ -13,10 +13,19 @@ class SearchPage extends StatefulWidget {
 
 class SearchPageState extends State<SearchPage> {
   bool _isFilterOpen = false;
+  bool _showDogOwners = true;
+  bool _showDogSitters = true;
 
   void _toggleFilter() {
     setState(() {
       _isFilterOpen = !_isFilterOpen;
+    });
+  }
+
+  void _updateFilter(bool showDogOwners, bool showDogSitters) {
+    setState(() {
+      _showDogOwners = showDogOwners;
+      _showDogSitters = showDogSitters;
     });
   }
 
@@ -34,10 +43,15 @@ class SearchPageState extends State<SearchPage> {
             children: [
               Container(
                 color: AppColors.bg,
-                child:
-                    const OtherPersons(), // <-- Updated to display OtherPersons widget
+                child: OtherPersons(
+                  showDogOwners: _showDogOwners,
+                  showDogSitters: _showDogSitters,
+                ),
               ),
-              if (_isFilterOpen) const FilterMenu(),
+              if (_isFilterOpen)
+                FilterMenu(
+                  onFilterChanged: _updateFilter,
+                ),
             ],
           ),
         ),
