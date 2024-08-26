@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/pages/main_screen.dart';
 import 'package:doggymatch_flutter/pages/welcome_page.dart';
+import 'package:provider/provider.dart';
+import 'package:doggymatch_flutter/state/user_profile_state.dart';
 
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
@@ -18,6 +20,11 @@ class AuthGate extends StatelessWidget {
           if (user == null) {
             return const WelcomePage();
           } else {
+            // Refresh user profile when user logs in
+            final userProfileState =
+                Provider.of<UserProfileState>(context, listen: false);
+            userProfileState.refreshUserProfile();
+
             return const MainScreen();
           }
         }

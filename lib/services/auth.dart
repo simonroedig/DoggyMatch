@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -43,7 +44,7 @@ class AuthService {
         return true;
       }
     } catch (e) {
-      print('Error deleting account and data: $e');
+      log('Error deleting account and data: $e');
     }
     return false;
   }
@@ -178,6 +179,9 @@ class AuthService {
   // sign out
   Future signOut() async {
     try {
+      await FirebaseFirestore.instance.terminate(); // Clear Firestore cache
+      await FirebaseFirestore.instance.clearPersistence();
+
       return await _auth.signOut();
     } catch (e) {
       return null;

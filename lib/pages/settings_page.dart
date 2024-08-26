@@ -1,5 +1,6 @@
 // settings_page.dart
 
+import 'package:doggymatch_flutter/main.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
 import 'package:doggymatch_flutter/pages/welcome_page.dart';
@@ -170,7 +171,12 @@ class _SettingsPageState extends State<SettingsPage> {
                     child: ElevatedButton(
                       onPressed: () async {
                         await _auth.signOut();
-                        goToWelcome();
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(
+                              builder: (context) => const MyApp()),
+                          (Route<dynamic> route) =>
+                              false, // Removes all previous routes
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.lightPurple,
@@ -251,7 +257,12 @@ class _SettingsPageState extends State<SettingsPage> {
                       // Call the new method to delete account and user data
                       final success = await _auth.deleteAccountAndData();
                       if (success) {
-                        goToWelcome();
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(
+                              builder: (context) => const MyApp()),
+                          (Route<dynamic> route) =>
+                              false, // Removes all previous routes
+                        );
                       } else {
                         // Handle deletion failure (optional)
                         ScaffoldMessenger.of(context).showSnackBar(

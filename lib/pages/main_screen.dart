@@ -23,7 +23,7 @@ class MainScreen extends StatelessWidget {
 
           if (fromRegister) {
             // Pass the profile to RegisterPage2
-            return RegisterPage2(profile: profile!);
+            return RegisterPage2(profile: profile);
           }
 
           List<Widget> pages = [

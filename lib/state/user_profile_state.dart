@@ -10,19 +10,19 @@ class UserProfileState extends ChangeNotifier {
       'https://firebasestorage.googleapis.com/v0/b/doggymatch-bb17f.appspot.com/o/placeholder.png?alt=media&token=b02e0072-f0f9-45dc-8db6-517fe82491b1';
 
   UserProfile _userProfile = UserProfile(
-    userName: 'Sara',
-    birthday: DateTime(1994, 7, 14),
-    aboutText: 'I love my dog and am looking for a trustworthy sitter.',
+    userName: '',
+    birthday: DateTime(2000, 1, 1),
+    aboutText: '',
     profileColor: AppColors.accent1,
-    images: [],
-    location: 'Munich',
-    isDogOwner: true,
-    dogName: 'Buddy',
-    dogBreed: 'Golden Retriever',
-    dogAge: 'ca. 4',
-    filterLookingForDogOwner: true,
-    filterLookingForDogSitter: true,
-    filterDistance: 5.0,
+    images: [placeholderImageUrl],
+    location: '',
+    isDogOwner: false,
+    dogName: '',
+    dogBreed: '',
+    dogAge: '',
+    filterLookingForDogOwner: false,
+    filterLookingForDogSitter: false,
+    filterDistance: 0.0,
   );
 
   int _currentIndex = 0;
@@ -34,6 +34,27 @@ class UserProfileState extends ChangeNotifier {
     _initializeUserProfile();
   }
 
+  // Reset state method
+  void resetState() {
+    _userProfile = UserProfile(
+      userName: '',
+      birthday: DateTime(2000, 1, 1),
+      aboutText: '',
+      profileColor: AppColors.accent1,
+      images: [placeholderImageUrl],
+      location: '',
+      isDogOwner: false,
+      dogName: '',
+      dogBreed: '',
+      dogAge: '',
+      filterLookingForDogOwner: false,
+      filterLookingForDogSitter: false,
+      filterDistance: 0.0,
+    );
+    _currentIndex = 0;
+    notifyListeners(); // Notify listeners that the state has changed
+  }
+
   List<String> get userImages {
     return _userProfile.images
         .where((image) => image != placeholderImageUrl)
@@ -41,7 +62,6 @@ class UserProfileState extends ChangeNotifier {
   }
 
   Future<void> updateUserProfileImages(List<String> images) async {
-    // Exclude the placeholder image from updates
     _userProfile = _userProfile.copyWith(
       images: images.isEmpty ? [placeholderImageUrl] : images,
     );
@@ -57,10 +77,12 @@ class UserProfileState extends ChangeNotifier {
       }
       _userProfile = fetchedProfile;
       notifyListeners();
-    } else {
-      _userProfile = _userProfile.copyWith(images: [placeholderImageUrl]);
-      notifyListeners();
     }
+  }
+
+  // Expose this method to manually refresh the user profile
+  Future<void> refreshUserProfile() async {
+    await _initializeUserProfile();
   }
 
   Future<void> updateDogOwnerStatus(bool isDogOwner) async {
