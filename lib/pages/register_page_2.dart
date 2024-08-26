@@ -1,22 +1,20 @@
-// settings_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
-import 'package:doggymatch_flutter/pages/welcome_page.dart';
-import 'package:doggymatch_flutter/services/auth.dart';
-import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/state/user_profile_state.dart';
+import 'package:provider/provider.dart';
+import 'package:doggymatch_flutter/widgets/profile/profile_edit_all.dart';
+import 'package:doggymatch_flutter/profile/profile.dart';
 
-class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key});
+class RegisterPage2 extends StatefulWidget {
+  final UserProfile profile;
+
+  const RegisterPage2({super.key, required this.profile});
 
   @override
-  State<SettingsPage> createState() => _SettingsPageState();
+  State<RegisterPage2> createState() => _RegisterPage2State();
 }
 
-class _SettingsPageState extends State<SettingsPage> {
-  final _auth = AuthService();
-
+class _RegisterPage2State extends State<RegisterPage2> {
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
@@ -26,33 +24,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
     return Scaffold(
       backgroundColor: AppColors.greyLightest,
-      appBar: AppBar(
-        title: const Text(
-          'Settings',
-          style: TextStyle(
-            fontFamily: 'Poppins',
-            fontWeight: FontWeight.bold,
-            color: AppColors.customBlack,
-          ),
-        ),
-        backgroundColor: AppColors.greyLightest,
-        elevation: 0,
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Container(
-            decoration: BoxDecoration(
-              color: AppColors.greyLightest,
-              borderRadius: BorderRadius.circular(50.0),
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.arrow_circle_left_rounded),
-              onPressed: () => Navigator.of(context).pop(),
-              color: AppColors.customBlack,
-              iconSize: 30.0,
-            ),
-          ),
-        ),
-      ),
       body: Stack(
         children: [
           Padding(
@@ -60,6 +31,7 @@ class _SettingsPageState extends State<SettingsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const SizedBox(height: 40.0),
                 const Center(
                   child: Text(
                     "I am a",
@@ -163,108 +135,21 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ),
                 const SizedBox(height: 30.0),
-                Center(
-                  child: SizedBox(
-                    width: screenWidth * 0.4,
-                    height: 50.0,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        await _auth.signOut();
-                        goToWelcome();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.lightPurple,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        side: const BorderSide(
-                          color: AppColors.customBlack,
-                          width: 3,
-                        ),
-                        elevation: 0, // Remove shadow
-                      ),
-                      child: const Text(
-                        '< Logout',
-                        style: TextStyle(
-                          color: AppColors.bg,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w600,
-                          fontSize: 18,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
           Positioned(
             bottom: 16.0,
-            left: 16.0,
             right: 16.0,
             child: SizedBox(
-              width: screenWidth * 0.8,
+              width: screenWidth * 0.4,
               height: 50.0,
               child: ElevatedButton(
-                onPressed: () async {
-                  final firstConfirmation = await showDialog<bool>(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Confirm Deletion'),
-                      content: const Text(
-                          'Are you sure you want to delete your account?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(false),
-                          child: const Text('No'),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(true),
-                          child: const Text('Yes'),
-                        ),
-                      ],
-                    ),
-                  );
-
-                  if (firstConfirmation == true) {
-                    final secondConfirmation = await showDialog<bool>(
-                      // ignore: use_build_context_synchronously
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Are You Absolutely Sure?'),
-                        content: const Text(
-                            'This action is irreversible. Do you really want to delete your account?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(false),
-                            child: const Text('No'),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(true),
-                            child: const Text('Yes, Delete'),
-                          ),
-                        ],
-                      ),
-                    );
-
-                    if (secondConfirmation == true) {
-                      // Call the new method to delete account and user data
-                      final success = await _auth.deleteAccountAndData();
-                      if (success) {
-                        goToWelcome();
-                      } else {
-                        // Handle deletion failure (optional)
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Failed to delete account.'),
-                          ),
-                        );
-                      }
-                    }
-                  }
+                onPressed: () {
+                  _openEditProfileDialog(context);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
+                  backgroundColor: AppColors.lightPurple,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
@@ -272,10 +157,10 @@ class _SettingsPageState extends State<SettingsPage> {
                     color: AppColors.customBlack,
                     width: 3,
                   ),
-                  elevation: 0, // Remove shadow
+                  elevation: 0,
                 ),
                 child: const Text(
-                  '😢 Delete Account',
+                  '>',
                   style: TextStyle(
                     color: AppColors.bg,
                     fontFamily: 'Poppins',
@@ -367,13 +252,14 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  void goToWelcome() {
-    Navigator.pushAndRemoveUntil(
-      context,
+  void _openEditProfileDialog(BuildContext context) {
+    Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => const WelcomePage(),
+        builder: (context) => ProfileImageEdit(
+          profile: widget.profile,
+          fromRegister: true,
+        ),
       ),
-      (route) => false,
     );
   }
 }

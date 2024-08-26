@@ -12,11 +12,14 @@ import 'package:geocoding/geocoding.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:doggymatch_flutter/colors.dart'; // Import your custom colors
+import 'package:doggymatch_flutter/pages/main_screen.dart'; // Import MainScreen to navigate back
 
 class ProfileImageEdit extends StatefulWidget {
   final UserProfile profile;
+  final bool fromRegister;
 
-  const ProfileImageEdit({super.key, required this.profile});
+  const ProfileImageEdit(
+      {super.key, required this.profile, this.fromRegister = false});
 
   @override
   _ProfileImageEditState createState() => _ProfileImageEditState();
@@ -67,11 +70,6 @@ class _ProfileImageEditState extends State<ProfileImageEdit> {
     _dogNameController.addListener(() => setState(() {}));
     _dogBreedController.addListener(() => setState(() {}));
     _dogAgeController.addListener(() => setState(() {}));
-
-    // Save profile data when the user navigates away from the page
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ModalRoute.of(context)?.addScopedWillPopCallback(_onWillPop);
-    });
   }
 
   @override
@@ -95,22 +93,36 @@ class _ProfileImageEditState extends State<ProfileImageEdit> {
   }
 
   bool _validateFields() {
+    // Validate name
     if (_nameController.text.length < _minFieldLength) return false;
+
+    // Validate birthday
+    if (_selectedBirthday == null) return false;
+
+    // Validate about section
     if (_aboutController.text.length < _minAboutLength) return false;
+
+    // Validate dog information if the user is a dog owner
     if (widget.profile.isDogOwner) {
       if (_dogNameController.text.length < _minFieldLength) return false;
       if (_dogBreedController.text.length < _minFieldLength) return false;
       if (_dogAgeController.text.length < _minFieldLength) return false;
     }
+
     return true;
   }
 
   void _showValidationError() {
+    String message =
+        "Please fill out all required fields with the minimum required characters.";
+
+    if (_selectedBirthday == null) {
+      message = "Please select a birthday.";
+    }
+
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          "Please fill out all required fields with the minimum required characters.",
-        ),
+      SnackBar(
+        content: Text(message),
         backgroundColor: AppColors.customRed,
       ),
     );
@@ -306,224 +318,267 @@ class _ProfileImageEditState extends State<ProfileImageEdit> {
   Widget build(BuildContext context) {
     final isMaxImages = _images.length >= 9;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          "Edit Profile",
-          style: TextStyle(
-            fontFamily: 'Poppins',
-            fontWeight: FontWeight.bold,
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: !widget
+              .fromRegister, // Prevent default back button if fromRegister is true
+          title: Align(
+            alignment: widget.fromRegister
+                ? Alignment.centerRight
+                : Alignment.centerLeft,
+            child: const Text(
+              "Edit Profile",
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
+          backgroundColor: AppColors.greyLightest,
+          elevation: 0.0, // Remove shadow
+          scrolledUnderElevation: 0.0, // Prevent darkening on scroll
+          surfaceTintColor:
+              Colors.transparent, // Keep the background color consistent
+          leading: widget.fromRegister
+              ? null
+              : IconButton(
+                  icon: const Icon(
+                    Icons.arrow_circle_left_rounded,
+                    size: 30.0,
+                    color: AppColors.customBlack,
+                  ),
+                  onPressed: () async {
+                    if (await _onWillPop()) {
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              const MainScreen(fromRegister: false),
+                        ),
+                        (route) => false,
+                      );
+                    }
+                  },
+                ),
+          actions: widget.fromRegister
+              ? [
+                  IconButton(
+                    icon: const Icon(
+                      Icons
+                          .arrow_circle_right_rounded, // Icon pointing to the right
+                      size: 30.0,
+                      color: AppColors.customBlack,
+                    ),
+                    onPressed: () async {
+                      if (await _onWillPop()) {
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const MainScreen(fromRegister: false),
+                          ),
+                          (route) => false,
+                        );
+                      }
+                    },
+                  ),
+                ]
+              : null,
         ),
         backgroundColor: AppColors.greyLightest,
-        elevation: 0.0, // Remove shadow
-        scrolledUnderElevation: 0.0, // Prevent darkening on scroll
-        surfaceTintColor:
-            Colors.transparent, // Keep the background color consistent
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_circle_left_rounded, // Use the desired icon
-            size: 30.0, // Set the icon size to 30
-            color: AppColors.customBlack, // Set the color of the icon
-          ),
-          onPressed: () {
-            Navigator.of(context).pop(); // Go back when pressed
-          },
-        ),
-      ),
-      backgroundColor: AppColors.greyLightest,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                "${_images.length}/9 Images Uploaded",
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 16.0,
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  "${_images.length}/9 Images Uploaded",
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 16.0,
+                  ),
                 ),
               ),
-            ),
-            ReorderableGridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                childAspectRatio: 1.0,
-                mainAxisSpacing: 8.0,
-                crossAxisSpacing: 8.0,
-              ),
-              padding: const EdgeInsets.all(8.0),
-              itemCount: isMaxImages ? _images.length : _images.length + 1,
-              onReorder: (oldIndex, newIndex) {
-                if (oldIndex < _images.length && newIndex < _images.length) {
-                  _reorderImages(oldIndex, newIndex);
-                }
-              },
-              itemBuilder: (context, index) {
-                if (index == _images.length && !isMaxImages) {
-                  // Only render the add image icon if there are less than 9 images
-                  return GestureDetector(
-                    key: const ValueKey('add_image'),
-                    onTap: _uploadImage,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.customBlack.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(14.0),
-                        border: Border.all(
+              ReorderableGridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  childAspectRatio: 1.0,
+                  mainAxisSpacing: 8.0,
+                  crossAxisSpacing: 8.0,
+                ),
+                padding: const EdgeInsets.all(8.0),
+                itemCount: isMaxImages ? _images.length : _images.length + 1,
+                onReorder: (oldIndex, newIndex) {
+                  if (oldIndex < _images.length && newIndex < _images.length) {
+                    _reorderImages(oldIndex, newIndex);
+                  }
+                },
+                itemBuilder: (context, index) {
+                  if (index == _images.length && !isMaxImages) {
+                    return GestureDetector(
+                      key: const ValueKey('add_image'),
+                      onTap: _uploadImage,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.customBlack.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(14.0),
+                          border: Border.all(
+                            color: AppColors.customBlack,
+                            width: 3.0,
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.add_photo_alternate,
                           color: AppColors.customBlack,
-                          width: 3.0,
+                          size: 40.0,
                         ),
                       ),
-                      child: const Icon(
-                        Icons.add_photo_alternate,
-                        color: AppColors.customBlack,
-                        size: 40.0,
-                      ),
-                    ),
-                  );
-                } else if (index < _images.length) {
-                  return Stack(
-                    key: ValueKey(_images[index]),
-                    children: [
-                      Positioned.fill(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(14.0),
-                            border: Border.all(
-                              color: AppColors.customBlack,
-                              width: 3.0,
+                    );
+                  } else if (index < _images.length) {
+                    return Stack(
+                      key: ValueKey(_images[index]),
+                      children: [
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(14.0),
+                              border: Border.all(
+                                color: AppColors.customBlack,
+                                width: 3.0,
+                              ),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(11.0),
+                              child: _images[index].startsWith('http')
+                                  ? Image.network(
+                                      _images[index],
+                                      fit: BoxFit.cover,
+                                    )
+                                  : Image.asset(
+                                      _images[index],
+                                      fit: BoxFit.cover,
+                                    ),
                             ),
                           ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(11.0),
-                            child: _images[index].startsWith('http')
-                                ? Image.network(
-                                    _images[index],
-                                    fit: BoxFit.cover,
-                                  )
-                                : Image.asset(
-                                    _images[index],
-                                    fit: BoxFit.cover,
-                                  ),
+                        ),
+                        Positioned(
+                          top: 0.0,
+                          right: 0.0,
+                          child: IconButton(
+                            icon: const Icon(
+                              Icons.close_rounded,
+                              color: AppColors.customBlack,
+                            ),
+                            onPressed: () => _deleteImage(index),
                           ),
+                        ),
+                      ],
+                    );
+                  } else {
+                    return const SizedBox.shrink();
+                  }
+                },
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+              ),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  children: [
+                    _buildTextFieldWithCounter(
+                      controller: _nameController,
+                      maxLength: _maxNameLength,
+                      minLength: _minFieldLength,
+                      labelText: 'Name',
+                      icon: Icons.person_rounded,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildHeadlineWithIcon(Icons.access_time, 'Birthday'),
+                    GestureDetector(
+                      onTap: () => _selectBirthday(context),
+                      child: AbsorbPointer(
+                        child: TextField(
+                          controller: TextEditingController(
+                            text: _selectedBirthday != null
+                                ? DateFormat.yMd().format(_selectedBirthday!)
+                                : '',
+                          ),
+                          decoration: const InputDecoration(
+                            suffixIcon: Icon(Icons.calendar_today,
+                                color: AppColors.customBlack),
+                          ),
+                          style: const TextStyle(color: AppColors.customBlack),
                         ),
                       ),
-                      Positioned(
-                        top: 0.0,
-                        right: 0.0,
-                        child: IconButton(
-                          icon: const Icon(
-                            Icons.close_rounded,
-                            color: AppColors.customBlack,
-                          ),
-                          onPressed: () => _deleteImage(index),
-                        ),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildHeadlineWithIcon(
+                        Icons.location_on_rounded, 'Location'),
+                    TextField(
+                      controller: _locationController,
+                      minLines: 1,
+                      maxLines: null,
+                      decoration: InputDecoration(
+                        suffixIcon: _isLoadingLocation
+                            ? Transform.scale(
+                                scale: 0.4,
+                                child: const CircularProgressIndicator(
+                                  strokeWidth: 6.0,
+                                  color: AppColors.customBlack,
+                                ),
+                              )
+                            : IconButton(
+                                icon: const Icon(Icons.location_on_rounded,
+                                    color: AppColors.customBlack),
+                                onPressed: _getCurrentLocation,
+                              ),
+                      ),
+                      style: const TextStyle(color: AppColors.customBlack),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextFieldWithCounter(
+                      controller: _aboutController,
+                      maxLength: _maxAboutLength,
+                      minLength: _minAboutLength,
+                      labelText: 'About',
+                      icon: Icons.info_outline_rounded,
+                      keyboardType: TextInputType.multiline,
+                      minLines: 1,
+                      maxLines: null,
+                    ),
+                    if (widget.profile.isDogOwner) ...[
+                      const SizedBox(height: 16),
+                      _buildTextFieldWithCounter(
+                        controller: _dogNameController,
+                        maxLength: _maxDogNameLength,
+                        minLength: _minFieldLength,
+                        labelText: 'Dog Name',
+                        icon: Icons.pets_rounded,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextFieldWithCounter(
+                        controller: _dogBreedController,
+                        maxLength: _maxDogBreedLength,
+                        minLength: _minFieldLength,
+                        labelText: 'Dog Breed',
+                        icon: CupertinoIcons.heart_circle,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextFieldWithCounter(
+                        controller: _dogAgeController,
+                        maxLength: _maxDogAgeLength,
+                        minLength: _minFieldLength,
+                        labelText: 'Dog Age',
+                        icon: Icons.access_time,
                       ),
                     ],
-                  );
-                } else {
-                  return const SizedBox.shrink();
-                }
-              },
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-            ),
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                children: [
-                  _buildTextFieldWithCounter(
-                    controller: _nameController,
-                    maxLength: _maxNameLength,
-                    minLength: _minFieldLength,
-                    labelText: 'Name',
-                    icon: Icons.person_rounded,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildHeadlineWithIcon(Icons.access_time, 'Birthday'),
-                  GestureDetector(
-                    onTap: () => _selectBirthday(context),
-                    child: AbsorbPointer(
-                      child: TextField(
-                        controller: TextEditingController(
-                          text: _selectedBirthday != null
-                              ? DateFormat.yMd().format(_selectedBirthday!)
-                              : '',
-                        ),
-                        decoration: const InputDecoration(
-                          suffixIcon: Icon(Icons.calendar_today,
-                              color: AppColors.customBlack),
-                        ),
-                        style: const TextStyle(color: AppColors.customBlack),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildHeadlineWithIcon(Icons.location_on_rounded, 'Location'),
-                  TextField(
-                    controller: _locationController,
-                    minLines: 1,
-                    maxLines: null,
-                    decoration: InputDecoration(
-                      suffixIcon: _isLoadingLocation
-                          ? Transform.scale(
-                              scale: 0.4,
-                              child: const CircularProgressIndicator(
-                                strokeWidth: 6.0,
-                                color: AppColors.customBlack,
-                              ),
-                            )
-                          : IconButton(
-                              icon: const Icon(Icons.location_on_rounded,
-                                  color: AppColors.customBlack),
-                              onPressed: _getCurrentLocation,
-                            ),
-                    ),
-                    style: const TextStyle(color: AppColors.customBlack),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextFieldWithCounter(
-                    controller: _aboutController,
-                    maxLength: _maxAboutLength,
-                    minLength: _minAboutLength,
-                    labelText: 'About',
-                    icon: Icons.info_outline_rounded,
-                    keyboardType: TextInputType.multiline,
-                    minLines: 1,
-                    maxLines: null,
-                  ),
-                  if (widget.profile.isDogOwner) ...[
-                    const SizedBox(height: 16),
-                    _buildTextFieldWithCounter(
-                      controller: _dogNameController,
-                      maxLength: _maxDogNameLength,
-                      minLength: _minFieldLength,
-                      labelText: 'Dog Name',
-                      icon: Icons.pets_rounded,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTextFieldWithCounter(
-                      controller: _dogBreedController,
-                      maxLength: _maxDogBreedLength,
-                      minLength: _minFieldLength,
-                      labelText: 'Dog Breed',
-                      icon: CupertinoIcons.heart_circle,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTextFieldWithCounter(
-                      controller: _dogAgeController,
-                      maxLength: _maxDogAgeLength,
-                      minLength: _minFieldLength,
-                      labelText: 'Dog Age',
-                      icon: Icons.access_time,
-                    ),
                   ],
-                ],
+                ),
               ),
-            ),
-            const SizedBox(height: 32),
-          ],
+              const SizedBox(height: 32),
+            ],
+          ),
         ),
       ),
     );

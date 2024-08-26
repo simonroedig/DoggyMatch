@@ -12,6 +12,42 @@ class AuthService {
   // https://www.youtube.com/watch?v=Xe-8igE1_JI
   // testpassword
 
+  // Delete user account and associated Firestore document
+  // auth.dart
+
+  // Delete user account, associated Firestore document, and all user images in Firebase Storage
+  Future<bool> deleteAccountAndData() async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        final userDocRef =
+            FirebaseFirestore.instance.collection('users').doc(user.uid);
+        final userDocSnapshot = await userDocRef.get();
+
+        if (userDocSnapshot.exists) {
+          final userData = userDocSnapshot.data();
+          if (userData != null) {
+            // Delete all user images from Firebase Storage
+            List<String> images = List<String>.from(userData['images'] ?? []);
+            for (String imageUrl in images) {
+              await deleteProfileImage(imageUrl);
+            }
+          }
+        }
+
+        // Delete the user's document from Firestore
+        await userDocRef.delete();
+
+        // Delete the user's Firebase account
+        await user.delete();
+        return true;
+      }
+    } catch (e) {
+      print('Error deleting account and data: $e');
+    }
+    return false;
+  }
+
   // Get the current user's UID
   String? getCurrentUserId() {
     final user = _auth.currentUser;

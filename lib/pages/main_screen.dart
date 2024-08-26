@@ -1,4 +1,5 @@
 import 'package:doggymatch_flutter/colors.dart';
+import 'package:doggymatch_flutter/pages/register_page_2.dart';
 import 'package:doggymatch_flutter/state/user_profile_state.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/pages/search_page.dart';
@@ -8,7 +9,9 @@ import 'package:doggymatch_flutter/widgets/custom_bottom_navigation.dart';
 import 'package:provider/provider.dart';
 
 class MainScreen extends StatelessWidget {
-  const MainScreen({super.key});
+  final bool fromRegister;
+
+  const MainScreen({super.key, this.fromRegister = false});
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +20,11 @@ class MainScreen extends StatelessWidget {
       body: Consumer<UserProfileState>(
         builder: (context, userProfileState, child) {
           final profile = userProfileState.userProfile;
+
+          if (fromRegister) {
+            // Pass the profile to RegisterPage2
+            return RegisterPage2(profile: profile!);
+          }
 
           List<Widget> pages = [
             const SearchPage(),
@@ -34,16 +42,18 @@ class MainScreen extends StatelessWidget {
           );
         },
       ),
-      bottomNavigationBar: Consumer<UserProfileState>(
-        builder: (context, userProfileState, child) {
-          return CustomBottomNavigationBar(
-            activeIndex: userProfileState.currentIndex,
-            onTabTapped: (index) {
-              userProfileState.updateCurrentIndex(index);
-            },
-          );
-        },
-      ),
+      bottomNavigationBar: fromRegister
+          ? null
+          : Consumer<UserProfileState>(
+              builder: (context, userProfileState, child) {
+                return CustomBottomNavigationBar(
+                  activeIndex: userProfileState.currentIndex,
+                  onTabTapped: (index) {
+                    userProfileState.updateCurrentIndex(index);
+                  },
+                );
+              },
+            ),
     );
   }
 }
