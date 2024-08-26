@@ -19,6 +19,7 @@ class ProfileImageEdit extends StatefulWidget {
   const ProfileImageEdit({super.key, required this.profile});
 
   @override
+  // ignore: library_private_types_in_public_api
   _ProfileImageEditState createState() => _ProfileImageEditState();
 }
 
@@ -70,6 +71,7 @@ class _ProfileImageEditState extends State<ProfileImageEdit> {
 
     // Save profile data when the user navigates away from the page
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // ignore: deprecated_member_use
       ModalRoute.of(context)?.addScopedWillPopCallback(_onWillPop);
     });
   }

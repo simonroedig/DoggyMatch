@@ -13,7 +13,7 @@ class ProfilePage extends StatelessWidget {
   void _navigateToSettings(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => const SettingsPage(),
+        builder: (context) => SettingsPage(profile: profile),
       ),
     );
   }

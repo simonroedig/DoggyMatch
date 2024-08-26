@@ -1,11 +1,16 @@
-import 'package:doggymatch_flutter/pages/main_screen.dart';
+import 'package:doggymatch_flutter/pages/register_page_2.dart';
+import 'package:doggymatch_flutter/profile/profile.dart';
 import 'package:flutter/material.dart';
+import 'package:doggymatch_flutter/pages/main_screen.dart';
 import 'package:doggymatch_flutter/colors.dart';
-import 'package:doggymatch_flutter/pages/welcome_page.dart';
+import 'package:doggymatch_flutter/pages/login_page.dart';
 import 'package:doggymatch_flutter/services/auth.dart';
+import 'package:doggymatch_flutter/pages/welcome_page.dart';
 
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
+  final UserProfile profile;
+
+  const RegisterPage({super.key, required this.profile});
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
@@ -16,6 +21,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
+  bool _isLoading = false;
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -47,20 +53,16 @@ class _RegisterPageState extends State<RegisterPage> {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: IconButton(
-                    icon: const Icon(
-                      Icons.chevron_left_rounded,
-                      color: AppColors.deepPurple,
-                      size: 60.0,
-                    ),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const WelcomePage(),
+                      icon: const Icon(
+                        Icons.chevron_left_rounded,
+                        color: AppColors.deepPurple,
+                        size: 60.0,
                       ),
-                    ),
-                  ),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () {
+                        _openWelcomePage(context);
+                      }),
                 ),
                 const SizedBox(height: 20),
                 const Center(
@@ -141,8 +143,25 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                 ),
                 const SizedBox(height: 40),
+                _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : Center(
+                        child: _buildRegisterButton(screenWidth),
+                      ),
+                const SizedBox(height: 20),
                 Center(
-                  child: _buildRegisterButton(screenWidth),
+                  child: TextButton(
+                    onPressed: () {
+                      _openLoginPage(context);
+                    },
+                    child: const Text(
+                      "Already have an account? Login instead!",
+                      style: TextStyle(
+                          color: AppColors.deepPurple,
+                          fontFamily: 'Poppins',
+                          fontSize: 12),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -224,15 +243,17 @@ class _RegisterPageState extends State<RegisterPage> {
       width: screenWidth * 0.4,
       height: 50.0,
       child: ElevatedButton(
-        onPressed: () {
-          // Access the text input
-          final email = _emailController.text;
-          final password = _passwordController.text;
-          final confirmPassword = _confirmPasswordController.text;
+        onPressed: _isLoading
+            ? null
+            : () {
+                // Access the text input
+                final email = _emailController.text;
+                final password = _passwordController.text;
+                final confirmPassword = _confirmPasswordController.text;
 
-          // Handle register logic
-          _signup(email, password, confirmPassword);
-        },
+                // Handle register logic
+                _signup(email, password, confirmPassword);
+              },
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.lightPurple,
           shape: RoundedRectangleBorder(
@@ -257,7 +278,7 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  goToHome() {
+  void goToHome() {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -266,15 +287,59 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  _signup(String email, String password, String confirmPassword) async {
+  Future<void> _signup(
+      String email, String password, String confirmPassword) async {
     if (password != confirmPassword) {
+      // Show an error message
+
+      _openRegisterPage2(context);
       return;
     }
+
+    setState(() {
+      _isLoading = true;
+    });
 
     final user = await _auth.createUserWithEmailAndPassword(email, password);
     if (user != null) {
       _auth.createUserDocument(user);
       goToHome();
-    } else {}
+    } else {
+      // Handle registration error
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  void _openRegisterPage2(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => RegisterPage2(
+          profile: widget.profile,
+        ),
+      ),
+    );
+  }
+
+  void _openLoginPage(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => LoginPage(
+          profile: widget.profile,
+        ),
+      ),
+    );
+  }
+
+  void _openWelcomePage(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => WelcomePage(
+          profile: widget.profile,
+        ),
+      ),
+    );
   }
 }

@@ -10,10 +10,30 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:doggymatch_flutter/main.dart';
 
+import 'package:doggymatch_flutter/profile/profile.dart';
+import 'package:doggymatch_flutter/colors.dart';
+
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+
+    final UserProfile testProfile = UserProfile(
+      userName: '...', // Replace with actual user data
+      birthday: DateTime(1990, 1, 1), // Replace with actual birthday
+      aboutText: '...', // Replace with actual about text
+      profileColor: AppColors.accent1, // Replace with the actual profile color
+      images: [], // Replace with actual image paths or URLs
+      location: '...', // Replace with actual location
+      isDogOwner: true, // Set to true or false based on user data
+      dogName: '...', // Optional
+      dogBreed: '...', // Optional
+      dogAge: '...', // Optional
+      filterLookingForDogOwner: true,
+      filterLookingForDogSitter: true,
+      filterDistance: 10.0,
+    );
+
+    await tester.pumpWidget(MyApp(profile: testProfile));
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);

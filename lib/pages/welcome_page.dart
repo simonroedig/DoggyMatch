@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
 import 'package:doggymatch_flutter/pages/register_page.dart';
 import 'package:doggymatch_flutter/pages/login_page.dart';
+import 'package:doggymatch_flutter/profile/profile.dart';
 
 class WelcomePage extends StatelessWidget {
-  const WelcomePage({super.key});
+  final UserProfile profile;
+
+  const WelcomePage({super.key, required this.profile});
 
   @override
   Widget build(BuildContext context) {
@@ -83,14 +86,14 @@ class WelcomePage extends StatelessWidget {
         _buildButton(
           context: context,
           label: 'Register',
-          onPressed: () => _navigateToPage(context, const RegisterPage()),
+          onPressed: () => _openRegisterPage(context),
           backgroundColor: AppColors.brownLightest,
         ),
         const SizedBox(height: 8),
         _buildButton(
           context: context,
           label: 'Login',
-          onPressed: () => _navigateToPage(context, const LoginPage()),
+          onPressed: () => _openLoginPage(context),
           backgroundColor: AppColors.bg,
         ),
       ],
@@ -135,11 +138,23 @@ class WelcomePage extends StatelessWidget {
     );
   }
 
-  // Navigation function to abstract page routing logic
-  void _navigateToPage(BuildContext context, Widget page) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => page),
+  void _openLoginPage(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => LoginPage(
+          profile: profile,
+        ),
+      ),
+    );
+  }
+
+  void _openRegisterPage(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => RegisterPage(
+          profile: profile,
+        ),
+      ),
     );
   }
 }
