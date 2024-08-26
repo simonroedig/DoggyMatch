@@ -1,5 +1,7 @@
 // settings_page.dart
 
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:doggymatch_flutter/main.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
@@ -234,7 +236,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
                   if (firstConfirmation == true) {
                     final secondConfirmation = await showDialog<bool>(
-                      // ignore: use_build_context_synchronously
                       context: context,
                       builder: (context) => AlertDialog(
                         title: const Text('Are You Absolutely Sure?'),
@@ -256,6 +257,10 @@ class _SettingsPageState extends State<SettingsPage> {
                     if (secondConfirmation == true) {
                       // Call the new method to delete account and user data
                       final success = await _auth.deleteAccountAndData();
+                      if (!mounted) {
+                        return; // Ensure the widget is still mounted before continuing
+                      }
+
                       if (success) {
                         Navigator.of(context).pushAndRemoveUntil(
                           MaterialPageRoute(
@@ -264,7 +269,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               false, // Removes all previous routes
                         );
                       } else {
-                        // Handle deletion failure (optional)
+                        // Handle deletion failure
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Failed to delete account.'),

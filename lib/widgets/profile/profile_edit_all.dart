@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:developer';
 import 'package:doggymatch_flutter/profile/profile.dart';
 import 'package:doggymatch_flutter/services/auth.dart';
@@ -22,6 +24,7 @@ class ProfileImageEdit extends StatefulWidget {
       {super.key, required this.profile, this.fromRegister = false});
 
   @override
+  // ignore: library_private_types_in_public_api
   _ProfileImageEditState createState() => _ProfileImageEditState();
 }
 
@@ -318,6 +321,7 @@ class _ProfileImageEditState extends State<ProfileImageEdit> {
   Widget build(BuildContext context) {
     final isMaxImages = _images.length >= 9;
 
+    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
@@ -351,6 +355,9 @@ class _ProfileImageEditState extends State<ProfileImageEdit> {
                   ),
                   onPressed: () async {
                     if (await _onWillPop()) {
+                      if (!mounted) {
+                        return; // Check if the widget is still mounted
+                      }
                       Navigator.of(context).pushAndRemoveUntil(
                         MaterialPageRoute(
                           builder: (context) =>

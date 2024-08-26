@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
 import 'package:doggymatch_flutter/widgets/custom_app_bar.dart';
 import 'package:doggymatch_flutter/widgets/filter_menu.dart';
+import 'package:doggymatch_flutter/widgets/search/other_persons.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -33,9 +34,8 @@ class SearchPageState extends State<SearchPage> {
             children: [
               Container(
                 color: AppColors.bg,
-                child: const Center(
-                  child: Text("Search Page Content goes here"),
-                ),
+                child:
+                    const OtherPersons(), // <-- Updated to display OtherPersons widget
               ),
               if (_isFilterOpen) const FilterMenu(),
             ],

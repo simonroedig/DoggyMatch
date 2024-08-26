@@ -13,8 +13,32 @@ class AuthService {
   // https://www.youtube.com/watch?v=Xe-8igE1_JI
   // testpassword
 
-  // Delete user account and associated Firestore document
-  // auth.dart
+  // Fetch all users and their respective Firestore documents
+  Future<List<Map<String, dynamic>>> fetchAllUsersWithDocuments() async {
+    List<Map<String, dynamic>> usersWithDocuments = [];
+
+    try {
+      // Fetch all user documents from Firestore
+      final usersSnapshot =
+          await FirebaseFirestore.instance.collection('users').get();
+
+      // Iterate over each user document
+      for (var userDoc in usersSnapshot.docs) {
+        final userData = userDoc.data();
+        final uid = userDoc.id;
+
+        // Add the user's Firestore data along with the UID to the list
+        usersWithDocuments.add({
+          'uid': uid,
+          'firestoreData': userData,
+        });
+      }
+    } catch (e) {
+      log('Error fetching users and documents: $e');
+    }
+
+    return usersWithDocuments;
+  }
 
   // Delete user account, associated Firestore document, and all user images in Firebase Storage
   Future<bool> deleteAccountAndData() async {
