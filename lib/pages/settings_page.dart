@@ -43,7 +43,7 @@ class _SettingsPageState extends State<SettingsPage> {
               borderRadius: BorderRadius.circular(50.0),
             ),
             child: IconButton(
-              icon: const Icon(Icons.arrow_back_rounded),
+              icon: const Icon(Icons.arrow_circle_left_rounded),
               onPressed: () => Navigator.of(context).pop(),
               color: AppColors.customBlack,
               iconSize: 30.0,

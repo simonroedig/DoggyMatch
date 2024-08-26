@@ -19,4 +19,6 @@ class AppColors {
   static const Color accent1 = Color(0xFFC5D7ED);
   static const Color accent2 = Color(0xFFE3EDC5);
   static const Color accent3 = Color(0XFFD9C5ED);
+
+  static const Color customRed = Color(0xFFFF6961);
 }

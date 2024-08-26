@@ -1,8 +1,8 @@
+import 'package:doggymatch_flutter/widgets/profile/profile_edit_all.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
 import 'package:doggymatch_flutter/widgets/profile/profile_image_stack.dart';
 import 'package:doggymatch_flutter/widgets/profile/profile_info_sections.dart';
-import 'package:doggymatch_flutter/widgets/profile/edit_profile_dialog.dart';
 import 'package:doggymatch_flutter/profile/profile.dart';
 
 class ProfileWidget extends StatefulWidget {
@@ -103,11 +103,12 @@ class _ProfileWidgetState extends State<ProfileWidget> {
   }
 
   void _openEditProfileDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return EditProfileDialog(profile: widget.profile);
-      },
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ProfileImageEdit(
+          profile: widget.profile,
+        ),
+      ),
     );
   }
 }

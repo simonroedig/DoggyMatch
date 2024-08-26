@@ -1,8 +1,8 @@
+import 'package:doggymatch_flutter/state/user_profile_state.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
 import 'package:doggymatch_flutter/widgets/profile/profile_img_fullscreen.dart';
 import 'package:doggymatch_flutter/profile/profile.dart';
-import 'package:doggymatch_flutter/widgets/profile/profile_image_edit.dart';
 
 class ProfileImageStack extends StatefulWidget {
   final UserProfile profile;
@@ -19,17 +19,21 @@ class _ProfileImageStackState extends State<ProfileImageStack> {
 
   @override
   Widget build(BuildContext context) {
+    final images = widget.profile.images
+        .where((image) => image != UserProfileState.placeholderImageUrl)
+        .toList();
+
     return Stack(
       children: [
         GestureDetector(
-          onTap: () => _openFullScreenImageView(context),
-          child: _buildProfileImageSlider(),
+          onTap: () => _openFullScreenImageView(context, images),
+          child: _buildProfileImageSlider(images),
         ),
         Positioned(
           bottom: 8.0,
           left: 0,
           right: 0,
-          child: _buildImageIndicator(),
+          child: _buildImageIndicator(images),
         ),
         Positioned(
           bottom: 0,
@@ -40,6 +44,7 @@ class _ProfileImageStackState extends State<ProfileImageStack> {
             color: AppColors.customBlack,
           ),
         ),
+        /*
         Positioned(
           top: 2.0,
           right: 2.0,
@@ -49,40 +54,50 @@ class _ProfileImageStackState extends State<ProfileImageStack> {
             onPressed: () => _openEditImagePage(context),
           ),
         ),
+        */
       ],
     );
   }
 
-  Widget _buildProfileImageSlider() {
+  Widget _buildProfileImageSlider(List<String> images) {
     return SizedBox(
       height: 250,
       child: PageView.builder(
-        itemCount:
-            widget.profile.images.isEmpty ? 1 : widget.profile.images.length,
+        itemCount: images.isEmpty ? 1 : images.length,
         onPageChanged: (index) {
           setState(() {
             _currentImageIndex = index;
           });
         },
         itemBuilder: (context, index) {
-          final imageUrl = widget.profile.images.isNotEmpty
-              ? widget.profile.images[index]
-              : 'assets/icons/placeholder.png';
+          final imageUrl = images.isNotEmpty
+              ? images[index]
+              : UserProfileState.placeholderImageUrl;
 
-          return Image.asset(
-            imageUrl,
-            height: 250,
-            width: double.infinity,
-            fit: BoxFit.cover,
-          );
+          // Check if the image is a URL or an asset path
+          final isNetworkImage =
+              imageUrl.startsWith('http') || imageUrl.startsWith('https');
+
+          return isNetworkImage
+              ? Image.network(
+                  imageUrl,
+                  height: 250,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                )
+              : Image.asset(
+                  imageUrl,
+                  height: 250,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                );
         },
       ),
     );
   }
 
-  Widget _buildImageIndicator() {
-    final int imageCount =
-        widget.profile.images.isEmpty ? 1 : widget.profile.images.length;
+  Widget _buildImageIndicator(List<String> images) {
+    final int imageCount = images.isEmpty ? 1 : images.length;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -105,17 +120,17 @@ class _ProfileImageStackState extends State<ProfileImageStack> {
     );
   }
 
-  void _openFullScreenImageView(BuildContext context) {
+  void _openFullScreenImageView(BuildContext context, List<String> images) {
     Navigator.of(context).push(MaterialPageRoute(
       builder: (context) => FullScreenImageView(
-        images: widget.profile.images.isNotEmpty
-            ? widget.profile.images
-            : ['assets/icons/placeholder.png'],
+        images:
+            images.isNotEmpty ? images : [UserProfileState.placeholderImageUrl],
         initialIndex: _currentImageIndex,
       ),
     ));
   }
 
+  /*
   void _openEditImagePage(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -125,4 +140,5 @@ class _ProfileImageStackState extends State<ProfileImageStack> {
       ),
     );
   }
+  */
 }

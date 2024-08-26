@@ -1,4 +1,5 @@
 import 'package:doggymatch_flutter/colors.dart';
+import 'package:doggymatch_flutter/state/user_profile_state.dart';
 import 'package:flutter/material.dart';
 
 class FullScreenImageView extends StatefulWidget {
@@ -18,11 +19,22 @@ class FullScreenImageView extends StatefulWidget {
 
 class _FullScreenImageViewState extends State<FullScreenImageView> {
   late int _currentIndex;
+  late List<String> _filteredImages;
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+
+    // Filter out the placeholder image if there are other images
+    _filteredImages = widget.images
+        .where((image) => image != UserProfileState.placeholderImageUrl)
+        .toList();
+
+    // If no real images exist, use the placeholder image
+    if (_filteredImages.isEmpty) {
+      _filteredImages = [UserProfileState.placeholderImageUrl];
+    }
   }
 
   @override
@@ -32,18 +44,27 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
       body: Stack(
         children: [
           PageView.builder(
-            itemCount: widget.images.length,
+            itemCount: _filteredImages.length,
             onPageChanged: (index) {
               setState(() {
                 _currentIndex = index;
               });
             },
             itemBuilder: (context, index) {
+              final imageUrl = _filteredImages[index];
+              final isNetworkImage =
+                  imageUrl.startsWith('http') || imageUrl.startsWith('https');
+
               return Center(
-                child: Image.asset(
-                  widget.images[index],
-                  fit: BoxFit.contain,
-                ),
+                child: isNetworkImage
+                    ? Image.network(
+                        imageUrl,
+                        fit: BoxFit.contain,
+                      )
+                    : Image.asset(
+                        imageUrl,
+                        fit: BoxFit.contain,
+                      ),
               );
             },
           ),
@@ -75,7 +96,7 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
   Widget _buildImageIndicator() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(widget.images.length, (index) {
+      children: List.generate(_filteredImages.length, (index) {
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 4.0),
           width: 10.0,

@@ -23,6 +23,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: AppColors.bg,
       elevation: 0, // Remove shadow
+      scrolledUnderElevation: 0.0, // Prevent darkening on scroll
+      surfaceTintColor: Colors.transparent,
       automaticallyImplyLeading:
           false, // Remove default back button if not needed
       flexibleSpace: Padding(

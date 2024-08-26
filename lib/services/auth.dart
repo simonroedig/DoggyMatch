@@ -1,12 +1,44 @@
+import 'dart:io';
+import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:doggymatch_flutter/profile/profile.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   // https://www.youtube.com/watch?v=Xe-8igE1_JI
   // testpassword
+
+  // Get the current user's UID
+  String? getCurrentUserId() {
+    final user = _auth.currentUser;
+    return user?.uid;
+  }
+
+  // Upload image to Firebase Storage
+  Future<String?> uploadProfileImage(String filePath, String userId) async {
+    try {
+      final ref = _storage.ref().child(
+          'profile_images/$userId/${DateTime.now().millisecondsSinceEpoch}');
+      final uploadTask = await ref.putFile(File(filePath));
+      return await uploadTask.ref.getDownloadURL();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Delete image from Firebase Storage
+  Future<void> deleteProfileImage(String imageUrl) async {
+    try {
+      final ref = _storage.refFromURL(imageUrl);
+      await ref.delete();
+    } catch (e) {
+      // Handle errors here
+    }
+  }
 
   // create user with email and password
   Future createUserWithEmailAndPassword(String email, String password) async {
@@ -62,14 +94,38 @@ class AuthService {
   }
 
   // get current user document
-  Future getCurrentUserDocument() async {
+  Future<UserProfile?> fetchUserProfile() async {
     final user = _auth.currentUser;
     if (user != null) {
-      return await FirebaseFirestore.instance
+      final userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
           .get();
+      if (userDoc.exists) {
+        final data = userDoc.data();
+        if (data != null) {
+          return UserProfile(
+            userName: data['userName'] ?? '',
+            birthday: data['birthday'] != null
+                ? DateTime.parse(data['birthday'])
+                : null,
+            aboutText: data['aboutText'] ?? '',
+            profileColor: Color(data['profileColor'] ?? 0xFFFFFFFF),
+            images: List<String>.from(data['images'] ?? []),
+            location: data['location'] ?? '',
+            isDogOwner: data['isDogOwner'] ?? false,
+            dogName: data['dogName'] ?? '',
+            dogBreed: data['dogBreed'] ?? '',
+            dogAge: data['dogAge'] ?? '',
+            filterLookingForDogOwner: data['filterLookingForDogOwner'] ?? true,
+            filterLookingForDogSitter:
+                data['filterLookingForDogSitter'] ?? true,
+            filterDistance: (data['filterDistance'] ?? 10.0).toDouble(),
+          );
+        }
+      }
     }
+    return null;
   }
 
   // sign in user with email and password
