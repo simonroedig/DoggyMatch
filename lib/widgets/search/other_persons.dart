@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/services/auth.dart';
+import 'package:doggymatch_flutter/state/user_profile_state.dart';
 import 'dart:developer';
 import 'package:doggymatch_flutter/colors.dart';
 
@@ -47,13 +49,34 @@ class _OtherPersonsState extends State<OtherPersons> {
 
   @override
   Widget build(BuildContext context) {
+    final userProfileState = Provider.of<UserProfileState>(context);
+    final bool showDogOwner =
+        userProfileState.userProfile.filterLookingForDogOwner;
+    final bool showDogSitter =
+        userProfileState.userProfile.filterLookingForDogSitter;
+
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(),
       );
     }
 
-    if (_users.isEmpty) {
+    final filteredUsers = _users.where((user) {
+      final firestoreData = user['firestoreData'];
+      final bool isDogOwner = firestoreData['isDogOwner'] == true;
+
+      if (showDogOwner && showDogSitter) {
+        return true; // Show all users
+      } else if (showDogOwner) {
+        return isDogOwner; // Show only dog owners
+      } else if (showDogSitter) {
+        return !isDogOwner; // Show only dog sitters
+      } else {
+        return false; // If no filters are selected, show nothing (this shouldn't happen due to UI logic)
+      }
+    }).toList();
+
+    if (filteredUsers.isEmpty) {
       return const Center(
         child: Text('No users found'),
       );
@@ -64,14 +87,14 @@ class _OtherPersonsState extends State<OtherPersons> {
       child: GridView.builder(
         padding: const EdgeInsets.all(16.0),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, // Two cards per row
+          crossAxisCount: 2,
           crossAxisSpacing: 16.0,
           mainAxisSpacing: 16.0,
-          childAspectRatio: 0.68, // Adjusted aspect ratio
+          childAspectRatio: 0.68,
         ),
-        itemCount: _users.length,
+        itemCount: filteredUsers.length,
         itemBuilder: (context, index) {
-          final user = _users[index];
+          final user = filteredUsers[index];
           final firestoreData = user['firestoreData'];
           final bool isDogOwner = firestoreData['isDogOwner'] == true;
           final profileColor =
@@ -115,10 +138,8 @@ class _OtherPersonsState extends State<OtherPersons> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
       child: Row(
-        mainAxisSize:
-            MainAxisSize.min, // Ensure row only takes the required space
-        mainAxisAlignment:
-            MainAxisAlignment.center, // Center content within the row
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(
             Icons.pets_rounded,
@@ -127,10 +148,9 @@ class _OtherPersonsState extends State<OtherPersons> {
           ),
           const SizedBox(width: 4),
           Flexible(
-            // Use Flexible instead of Expanded to allow truncation without forcing the row to expand
             child: Text(
               dogName,
-              overflow: TextOverflow.ellipsis, // Truncate text with "..."
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 color: AppColors.customBlack,
@@ -179,17 +199,16 @@ class _OtherPersonsState extends State<OtherPersons> {
           ),
           const SizedBox(width: 4),
           Expanded(
-            // Wrap the Text widget with Expanded to ensure it uses available space
             child: Text(
               userName,
-              overflow: TextOverflow.ellipsis, // Truncate text with "..."
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 color: AppColors.customBlack,
               ),
             ),
           ),
-          const SizedBox(width: 8), // Add space between username and distance
+          const SizedBox(width: 8),
           Text(
             '$distance km',
             style: const TextStyle(
