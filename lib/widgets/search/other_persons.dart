@@ -14,6 +14,7 @@ class OtherPersons extends StatefulWidget {
   const OtherPersons({super.key, required this.onProfileSelected});
 
   @override
+  // ignore: library_private_types_in_public_api
   _OtherPersonsState createState() => _OtherPersonsState();
 }
 

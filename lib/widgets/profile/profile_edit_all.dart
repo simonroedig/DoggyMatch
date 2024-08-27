@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:developer';
 import 'package:doggymatch_flutter/profile/profile.dart';
 import 'package:doggymatch_flutter/services/auth.dart';
