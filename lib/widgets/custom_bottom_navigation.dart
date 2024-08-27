@@ -1,14 +1,20 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final int activeIndex;
   final ValueChanged<int> onTabTapped;
+  final bool showCloseButton;
+  final VoidCallback? onCloseButtonTapped;
 
   const CustomBottomNavigationBar({
     super.key,
     required this.activeIndex,
     required this.onTabTapped,
+    this.showCloseButton = false,
+    this.onCloseButtonTapped,
   });
 
   @override
@@ -19,10 +25,8 @@ class CustomBottomNavigationBar extends StatelessWidget {
         color: AppColors.bg,
         shape: const CircularNotchedRectangle(),
         child: Center(
-          // Wrap the Container with Center
           child: Container(
-            width: MediaQuery.of(context).size.width *
-                0.95, // Adjust the width as needed
+            width: MediaQuery.of(context).size.width,
             height: 80.0,
             decoration: BoxDecoration(
               color: AppColors.brownLightest,
@@ -32,17 +36,22 @@ class CustomBottomNavigationBar extends StatelessWidget {
                 width: 3.0,
               ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildIcon(0, Icons.search_rounded),
-                _buildIcon(1, Icons.chat_rounded),
-                _buildIcon(2, Icons.person_rounded),
-              ],
-            ),
+            child:
+                showCloseButton ? _buildCloseButton() : _buildNavigationIcons(),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildNavigationIcons() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        _buildIcon(0, Icons.search_rounded),
+        _buildIcon(1, Icons.chat_rounded),
+        _buildIcon(2, Icons.person_rounded),
+      ],
     );
   }
 
@@ -74,6 +83,37 @@ class CustomBottomNavigationBar extends StatelessWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCloseButton() {
+    return GestureDetector(
+      onTap: () {
+        log("Close button tapped in nav bar");
+        if (onCloseButtonTapped != null) {
+          onCloseButtonTapped!();
+        }
+      },
+      child: Center(
+        child: Container(
+          color: Colors
+              .transparent, // Ensure the area around the icon is tappable without changing the visual appearance
+          padding: const EdgeInsets.symmetric(
+              horizontal: 20.0), // Increase hitbox horizontally
+          child: Container(
+            width: double.infinity,
+            height: 60.0,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.close_rounded,
+              color: AppColors.customBlack,
+              size: 35.0,
+            ),
+          ),
+        ),
       ),
     );
   }

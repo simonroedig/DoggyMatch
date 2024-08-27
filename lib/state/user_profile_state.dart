@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/profile/profile.dart';
 import 'package:doggymatch_flutter/colors.dart';
@@ -26,9 +28,11 @@ class UserProfileState extends ChangeNotifier {
   );
 
   int _currentIndex = 0;
+  bool _isProfileOpen = false;
 
   UserProfile get userProfile => _userProfile;
   int get currentIndex => _currentIndex;
+  bool get isProfileOpen => _isProfileOpen;
 
   UserProfileState() {
     _initializeUserProfile();
@@ -52,7 +56,8 @@ class UserProfileState extends ChangeNotifier {
       filterDistance: 0.0,
     );
     _currentIndex = 0;
-    notifyListeners(); // Notify listeners that the state has changed
+    _isProfileOpen = false;
+    notifyListeners();
   }
 
   List<String> get userImages {
@@ -80,7 +85,6 @@ class UserProfileState extends ChangeNotifier {
     }
   }
 
-  // Expose this method to manually refresh the user profile
   Future<void> refreshUserProfile() async {
     await _initializeUserProfile();
   }
@@ -135,6 +139,18 @@ class UserProfileState extends ChangeNotifier {
 
   void updateCurrentIndex(int index) {
     _currentIndex = index;
+    notifyListeners();
+  }
+
+  void openProfile() {
+    log('Open profile via profile state');
+    _isProfileOpen = true;
+    notifyListeners();
+  }
+
+  void closeProfile() {
+    _isProfileOpen = false;
+    log('Close profile via profile state');
     notifyListeners();
   }
 }

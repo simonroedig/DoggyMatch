@@ -6,6 +6,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? toggleFilter;
   final bool showFilterIcon;
   final VoidCallback? onSettingsPressed;
+  final bool isProfileOpen; // New parameter to control clickability
 
   const CustomAppBar({
     super.key,
@@ -13,6 +14,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.toggleFilter,
     this.showFilterIcon = true,
     this.onSettingsPressed,
+    this.isProfileOpen = false, // Default to false
   });
 
   @override
@@ -22,11 +24,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       backgroundColor: AppColors.bg,
-      elevation: 0, // Remove shadow
-      scrolledUnderElevation: 0.0, // Prevent darkening on scroll
+      elevation: 0,
+      scrolledUnderElevation: 0.0,
       surfaceTintColor: Colors.transparent,
-      automaticallyImplyLeading:
-          false, // Remove default back button if not needed
+      automaticallyImplyLeading: false,
       flexibleSpace: Padding(
         padding: const EdgeInsets.only(
             top: 40.0, left: 16.0, right: 16.0, bottom: 10.0),
@@ -38,8 +39,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 width: MediaQuery.of(context).size.width * 0.95,
                 height: 60.0,
                 decoration: BoxDecoration(
-                  color:
-                      AppColors.brownLightest, // Container color remains as is
+                  color: AppColors.brownLightest,
                   borderRadius: BorderRadius.circular(80.0),
                   border: Border.all(
                     color: AppColors.customBlack,
@@ -93,13 +93,17 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                               : Icons.filter_list_rounded,
                           size: 30.0,
                         ),
-                        onPressed: toggleFilter,
+                        onPressed: isProfileOpen
+                            ? null
+                            : toggleFilter, // Disable if profile is open
                         color: AppColors.customBlack,
                       )
                     else
                       IconButton(
                         icon: const Icon(Icons.settings_rounded, size: 30.0),
-                        onPressed: onSettingsPressed,
+                        onPressed: isProfileOpen
+                            ? null
+                            : onSettingsPressed, // Disable if profile is open
                         color: AppColors.customBlack,
                       ),
                   ],

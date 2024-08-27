@@ -261,7 +261,7 @@ class _RegisterPageState extends State<RegisterPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const MainScreen(fromRegister: true),
+        builder: (context) => MainScreen(fromRegister: true),
       ),
     );
   }

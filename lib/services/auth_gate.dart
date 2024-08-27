@@ -25,7 +25,7 @@ class AuthGate extends StatelessWidget {
                 Provider.of<UserProfileState>(context, listen: false);
             userProfileState.refreshUserProfile();
 
-            return const MainScreen();
+            return MainScreen();
           }
         }
 
