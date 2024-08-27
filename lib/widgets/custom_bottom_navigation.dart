@@ -22,7 +22,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
           // Wrap the Container with Center
           child: Container(
             width: MediaQuery.of(context).size.width *
-                1, // Adjust the width as needed
+                0.95, // Adjust the width as needed
             height: 80.0,
             decoration: BoxDecoration(
               color: AppColors.brownLightest,
