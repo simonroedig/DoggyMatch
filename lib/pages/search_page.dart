@@ -1,3 +1,4 @@
+import 'package:doggymatch_flutter/state/user_profile_state.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
 import 'package:doggymatch_flutter/widgets/custom_app_bar.dart';
@@ -5,6 +6,7 @@ import 'package:doggymatch_flutter/widgets/filter_menu.dart';
 import 'package:doggymatch_flutter/widgets/search/other_persons.dart';
 import 'package:doggymatch_flutter/profile/profile.dart';
 import 'package:doggymatch_flutter/widgets/profile/profile_widget.dart';
+import 'package:provider/provider.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -15,7 +17,7 @@ class SearchPage extends StatefulWidget {
 
 class SearchPageState extends State<SearchPage> {
   bool _isFilterOpen = false;
-  UserProfile? _selectedProfile; // Holds the selected profile for overlay
+  UserProfile? _selectedProfile;
 
   void _toggleFilter() {
     setState(() {
@@ -27,12 +29,16 @@ class SearchPageState extends State<SearchPage> {
     setState(() {
       _selectedProfile = profile;
     });
+    Provider.of<UserProfileState>(context, listen: false)
+        .toggleProfileOpen(true);
   }
 
   void _closeProfile() {
     setState(() {
       _selectedProfile = null;
     });
+    Provider.of<UserProfileState>(context, listen: false)
+        .toggleProfileOpen(false);
   }
 
   @override

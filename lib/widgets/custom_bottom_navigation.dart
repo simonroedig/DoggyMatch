@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
+import 'package:provider/provider.dart';
+import 'package:doggymatch_flutter/state/user_profile_state.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final int activeIndex;
   final ValueChanged<int> onTabTapped;
+  final bool isProfileOpen;
 
   const CustomBottomNavigationBar({
     super.key,
     required this.activeIndex,
     required this.onTabTapped,
+    this.isProfileOpen = false,
   });
 
   @override
@@ -19,37 +23,37 @@ class CustomBottomNavigationBar extends StatelessWidget {
         color: AppColors.bg,
         shape: const CircularNotchedRectangle(),
         child: Center(
-          // Wrap the Container with Center
-          child: Container(
-            width: MediaQuery.of(context).size.width *
-                0.95, // Adjust the width as needed
-            height: 80.0,
-            decoration: BoxDecoration(
-              color: AppColors.brownLightest,
-              borderRadius: BorderRadius.circular(80.0),
-              border: Border.all(
-                color: Colors.black,
-                width: 3.0,
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildIcon(0, Icons.search_rounded),
-                _buildIcon(1, Icons.chat_rounded),
-                _buildIcon(2, Icons.person_rounded),
-              ],
-            ),
-          ),
+          child: isProfileOpen
+              ? _buildCloseButton(context)
+              : _buildIconRow(context),
         ),
       ),
     );
   }
 
-  Widget _buildIcon(int index, IconData icon) {
-    bool isActive = activeIndex == index;
-    Color highlightColor = _getHighlightColor(index);
+  Widget _buildIconRow(BuildContext context) {
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      height: 80.0,
+      decoration: BoxDecoration(
+        color: AppColors.brownLightest,
+        borderRadius: BorderRadius.circular(80.0),
+        border: Border.all(color: Colors.black, width: 3.0),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildIcon(context, 0, Icons.search_rounded),
+          _buildIcon(context, 1, Icons.chat_rounded),
+          _buildIcon(context, 2, Icons.person_rounded),
+        ],
+      ),
+    );
+  }
 
+  Widget _buildIcon(BuildContext context, int index, IconData icon) {
+    bool isActive = activeIndex == index;
+    Color highlightColor = isActive ? AppColors.grey : AppColors.grey;
     return GestureDetector(
       onTap: () => onTabTapped(index),
       child: Column(
@@ -78,7 +82,13 @@ class CustomBottomNavigationBar extends StatelessWidget {
     );
   }
 
-  Color _getHighlightColor(int index) {
-    return AppColors.customBlack;
+  Widget _buildCloseButton(BuildContext context) {
+    return IconButton(
+      icon: Icon(Icons.close, size: 30.0, color: AppColors.customBlack),
+      onPressed: () {
+        Provider.of<UserProfileState>(context, listen: false)
+            .toggleProfileOpen(false);
+      },
+    );
   }
 }

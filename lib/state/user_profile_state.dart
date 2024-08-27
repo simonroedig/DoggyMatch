@@ -26,9 +26,17 @@ class UserProfileState extends ChangeNotifier {
   );
 
   int _currentIndex = 0;
+  bool _isProfileOpen = false; // Added to manage profile open state
 
   UserProfile get userProfile => _userProfile;
   int get currentIndex => _currentIndex;
+  bool get isProfileOpen =>
+      _isProfileOpen; // Added getter for profile open state
+
+  void toggleProfileOpen(bool open) {
+    _isProfileOpen = open;
+    notifyListeners();
+  }
 
   UserProfileState() {
     _initializeUserProfile();

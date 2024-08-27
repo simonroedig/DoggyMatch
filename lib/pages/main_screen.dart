@@ -51,6 +51,8 @@ class MainScreen extends StatelessWidget {
                   onTabTapped: (index) {
                     userProfileState.updateCurrentIndex(index);
                   },
+                  isProfileOpen: userProfileState
+                      .isProfileOpen, // Pass isProfileOpen state to the navigation bar
                 );
               },
             ),
