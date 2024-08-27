@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'dart:developer';
 import 'package:doggymatch_flutter/profile/profile.dart';
 import 'package:doggymatch_flutter/services/auth.dart';
@@ -41,6 +39,7 @@ class _ProfileImageEditState extends State<ProfileImageEdit> {
   late TextEditingController _dogAgeController;
   DateTime? _selectedBirthday;
   bool _isLoadingLocation = false;
+  bool _isUploadingImage = false; // Track image upload status
 
   final int _minAboutLength = 10;
   final int _minFieldLength = 1;
@@ -280,6 +279,10 @@ class _ProfileImageEditState extends State<ProfileImageEdit> {
 
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
+      setState(() {
+        _isUploadingImage = true; // Set loading state to true
+      });
+
       final userId = _authService.getCurrentUserId();
       if (userId != null) {
         final downloadUrl =
@@ -287,8 +290,13 @@ class _ProfileImageEditState extends State<ProfileImageEdit> {
         if (downloadUrl != null && mounted) {
           setState(() {
             _images.add(downloadUrl);
+            _isUploadingImage = false; // Set loading state to false
           });
           await _updateUserProfileImages();
+        } else {
+          setState(() {
+            _isUploadingImage = false; // Set loading state to false on failure
+          });
         }
       }
     }
@@ -422,25 +430,42 @@ class _ProfileImageEditState extends State<ProfileImageEdit> {
                 },
                 itemBuilder: (context, index) {
                   if (index == _images.length && !isMaxImages) {
-                    return GestureDetector(
-                      key: const ValueKey('add_image'),
-                      onTap: _uploadImage,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.customBlack.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(14.0),
-                          border: Border.all(
-                            color: AppColors.customBlack,
-                            width: 3.0,
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.add_photo_alternate,
-                          color: AppColors.customBlack,
-                          size: 40.0,
-                        ),
-                      ),
-                    );
+                    return _isUploadingImage
+                        ? Container(
+                            key: const ValueKey('uploading_indicator'),
+                            decoration: BoxDecoration(
+                              color: AppColors.customBlack.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(14.0),
+                              border: Border.all(
+                                color: AppColors.customBlack,
+                                width: 3.0,
+                              ),
+                            ),
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                color: AppColors.customBlack,
+                              ),
+                            ),
+                          )
+                        : GestureDetector(
+                            key: const ValueKey('add_image'),
+                            onTap: _uploadImage,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: AppColors.customBlack.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(14.0),
+                                border: Border.all(
+                                  color: AppColors.customBlack,
+                                  width: 3.0,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.add_photo_alternate,
+                                color: AppColors.customBlack,
+                                size: 40.0,
+                              ),
+                            ),
+                          );
                   } else if (index < _images.length) {
                     return Stack(
                       key: ValueKey(_images[index]),

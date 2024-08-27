@@ -16,6 +16,13 @@ class ProfileImageStack extends StatefulWidget {
 
 class _ProfileImageStackState extends State<ProfileImageStack> {
   int _currentImageIndex = 0;
+  late PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _currentImageIndex);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,17 +51,6 @@ class _ProfileImageStackState extends State<ProfileImageStack> {
             color: AppColors.customBlack,
           ),
         ),
-        /*
-        Positioned(
-          top: 2.0,
-          right: 2.0,
-          child: IconButton(
-            icon: const Icon(Icons.edit_square,
-                color: AppColors.customBlack, size: 20.0),
-            onPressed: () => _openEditImagePage(context),
-          ),
-        ),
-        */
       ],
     );
   }
@@ -63,6 +59,7 @@ class _ProfileImageStackState extends State<ProfileImageStack> {
     return SizedBox(
       height: 250,
       child: PageView.builder(
+        controller: _pageController,
         itemCount: images.isEmpty ? 1 : images.length,
         onPageChanged: (index) {
           setState(() {
@@ -74,7 +71,6 @@ class _ProfileImageStackState extends State<ProfileImageStack> {
               ? images[index]
               : UserProfileState.placeholderImageUrl;
 
-          // Check if the image is a URL or an asset path
           final isNetworkImage =
               imageUrl.startsWith('http') || imageUrl.startsWith('https');
 
@@ -126,19 +122,13 @@ class _ProfileImageStackState extends State<ProfileImageStack> {
         images:
             images.isNotEmpty ? images : [UserProfileState.placeholderImageUrl],
         initialIndex: _currentImageIndex,
+        onImageChanged: (newIndex) {
+          setState(() {
+            _currentImageIndex = newIndex;
+            _pageController.jumpToPage(newIndex);
+          });
+        },
       ),
     ));
   }
-
-  /*
-  void _openEditImagePage(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => ProfileImageEdit(
-          profile: widget.profile,
-        ),
-      ),
-    );
-  }
-  */
 }

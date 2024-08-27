@@ -5,11 +5,13 @@ import 'package:flutter/material.dart';
 class FullScreenImageView extends StatefulWidget {
   final List<String> images;
   final int initialIndex;
+  final ValueChanged<int> onImageChanged;
 
   const FullScreenImageView({
     super.key,
     required this.images,
     this.initialIndex = 0,
+    required this.onImageChanged,
   });
 
   @override
@@ -19,6 +21,7 @@ class FullScreenImageView extends StatefulWidget {
 
 class _FullScreenImageViewState extends State<FullScreenImageView> {
   late int _currentIndex;
+  late PageController _pageController;
   late List<String> _filteredImages;
 
   @override
@@ -35,6 +38,9 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
     if (_filteredImages.isEmpty) {
       _filteredImages = [UserProfileState.placeholderImageUrl];
     }
+
+    // Initialize the PageController with the initial index
+    _pageController = PageController(initialPage: _currentIndex);
   }
 
   @override
@@ -44,11 +50,13 @@ class _FullScreenImageViewState extends State<FullScreenImageView> {
       body: Stack(
         children: [
           PageView.builder(
+            controller: _pageController,
             itemCount: _filteredImages.length,
             onPageChanged: (index) {
               setState(() {
                 _currentIndex = index;
               });
+              widget.onImageChanged(index); // Notify parent about the change
             },
             itemBuilder: (context, index) {
               final imageUrl = _filteredImages[index];
