@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
 import 'package:doggymatch_flutter/widgets/custom_app_bar.dart';
@@ -5,6 +7,8 @@ import 'package:doggymatch_flutter/widgets/filter_menu.dart';
 import 'package:doggymatch_flutter/widgets/search/other_persons.dart';
 import 'package:doggymatch_flutter/profile/profile.dart';
 import 'package:doggymatch_flutter/widgets/profile/profile_widget.dart';
+import 'package:provider/provider.dart';
+import 'package:doggymatch_flutter/state/user_profile_state.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -23,16 +27,20 @@ class SearchPageState extends State<SearchPage> {
     });
   }
 
+  void closeProfile() {
+    log('Closing profile in search page');
+    setState(() {
+      _selectedProfile = null;
+    });
+    // Close the profile in the UserProfileState to trigger UI updates
+    Provider.of<UserProfileState>(context, listen: false).closeProfile();
+  }
+
   void _openProfile(UserProfile profile) {
     setState(() {
       _selectedProfile = profile;
     });
-  }
-
-  void _closeProfile() {
-    setState(() {
-      _selectedProfile = null;
-    });
+    Provider.of<UserProfileState>(context, listen: false).openProfile();
   }
 
   @override
@@ -60,7 +68,7 @@ class SearchPageState extends State<SearchPage> {
                 if (_selectedProfile != null)
                   Positioned.fill(
                     child: GestureDetector(
-                      onTap: _closeProfile,
+                      onTap: closeProfile,
                       child: Container(
                         color: Colors.black.withOpacity(0), // Darken background
                         child: Center(
