@@ -97,15 +97,21 @@ class CustomBottomNavigationBar extends StatelessWidget {
       },
       child: Center(
         child: Container(
-          width: 60.0,
-          height: 60.0,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.close_rounded,
-            color: AppColors.customBlack,
-            size: 35.0,
+          color: Colors
+              .transparent, // Ensure the area around the icon is tappable without changing the visual appearance
+          padding: const EdgeInsets.symmetric(
+              horizontal: 20.0), // Increase hitbox horizontally
+          child: Container(
+            width: double.infinity,
+            height: 60.0,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.close_rounded,
+              color: AppColors.customBlack,
+              size: 35.0,
+            ),
           ),
         ),
       ),

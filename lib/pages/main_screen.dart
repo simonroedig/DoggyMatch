@@ -1,20 +1,22 @@
 import 'dart:developer';
 
+import 'package:doggymatch_flutter/pages/notifiers/profile_close_notifier.dart';
+import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
 import 'package:doggymatch_flutter/pages/register_page_2.dart';
 import 'package:doggymatch_flutter/state/user_profile_state.dart';
-import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/pages/search_page.dart';
 import 'package:doggymatch_flutter/pages/chat_page.dart';
 import 'package:doggymatch_flutter/pages/profile_page.dart';
 import 'package:doggymatch_flutter/widgets/custom_bottom_navigation.dart';
 import 'package:provider/provider.dart';
-import 'package:doggymatch_flutter/pages/search_page.dart';
 
 class MainScreen extends StatelessWidget {
   final bool fromRegister;
 
-  const MainScreen({super.key, this.fromRegister = false});
+  MainScreen({super.key, this.fromRegister = false}); // Removed `const`
+
+  final ProfileCloseNotifier profileCloseNotifier = ProfileCloseNotifier();
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +31,7 @@ class MainScreen extends StatelessWidget {
           }
 
           List<Widget> pages = [
-            const SearchPage(),
+            SearchPage(profileCloseNotifier: profileCloseNotifier),
             const ChatPage(),
             ProfilePage(profile: profile),
           ];
@@ -52,8 +54,9 @@ class MainScreen extends StatelessWidget {
                   activeIndex: userProfileState.currentIndex,
                   onTabTapped: (index) {
                     if (userProfileState.isProfileOpen) {
-                      // Close the profile if it's open when tapping other tabs
                       userProfileState.closeProfile();
+                      profileCloseNotifier
+                          .triggerCloseProfile(); // Signal to close profile
                     } else {
                       userProfileState.updateCurrentIndex(index);
                     }
@@ -62,14 +65,8 @@ class MainScreen extends StatelessWidget {
                   onCloseButtonTapped: () {
                     log("Close button callback triggered in MainScreen");
                     userProfileState.closeProfile();
-                    // Notify SearchPage to also close its profile
-                    if (context.mounted) {
-                      log('Closing profile in MainScreen MOUNTED');
-                      final searchPageState =
-                          context.findAncestorStateOfType<SearchPageState>();
-                      searchPageState
-                          ?.closeProfile(); // Ensure SearchPage updates too
-                    }
+                    profileCloseNotifier
+                        .triggerCloseProfile(); // Signal to close profile
                   },
                 );
               },

@@ -368,8 +368,7 @@ class _ProfileImageEditState extends State<ProfileImageEdit> {
                       }
                       Navigator.of(context).pushAndRemoveUntil(
                         MaterialPageRoute(
-                          builder: (context) =>
-                              const MainScreen(fromRegister: false),
+                          builder: (context) => MainScreen(fromRegister: false),
                         ),
                         (route) => false,
                       );
@@ -390,7 +389,7 @@ class _ProfileImageEditState extends State<ProfileImageEdit> {
                         Navigator.of(context).pushAndRemoveUntil(
                           MaterialPageRoute(
                             builder: (context) =>
-                                const MainScreen(fromRegister: false),
+                                MainScreen(fromRegister: false),
                           ),
                           (route) => false,
                         );
