@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:doggymatch_flutter/widgets/profile/profile_edit_all.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
@@ -7,8 +9,13 @@ import 'package:doggymatch_flutter/profile/profile.dart';
 
 class ProfileWidget extends StatefulWidget {
   final UserProfile profile;
+  final bool clickedOnOtherUser;
 
-  const ProfileWidget({super.key, required this.profile});
+  const ProfileWidget({
+    super.key,
+    required this.profile,
+    required this.clickedOnOtherUser,
+  });
 
   @override
   // ignore: library_private_types_in_public_api
@@ -51,7 +58,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
 
   Widget _buildProfileContainer({required Widget child}) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20.0),
+      margin: const EdgeInsets.symmetric(horizontal: 17.0),
       decoration: BoxDecoration(
         color: widget.profile.profileColor,
         borderRadius: BorderRadius.circular(24.0),
@@ -92,11 +99,15 @@ class _ProfileWidgetState extends State<ProfileWidget> {
           ],
         ),
         IconButton(
-          icon: const Icon(Icons.border_color_rounded,
-              color: AppColors.customBlack),
-          onPressed: () {
-            _openEditProfileDialog(context);
-          },
+          icon: Icon(
+            widget.clickedOnOtherUser
+                ? Icons.message_rounded
+                : Icons.border_color_rounded,
+            color: AppColors.customBlack,
+          ),
+          onPressed: widget.clickedOnOtherUser
+              ? _sendMessage
+              : () => _openEditProfileDialog(context),
         ),
       ],
     );
@@ -110,5 +121,10 @@ class _ProfileWidgetState extends State<ProfileWidget> {
         ),
       ),
     );
+  }
+
+  void _sendMessage() {
+    // Implement your send message functionality here
+    log('Send message button pressed');
   }
 }

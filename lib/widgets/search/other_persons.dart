@@ -1,15 +1,19 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/services/auth.dart';
 import 'package:doggymatch_flutter/state/user_profile_state.dart';
-import 'dart:developer';
 import 'package:doggymatch_flutter/colors.dart';
+import 'package:doggymatch_flutter/profile/profile.dart';
 
 class OtherPersons extends StatefulWidget {
-  const OtherPersons({super.key});
+  final Function(UserProfile)
+      onProfileSelected; // Callback to notify profile selection
+
+  const OtherPersons({super.key, required this.onProfileSelected});
 
   @override
-  // ignore: library_private_types_in_public_api
   _OtherPersonsState createState() => _OtherPersonsState();
 }
 
@@ -85,11 +89,11 @@ class _OtherPersonsState extends State<OtherPersons> {
     return RefreshIndicator(
       onRefresh: _refreshUsers,
       child: GridView.builder(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(18.0),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          crossAxisSpacing: 16.0,
-          mainAxisSpacing: 16.0,
+          crossAxisSpacing: 12.0,
+          mainAxisSpacing: 12.0,
           childAspectRatio: 0.68,
         ),
         itemCount: filteredUsers.length,
@@ -111,25 +115,46 @@ class _OtherPersonsState extends State<OtherPersons> {
 
   Widget _buildUserCard(Map<String, dynamic> data, bool isDogOwner,
       Color profileColor, String filterDistance) {
-    return Container(
-      decoration: BoxDecoration(
-        color: profileColor,
-        borderRadius: BorderRadius.circular(24.0),
-        border: Border.all(color: AppColors.customBlack, width: 3),
-      ),
-      child: Column(
-        children: [
-          if (isDogOwner) _buildDogOwnerHeader(data['dogName']),
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(isDogOwner ? 0 : 21.0),
+    return GestureDetector(
+      onTap: () {
+        // Create a UserProfile instance from the data map
+        UserProfile selectedProfile = UserProfile(
+          userName: data['userName'],
+          dogName: data['dogName'],
+          isDogOwner: data['isDogOwner'],
+          images: List<String>.from(data['images']),
+          profileColor: Color(data['profileColor']),
+          aboutText: data['aboutText'],
+          location: data['location'],
+          filterDistance: data['filterDistance'],
+          birthday: data['birthday'] != null
+              ? DateTime.parse(data['birthday'])
+              : null,
+        );
+
+        // Call the callback to notify SearchPage
+        widget.onProfileSelected(selectedProfile);
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: profileColor,
+          borderRadius: BorderRadius.circular(24.0),
+          border: Border.all(color: AppColors.customBlack, width: 3),
+        ),
+        child: Column(
+          children: [
+            if (isDogOwner) _buildDogOwnerHeader(data['dogName']),
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(isDogOwner ? 0 : 21.0),
+                ),
+                child: _buildUserImage(data['images'], isDogOwner),
               ),
-              child: _buildUserImage(data['images'], isDogOwner),
             ),
-          ),
-          _buildUserFooter(data['userName'], filterDistance),
-        ],
+            _buildUserFooter(data['userName'], filterDistance),
+          ],
+        ),
       ),
     );
   }

@@ -29,7 +29,7 @@ class ProfilePage extends StatelessWidget {
             onSettingsPressed: () => _navigateToSettings(context),
           ),
           Expanded(
-            child: ProfileWidget(profile: profile),
+            child: ProfileWidget(profile: profile, clickedOnOtherUser: false),
           ),
         ],
       ),

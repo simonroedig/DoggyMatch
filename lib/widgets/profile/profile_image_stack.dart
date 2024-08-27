@@ -57,7 +57,7 @@ class _ProfileImageStackState extends State<ProfileImageStack> {
 
   Widget _buildProfileImageSlider(List<String> images) {
     return SizedBox(
-      height: 250,
+      height: 300,
       child: PageView.builder(
         controller: _pageController,
         itemCount: images.isEmpty ? 1 : images.length,

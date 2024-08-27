@@ -18,23 +18,28 @@ class CustomBottomNavigationBar extends StatelessWidget {
       child: BottomAppBar(
         color: AppColors.bg,
         shape: const CircularNotchedRectangle(),
-        child: Container(
-          height: 80.0,
-          decoration: BoxDecoration(
-            color: AppColors.brownLightest,
-            borderRadius: BorderRadius.circular(80.0),
-            border: Border.all(
-              color: Colors.black,
-              width: 3.0,
+        child: Center(
+          // Wrap the Container with Center
+          child: Container(
+            width: MediaQuery.of(context).size.width *
+                1, // Adjust the width as needed
+            height: 80.0,
+            decoration: BoxDecoration(
+              color: AppColors.brownLightest,
+              borderRadius: BorderRadius.circular(80.0),
+              border: Border.all(
+                color: Colors.black,
+                width: 3.0,
+              ),
             ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildIcon(0, Icons.search_rounded),
-              _buildIcon(1, Icons.chat_rounded),
-              _buildIcon(2, Icons.person_rounded),
-            ],
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildIcon(0, Icons.search_rounded),
+                _buildIcon(1, Icons.chat_rounded),
+                _buildIcon(2, Icons.person_rounded),
+              ],
+            ),
           ),
         ),
       ),
@@ -75,17 +80,5 @@ class CustomBottomNavigationBar extends StatelessWidget {
 
   Color _getHighlightColor(int index) {
     return AppColors.customBlack;
-    /*
-    switch (index) {
-      case 0:
-        return AppColors.accent1;
-      case 1:
-        return AppColors.accent2;
-      case 2:
-        return AppColors.accent3;
-      default:
-        return AppColors.customBlack;
-    }
-    */
   }
 }
