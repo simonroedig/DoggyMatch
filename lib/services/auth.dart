@@ -138,6 +138,8 @@ class AuthService {
             userProfile.profileColor.value, // Convert Color to integer
         'images': userProfile.images,
         'location': userProfile.location,
+        'latitude': userProfile.latitude,
+        'longitude': userProfile.longitude,
         'isDogOwner': userProfile.isDogOwner,
         'dogName': userProfile.dogName,
         'dogBreed': userProfile.dogBreed,
@@ -174,6 +176,8 @@ class AuthService {
             profileColor: Color(data['profileColor'] ?? 0xFFFFFFFF),
             images: List<String>.from(data['images'] ?? []),
             location: data['location'] ?? '',
+            latitude: (data['latitude'] ?? 0.0).toDouble(),
+            longitude: (data['longitude'] ?? 0.0).toDouble(),
             isDogOwner: data['isDogOwner'] ?? false,
             dogName: data['dogName'] ?? '',
             dogBreed: data['dogBreed'] ?? '',

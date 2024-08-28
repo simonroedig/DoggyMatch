@@ -149,6 +149,8 @@ class _ProfileImageEditState extends State<ProfileImageEdit> {
       dogName: widget.profile.isDogOwner ? updatedDogName : null,
       dogBreed: widget.profile.isDogOwner ? updatedDogBreed : null,
       dogAge: widget.profile.isDogOwner ? updatedDogAge : null,
+      latitude: widget.profile.latitude,
+      longitude: widget.profile.longitude,
     );
   }
 
@@ -189,6 +191,8 @@ class _ProfileImageEditState extends State<ProfileImageEdit> {
       if (mounted) {
         setState(() {
           _locationController.text = location;
+          widget.profile.latitude = position.latitude; // Set latitude
+          widget.profile.longitude = position.longitude; // Set longitude
         });
       }
     } catch (e) {

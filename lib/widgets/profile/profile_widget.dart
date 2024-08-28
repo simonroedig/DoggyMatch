@@ -10,11 +10,13 @@ import 'package:doggymatch_flutter/profile/profile.dart';
 class ProfileWidget extends StatefulWidget {
   final UserProfile profile;
   final bool clickedOnOtherUser;
+  final double distance;
 
   const ProfileWidget({
     super.key,
     required this.profile,
     required this.clickedOnOtherUser,
+    required this.distance,
   });
 
   @override
@@ -40,7 +42,10 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildHeader(),
-                        UserInfoSection(profile: widget.profile),
+                        UserInfoSection(
+                            profile: widget.profile,
+                            clickedOnOtherUser: widget.clickedOnOtherUser,
+                            distance: widget.distance),
                         if (widget.profile.isDogOwner)
                           DogInfoSection(profile: widget.profile),
                         AboutSection(profile: widget.profile),

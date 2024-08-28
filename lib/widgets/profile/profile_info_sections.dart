@@ -5,8 +5,14 @@ import 'package:doggymatch_flutter/profile/profile.dart';
 
 class UserInfoSection extends StatelessWidget {
   final UserProfile profile;
+  final bool clickedOnOtherUser;
+  final double distance;
 
-  const UserInfoSection({super.key, required this.profile});
+  const UserInfoSection(
+      {super.key,
+      required this.profile,
+      required this.clickedOnOtherUser,
+      required this.distance});
 
   @override
   Widget build(BuildContext context) {
@@ -28,11 +34,13 @@ class UserInfoSection extends StatelessWidget {
             icon: Icons.location_on_rounded,
             text: profile.location,
           ),
-          const SizedBox(height: 8.0),
-          _buildInfoRow(
-            icon: Icons.social_distance_rounded,
-            text: "10 km",
-          ),
+          if (clickedOnOtherUser) ...[
+            const SizedBox(height: 8.0),
+            _buildInfoRow(
+              icon: Icons.social_distance_rounded,
+              text: '${distance.toStringAsFixed(1)} km',
+            ),
+          ],
         ],
       ),
     );

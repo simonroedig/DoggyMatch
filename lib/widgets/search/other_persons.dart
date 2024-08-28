@@ -1,4 +1,5 @@
-import 'dart:developer';
+import 'dart:developer' as developer;
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -8,7 +9,7 @@ import 'package:doggymatch_flutter/colors.dart';
 import 'package:doggymatch_flutter/profile/profile.dart';
 
 class OtherPersons extends StatefulWidget {
-  final Function(UserProfile)
+  final Function(UserProfile, String)
       onProfileSelected; // Callback to notify profile selection
 
   const OtherPersons({super.key, required this.onProfileSelected});
@@ -41,7 +42,7 @@ class _OtherPersonsState extends State<OtherPersons> {
       setState(() {
         _isLoading = false;
       });
-      log('Error fetching users: $e');
+      developer.log('Error fetching users: $e');
     }
   }
 
@@ -127,14 +128,28 @@ class _OtherPersonsState extends State<OtherPersons> {
           profileColor: Color(data['profileColor']),
           aboutText: data['aboutText'],
           location: data['location'],
+          latitude: data['latitude'].toDouble(),
+          longitude: data['longitude'].toDouble(),
           filterDistance: data['filterDistance'],
           birthday: data['birthday'] != null
               ? DateTime.parse(data['birthday'])
               : null,
         );
 
+        // Calculate the distance
+        final userProfileState =
+            Provider.of<UserProfileState>(context, listen: false);
+        final mainUserLatitude = userProfileState.userProfile.latitude;
+        final mainUserLongitude = userProfileState.userProfile.longitude;
+        final distance = _calculateDistance(
+          mainUserLatitude,
+          mainUserLongitude,
+          selectedProfile.latitude,
+          selectedProfile.longitude,
+        ).toStringAsFixed(1);
+
         // Call the callback to notify SearchPage
-        widget.onProfileSelected(selectedProfile);
+        widget.onProfileSelected(selectedProfile, distance);
       },
       child: Container(
         decoration: BoxDecoration(
@@ -153,7 +168,8 @@ class _OtherPersonsState extends State<OtherPersons> {
                 child: _buildUserImage(data['images'], isDogOwner),
               ),
             ),
-            _buildUserFooter(data['userName'], filterDistance),
+            _buildUserFooter(data['userName'], data['latitude'].toDouble(),
+                data['longitude'].toDouble()),
           ],
         ),
       ),
@@ -212,7 +228,22 @@ class _OtherPersonsState extends State<OtherPersons> {
     );
   }
 
-  Widget _buildUserFooter(String userName, String distance) {
+  Widget _buildUserFooter(
+      String userName, double userLatitude, double userLongitude) {
+    // Get the main user's latitude and longitude from UserProfileState
+    final userProfileState =
+        Provider.of<UserProfileState>(context, listen: false);
+    final mainUserLatitude = userProfileState.userProfile.latitude;
+    final mainUserLongitude = userProfileState.userProfile.longitude;
+
+    // Calculate the distance
+    final distance = _calculateDistance(
+      mainUserLatitude,
+      mainUserLongitude,
+      userLatitude,
+      userLongitude,
+    ).toStringAsFixed(1);
+
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Row(
@@ -247,5 +278,23 @@ class _OtherPersonsState extends State<OtherPersons> {
         ],
       ),
     );
+  }
+
+  double _calculateDistance(
+      double lat1, double lon1, double lat2, double lon2) {
+    const R = 6371; // Radius of the Earth in kilometers
+    final dLat = _deg2rad(lat2 - lat1);
+    final dLon = _deg2rad(lon2 - lon1);
+    final a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(_deg2rad(lat1)) *
+            cos(_deg2rad(lat2)) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
+    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    return R * c; // Distance in kilometers
+  }
+
+  double _deg2rad(double deg) {
+    return deg * (pi / 180);
   }
 }

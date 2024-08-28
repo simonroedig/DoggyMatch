@@ -7,6 +7,8 @@ class UserProfile {
   final Color profileColor;
   final List<String> images;
   final String location;
+  double latitude;
+  double longitude;
   final bool isDogOwner;
   final String? dogName;
   final String? dogBreed;
@@ -22,6 +24,8 @@ class UserProfile {
     required this.profileColor,
     required this.images,
     required this.location,
+    required this.latitude,
+    required this.longitude,
     required this.isDogOwner,
     this.dogName = '',
     this.dogBreed = '',
@@ -49,6 +53,8 @@ class UserProfile {
     Color? profileColor,
     List<String>? images,
     String? location,
+    double? latitude,
+    double? longitude,
     bool? isDogOwner,
     String? dogName,
     String? dogBreed,
@@ -64,6 +70,8 @@ class UserProfile {
       profileColor: profileColor ?? this.profileColor,
       images: images ?? this.images,
       location: location ?? this.location,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
       isDogOwner: isDogOwner ?? this.isDogOwner,
       dogName: dogName ?? this.dogName,
       dogBreed: dogBreed ?? this.dogBreed,

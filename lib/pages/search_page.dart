@@ -21,6 +21,7 @@ class SearchPage extends StatefulWidget {
 class SearchPageState extends State<SearchPage> {
   bool _isFilterOpen = false;
   UserProfile? _selectedProfile;
+  String? _selectedDistance;
 
   @override
   void initState() {
@@ -54,9 +55,10 @@ class SearchPageState extends State<SearchPage> {
     Provider.of<UserProfileState>(context, listen: false).closeProfile();
   }
 
-  void _openProfile(UserProfile profile) {
+  void _openProfile(UserProfile profile, String distance) {
     setState(() {
       _selectedProfile = profile;
+      _selectedDistance = distance;
     });
     Provider.of<UserProfileState>(context, listen: false).openProfile();
   }
@@ -102,6 +104,8 @@ class SearchPageState extends State<SearchPage> {
                                   child: ProfileWidget(
                                     profile: _selectedProfile!,
                                     clickedOnOtherUser: true,
+                                    distance:
+                                        double.parse(_selectedDistance ?? '?'),
                                   ),
                                 ),
                               ),
