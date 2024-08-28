@@ -60,6 +60,8 @@ class _OtherPersonsState extends State<OtherPersons> {
         userProfileState.userProfile.filterLookingForDogOwner;
     final bool showDogSitter =
         userProfileState.userProfile.filterLookingForDogSitter;
+    final double selectedFilterDistance =
+        userProfileState.userProfile.filterDistance;
 
     if (_isLoading) {
       return const Center(
@@ -71,20 +73,57 @@ class _OtherPersonsState extends State<OtherPersons> {
       final firestoreData = user['firestoreData'];
       final bool isDogOwner = firestoreData['isDogOwner'] == true;
 
-      if (showDogOwner && showDogSitter) {
-        return true; // Show all users
-      } else if (showDogOwner) {
-        return isDogOwner; // Show only dog owners
-      } else if (showDogSitter) {
-        return !isDogOwner; // Show only dog sitters
-      } else {
-        return false; // If no filters are selected, show nothing (this shouldn't happen due to UI logic)
+      final String uid = user['uid'];
+      if (uid == _authService.getCurrentUserId()) {
+        return false;
       }
+
+      // Calculate the distance between the main user and the current user
+      final double userLatitude = firestoreData['latitude'].toDouble();
+      final double userLongitude = firestoreData['longitude'].toDouble();
+      final double distance = _calculateDistance(
+        userProfileState.userProfile.latitude,
+        userProfileState.userProfile.longitude,
+        userLatitude,
+        userLongitude,
+      );
+
+      // Apply the filters: show based on owner/sitter selection and distance
+      bool withinDistance = distance <= selectedFilterDistance;
+      bool matchesFilter = (showDogOwner && showDogSitter) ||
+          (showDogOwner && isDogOwner) ||
+          (showDogSitter && !isDogOwner);
+
+      return withinDistance && matchesFilter;
     }).toList();
 
     if (filteredUsers.isEmpty) {
-      return const Center(
-        child: Text('No users found'),
+      return Center(
+        child: RichText(
+          textAlign: TextAlign.center,
+          text: const TextSpan(
+            text:
+                'No users found 😔\n\nAdjust your filter settings\nand spread the word about ',
+            style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 10.0,
+                fontWeight: FontWeight.normal,
+                color: AppColors
+                    .customBlack // Ensure to set the color to avoid defaulting to primary color
+                ),
+            children: <TextSpan>[
+              TextSpan(
+                text: 'DoggyMatch',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              TextSpan(
+                text: ' 🐶❤️',
+              ),
+            ],
+          ),
+        ),
       );
     }
 
