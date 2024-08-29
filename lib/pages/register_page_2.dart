@@ -15,12 +15,22 @@ class RegisterPage2 extends StatefulWidget {
 }
 
 class _RegisterPage2State extends State<RegisterPage2> {
+  bool? isDogOwner;
+  Color? selectedColor;
+  String? errorMessage;
+
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     final userProfileState = Provider.of<UserProfileState>(context);
-    bool isDogOwner = userProfileState.userProfile.isDogOwner;
-    Color selectedColor = userProfileState.userProfile.profileColor;
+
+    // Calculate the appropriate size for the color circles to prevent overflow
+    int colorOptionCount = 6; // Number of color options
+    double availableWidth = screenWidth - 32.0; // 16px padding on both sides
+    double totalSpacing =
+        (colorOptionCount - 1) * 8.0; // 8px spacing between circles
+    double maxCircleDiameter =
+        (availableWidth - totalSpacing) / colorOptionCount - 4;
 
     return Scaffold(
       backgroundColor: AppColors.greyLightest,
@@ -28,13 +38,31 @@ class _RegisterPage2State extends State<RegisterPage2> {
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 40.0),
-                const Center(
-                  child: Text(
+            child: Center(
+              // Center the whole content
+              child: Column(
+                mainAxisAlignment:
+                    MainAxisAlignment.start, // Center content vertically
+                crossAxisAlignment:
+                    CrossAxisAlignment.center, // Center content horizontally
+                children: [
+                  const SizedBox(height: 40.0),
+                  const Text(
+                    "Select your profile type.\nYou can always change it later! 😃",
+                    textAlign:
+                        TextAlign.center, // Center text within the Text widget
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.customBlack,
+                      fontFamily: 'Poppins',
+                    ),
+                  ),
+                  const SizedBox(height: 30.0),
+                  const Text(
                     "I am a",
+                    textAlign:
+                        TextAlign.center, // Center text within the Text widget
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -42,35 +70,37 @@ class _RegisterPage2State extends State<RegisterPage2> {
                       fontFamily: 'Poppins',
                     ),
                   ),
-                ),
-                const SizedBox(height: 16.0),
-                _buildSelectionMenu(
-                  icon: Icons.pets_rounded,
-                  text: "Dog Owner",
-                  isSelected: isDogOwner,
-                  onTap: () {
-                    setState(() {
-                      isDogOwner = true;
-                    });
-                    userProfileState.updateDogOwnerStatus(true);
-                  },
-                ),
-                const SizedBox(height: 10.0),
-                _buildSelectionMenu(
-                  icon: Icons.person_rounded,
-                  text: "Dog Sitter",
-                  isSelected: !isDogOwner,
-                  onTap: () {
-                    setState(() {
-                      isDogOwner = false;
-                    });
-                    userProfileState.updateDogOwnerStatus(false);
-                  },
-                ),
-                const SizedBox(height: 30.0),
-                const Center(
-                  child: Text(
+                  const SizedBox(height: 16.0),
+                  _buildSelectionMenu(
+                    icon: Icons.pets_rounded,
+                    text: "Dog Owner",
+                    isSelected: isDogOwner == true,
+                    onTap: () {
+                      setState(() {
+                        isDogOwner = true;
+                        errorMessage = null; // Clear error message
+                      });
+                      userProfileState.updateDogOwnerStatus(true);
+                    },
+                  ),
+                  const SizedBox(height: 10.0),
+                  _buildSelectionMenu(
+                    icon: Icons.person_rounded,
+                    text: "Dog Sitter",
+                    isSelected: isDogOwner == false,
+                    onTap: () {
+                      setState(() {
+                        isDogOwner = false;
+                        errorMessage = null; // Clear error message
+                      });
+                      userProfileState.updateDogOwnerStatus(false);
+                    },
+                  ),
+                  const SizedBox(height: 30.0),
+                  const Text(
                     "Profile Color",
+                    textAlign:
+                        TextAlign.center, // Center text within the Text widget
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -78,64 +108,110 @@ class _RegisterPage2State extends State<RegisterPage2> {
                       fontFamily: 'Poppins',
                     ),
                   ),
-                ),
-                const SizedBox(height: 16.0),
-                Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildColorOption(
-                        color: AppColors.accent1,
-                        isSelected: selectedColor == AppColors.accent1,
-                        onTap: () {
-                          setState(() {
-                            selectedColor = AppColors.accent1;
-                          });
-                          userProfileState
-                              .updateProfileColor(AppColors.accent1);
-                        },
-                      ),
-                      const SizedBox(width: 20.0),
-                      _buildColorOption(
-                        color: AppColors.accent2,
-                        isSelected: selectedColor == AppColors.accent2,
-                        onTap: () {
-                          setState(() {
-                            selectedColor = AppColors.accent2;
-                          });
-                          userProfileState
-                              .updateProfileColor(AppColors.accent2);
-                        },
-                      ),
-                      const SizedBox(width: 20.0),
-                      _buildColorOption(
-                        color: AppColors.accent3,
-                        isSelected: selectedColor == AppColors.accent3,
-                        onTap: () {
-                          setState(() {
-                            selectedColor = AppColors.accent3;
-                          });
-                          userProfileState
-                              .updateProfileColor(AppColors.accent3);
-                        },
-                      ),
-                      const SizedBox(width: 20.0),
-                      _buildColorOption(
-                        color: AppColors.brownLightest,
-                        isSelected: selectedColor == AppColors.brownLightest,
-                        onTap: () {
-                          setState(() {
-                            selectedColor = AppColors.brownLightest;
-                          });
-                          userProfileState
-                              .updateProfileColor(AppColors.brownLightest);
-                        },
-                      ),
-                    ],
+                  const SizedBox(height: 16.0),
+                  Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildColorOption(
+                          color: AppColors.accent1,
+                          isSelected: selectedColor == AppColors.accent1,
+                          onTap: () {
+                            setState(() {
+                              selectedColor = AppColors.accent1;
+                              errorMessage = null; // Clear error message
+                            });
+                            userProfileState
+                                .updateProfileColor(AppColors.accent1);
+                          },
+                          diameter: maxCircleDiameter,
+                        ),
+                        const SizedBox(width: 8.0),
+                        _buildColorOption(
+                          color: AppColors.accent2,
+                          isSelected: selectedColor == AppColors.accent2,
+                          onTap: () {
+                            setState(() {
+                              selectedColor = AppColors.accent2;
+                              errorMessage = null; // Clear error message
+                            });
+                            userProfileState
+                                .updateProfileColor(AppColors.accent2);
+                          },
+                          diameter: maxCircleDiameter,
+                        ),
+                        const SizedBox(width: 8.0),
+                        _buildColorOption(
+                          color: AppColors.accent3,
+                          isSelected: selectedColor == AppColors.accent3,
+                          onTap: () {
+                            setState(() {
+                              selectedColor = AppColors.accent3;
+                              errorMessage = null; // Clear error message
+                            });
+                            userProfileState
+                                .updateProfileColor(AppColors.accent3);
+                          },
+                          diameter: maxCircleDiameter,
+                        ),
+                        const SizedBox(width: 8.0),
+                        _buildColorOption(
+                          color: AppColors.brownLightest,
+                          isSelected: selectedColor == AppColors.brownLightest,
+                          onTap: () {
+                            setState(() {
+                              selectedColor = AppColors.brownLightest;
+                              errorMessage = null; // Clear error message
+                            });
+                            userProfileState
+                                .updateProfileColor(AppColors.brownLightest);
+                          },
+                          diameter: maxCircleDiameter,
+                        ),
+                        const SizedBox(width: 8.0),
+                        _buildColorOption(
+                          color: AppColors.accent4,
+                          isSelected: selectedColor == AppColors.accent4,
+                          onTap: () {
+                            setState(() {
+                              selectedColor = AppColors.accent4;
+                              errorMessage = null; // Clear error message
+                            });
+                            userProfileState
+                                .updateProfileColor(AppColors.accent4);
+                          },
+                          diameter: maxCircleDiameter,
+                        ),
+                        const SizedBox(width: 8.0),
+                        _buildColorOption(
+                          color: AppColors.accent5,
+                          isSelected: selectedColor == AppColors.accent5,
+                          onTap: () {
+                            setState(() {
+                              selectedColor = AppColors.accent5;
+                              errorMessage = null; // Clear error message
+                            });
+                            userProfileState
+                                .updateProfileColor(AppColors.accent5);
+                          },
+                          diameter: maxCircleDiameter,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 30.0),
-              ],
+                  const SizedBox(height: 30.0),
+                  if (errorMessage != null)
+                    Text(
+                      errorMessage!,
+                      style: const TextStyle(
+                        color: AppColors.customRed,
+                        fontSize: 14,
+                        fontFamily: 'Poppins',
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                ],
+              ),
             ),
           ),
           Positioned(
@@ -146,7 +222,14 @@ class _RegisterPage2State extends State<RegisterPage2> {
               height: 50.0,
               child: ElevatedButton(
                 onPressed: () {
-                  _openEditProfileDialog(context);
+                  if (isDogOwner == null || selectedColor == null) {
+                    setState(() {
+                      errorMessage =
+                          "Please select whether you're a Dog Owner or Dog Sitter and choose a profile color. You can change these later anytime.";
+                    });
+                  } else {
+                    _openEditProfileDialog(context);
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.lightPurple,
@@ -226,12 +309,13 @@ class _RegisterPage2State extends State<RegisterPage2> {
     required Color color,
     required bool isSelected,
     required VoidCallback onTap,
+    required double diameter,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 50,
-        height: 50,
+        width: diameter,
+        height: diameter,
         decoration: BoxDecoration(
           color: color,
           shape: BoxShape.circle,

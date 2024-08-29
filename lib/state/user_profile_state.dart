@@ -9,7 +9,7 @@ class UserProfileState extends ChangeNotifier {
   final _auth = AuthService();
 
   static const String placeholderImageUrl =
-      'https://firebasestorage.googleapis.com/v0/b/doggymatch-bb17f.appspot.com/o/placeholder.png?alt=media&token=b02e0072-f0f9-45dc-8db6-517fe82491b1';
+      'https://firebasestorage.googleapis.com/v0/b/doggymatch-bb17f.appspot.com/o/placeholder.png?alt=media&token=6c364b4d-0e8b-4b34-b29e-58dc6dadcc65';
 
   UserProfile _userProfile = UserProfile(
     userName: '',

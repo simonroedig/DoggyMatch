@@ -1,5 +1,3 @@
-// settings_page.dart
-
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:doggymatch_flutter/main.dart';
@@ -26,6 +24,14 @@ class _SettingsPageState extends State<SettingsPage> {
     final userProfileState = Provider.of<UserProfileState>(context);
     bool isDogOwner = userProfileState.userProfile.isDogOwner;
     Color selectedColor = userProfileState.userProfile.profileColor;
+
+    // Calculate the available width minus padding for each color option
+    int colorOptionCount = 6;
+    double availableWidth = screenWidth - 32.0; // 16px padding on both sides
+    double totalSpacing =
+        (colorOptionCount - 1) * 8.0; // 8px spacing between circles
+    double maxCircleDiameter =
+        (availableWidth - totalSpacing) / colorOptionCount - 4;
 
     return Scaffold(
       backgroundColor: AppColors.greyLightest,
@@ -125,8 +131,9 @@ class _SettingsPageState extends State<SettingsPage> {
                           userProfileState
                               .updateProfileColor(AppColors.accent1);
                         },
+                        diameter: maxCircleDiameter,
                       ),
-                      const SizedBox(width: 20.0),
+                      const SizedBox(width: 8.0),
                       _buildColorOption(
                         color: AppColors.accent2,
                         isSelected: selectedColor == AppColors.accent2,
@@ -137,8 +144,9 @@ class _SettingsPageState extends State<SettingsPage> {
                           userProfileState
                               .updateProfileColor(AppColors.accent2);
                         },
+                        diameter: maxCircleDiameter,
                       ),
-                      const SizedBox(width: 20.0),
+                      const SizedBox(width: 8.0),
                       _buildColorOption(
                         color: AppColors.accent3,
                         isSelected: selectedColor == AppColors.accent3,
@@ -149,8 +157,9 @@ class _SettingsPageState extends State<SettingsPage> {
                           userProfileState
                               .updateProfileColor(AppColors.accent3);
                         },
+                        diameter: maxCircleDiameter,
                       ),
-                      const SizedBox(width: 20.0),
+                      const SizedBox(width: 8.0),
                       _buildColorOption(
                         color: AppColors.brownLightest,
                         isSelected: selectedColor == AppColors.brownLightest,
@@ -161,6 +170,33 @@ class _SettingsPageState extends State<SettingsPage> {
                           userProfileState
                               .updateProfileColor(AppColors.brownLightest);
                         },
+                        diameter: maxCircleDiameter,
+                      ),
+                      const SizedBox(width: 8.0),
+                      _buildColorOption(
+                        color: AppColors.accent4,
+                        isSelected: selectedColor == AppColors.accent4,
+                        onTap: () {
+                          setState(() {
+                            selectedColor = AppColors.accent4;
+                          });
+                          userProfileState
+                              .updateProfileColor(AppColors.accent4);
+                        },
+                        diameter: maxCircleDiameter,
+                      ),
+                      const SizedBox(width: 8.0),
+                      _buildColorOption(
+                        color: AppColors.accent5,
+                        isSelected: selectedColor == AppColors.accent5,
+                        onTap: () {
+                          setState(() {
+                            selectedColor = AppColors.accent5;
+                          });
+                          userProfileState
+                              .updateProfileColor(AppColors.accent5);
+                        },
+                        diameter: maxCircleDiameter,
                       ),
                     ],
                   ),
@@ -280,7 +316,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
+                  backgroundColor: AppColors.customRed,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
@@ -357,12 +393,13 @@ class _SettingsPageState extends State<SettingsPage> {
     required Color color,
     required bool isSelected,
     required VoidCallback onTap,
+    required double diameter,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 50,
-        height: 50,
+        width: diameter,
+        height: diameter,
         decoration: BoxDecoration(
           color: color,
           shape: BoxShape.circle,

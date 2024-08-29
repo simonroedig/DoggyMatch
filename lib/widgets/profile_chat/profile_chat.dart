@@ -10,6 +10,7 @@ class ProfileChat extends StatefulWidget {
       {super.key, required this.profile, required this.onHeaderTapped});
 
   @override
+  // ignore: library_private_types_in_public_api
   _ProfileChatState createState() => _ProfileChatState();
 }
 

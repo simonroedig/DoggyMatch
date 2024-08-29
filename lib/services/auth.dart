@@ -94,6 +94,9 @@ class AuthService {
   // Delete image from Firebase Storage
   Future<void> deleteProfileImage(String imageUrl) async {
     try {
+      if (imageUrl.contains("placeholder")) {
+        return;
+      }
       final ref = _storage.refFromURL(imageUrl);
       await ref.delete();
     } catch (e) {
