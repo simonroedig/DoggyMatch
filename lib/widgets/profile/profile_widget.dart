@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:doggymatch_flutter/widgets/profile/profile_edit_all.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
@@ -21,7 +19,6 @@ class ProfileWidget extends StatefulWidget {
   });
 
   @override
-  // ignore: library_private_types_in_public_api
   _ProfileWidgetState createState() => _ProfileWidgetState();
 }
 
@@ -33,46 +30,44 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     return _buildProfileContainer(
       child: Column(
         children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  if (!_isInChat)
-                    Column(
-                      children: [
-                        ProfileImageStack(profile: widget.profile),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16.0, vertical: 8.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildHeader(),
-                              UserInfoSection(
-                                  profile: widget.profile,
-                                  clickedOnOtherUser: widget.clickedOnOtherUser,
-                                  distance: widget.distance),
-                              if (widget.profile.isDogOwner)
-                                DogInfoSection(profile: widget.profile),
-                              AboutSection(profile: widget.profile),
-                            ],
-                          ),
-                        ),
-                      ],
-                    )
-                  else
-                    ProfileChat(
-                      profile: widget.profile,
-                      onHeaderTapped: () {
-                        setState(() {
-                          _isInChat = false; // Go back to profile view
-                        });
-                      },
+          if (!_isInChat)
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    ProfileImageStack(profile: widget.profile),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildHeader(),
+                          UserInfoSection(
+                              profile: widget.profile,
+                              clickedOnOtherUser: widget.clickedOnOtherUser,
+                              distance: widget.distance),
+                          if (widget.profile.isDogOwner)
+                            DogInfoSection(profile: widget.profile),
+                          AboutSection(profile: widget.profile),
+                        ],
+                      ),
                     ),
-                ],
+                  ],
+                ),
+              ),
+            )
+          else
+            Expanded(
+              child: ProfileChat(
+                profile: widget.profile,
+                onHeaderTapped: () {
+                  setState(() {
+                    _isInChat = false; // Go back to profile view
+                  });
+                },
               ),
             ),
-          ),
         ],
       ),
     );
@@ -82,7 +77,8 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 17.0),
       decoration: BoxDecoration(
-        color: widget.profile.profileColor,
+        color:
+            _isInChat ? AppColors.brownLightest : widget.profile.profileColor,
         borderRadius: BorderRadius.circular(24.0),
         border: Border.all(
           color: AppColors.customBlack,
@@ -156,10 +152,5 @@ class _ProfileWidgetState extends State<ProfileWidget> {
         ),
       ),
     );
-  }
-
-  void _sendMessage() {
-    // Implement your send message functionality here
-    log('Send message button pressed');
   }
 }

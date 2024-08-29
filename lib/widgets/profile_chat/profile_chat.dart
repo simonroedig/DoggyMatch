@@ -10,7 +10,6 @@ class ProfileChat extends StatefulWidget {
       {super.key, required this.profile, required this.onHeaderTapped});
 
   @override
-  // ignore: library_private_types_in_public_api
   _ProfileChatState createState() => _ProfileChatState();
 }
 
@@ -40,19 +39,18 @@ class _ProfileChatState extends State<ProfileChat> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: MainAxisSize.max,
       children: [
         GestureDetector(
           onTap: widget.onHeaderTapped,
           child: _buildChatHeader(context),
         ),
-        Flexible(
-          child: SingleChildScrollView(
-            child: Container(
-              padding: const EdgeInsets.all(16.0),
-              color: Colors.transparent,
-              child: const ChatMessages(), // Use the ChatMessages widget here
-            ),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.all(16.0),
+            children: const <Widget>[
+              ChatMessages(), // The chat messages are scrollable here
+            ],
           ),
         ),
         _buildMessageInput(context),
@@ -66,9 +64,9 @@ class _ProfileChatState extends State<ProfileChat> {
 
     return Container(
       height: 70,
-      decoration: const BoxDecoration(
-        color: AppColors.greyLightest,
-        border: Border(
+      decoration: BoxDecoration(
+        color: widget.profile.profileColor,
+        border: const Border(
           bottom: BorderSide(
             color: AppColors.customBlack,
             width: 3.0,
@@ -147,44 +145,49 @@ class _ProfileChatState extends State<ProfileChat> {
   }
 
   Widget _buildMessageInput(BuildContext context) {
-    return Center(
-      child: Container(
-        width: MediaQuery.of(context).size.width * 0.8, // 85% of device width
-        padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
-        decoration: BoxDecoration(
-          color: AppColors.bg,
-          borderRadius: BorderRadius.circular(40.0),
-          border: Border.all(
-            color: AppColors.customBlack,
-            width: 3.0,
+    return Padding(
+      padding:
+          const EdgeInsets.only(bottom: 8.0, top: 14.0), // Add padding here
+      child: Center(
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.84,
+          padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
+          decoration: BoxDecoration(
+            color: AppColors.bg,
+            borderRadius: BorderRadius.circular(20.0),
+            border: Border.all(
+              color: AppColors.customBlack,
+              width: 3.0,
+            ),
           ),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _controller,
-                decoration: const InputDecoration(
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16.0),
-                  hintText: 'Send a message..',
-                  hintStyle: TextStyle(color: AppColors.grey),
-                  border: InputBorder.none, // Remove the inner border
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _controller,
+                  decoration: const InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(horizontal: 16.0),
+                    hintText: 'Send a message..',
+                    hintStyle: TextStyle(color: AppColors.grey),
+                    border: InputBorder.none, // Remove the inner border
+                  ),
+                  style: const TextStyle(color: AppColors.customBlack),
                 ),
-                style: const TextStyle(color: AppColors.customBlack),
               ),
-            ),
-            IconButton(
-              icon: Icon(
-                Icons.send_rounded,
-                color: _hasText ? widget.profile.profileColor : AppColors.grey,
+              IconButton(
+                icon: Icon(
+                  Icons.send_rounded,
+                  color:
+                      _hasText ? widget.profile.profileColor : AppColors.grey,
+                ),
+                onPressed: _hasText
+                    ? () {
+                        // Implement your send message functionality here
+                      }
+                    : null,
               ),
-              onPressed: _hasText
-                  ? () {
-                      // Implement your send message functionality here
-                    }
-                  : null,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -196,30 +199,24 @@ class ChatMessages extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(0.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildChatBubble(context, "Hello! How are you?", true),
-          _buildChatBubble(context, "I'm good, thanks! How about you?", false),
-          _buildChatBubble(
-              context, "Doing great, just enjoying the day!", true),
-          _buildChatBubble(context, "That's awesome! Any plans?", false),
-          _buildChatBubble(
-              context, "Not much, maybe a walk with the dog later.", true),
-          _buildChatBubble(context, "Sounds fun! Enjoy!", false),
-          _buildChatBubble(context, "Hello! How are you?", true),
-          _buildChatBubble(context, "I'm good, thanks! How about you?", false),
-          _buildChatBubble(
-              context, "Doing great, just enjoying the day!", true),
-          _buildChatBubble(context, "That's awesome! Any plans?", false),
-          _buildChatBubble(
-              context, "Not much, maybe a walk with the dog later.", true),
-          _buildChatBubble(context, "Sounds fun! Enjoy!", false),
-          // Add more dummy chat messages here if needed
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildChatBubble(context, "Hello! How are you?", true),
+        _buildChatBubble(context, "I'm good, thanks! How about you?", false),
+        _buildChatBubble(context, "Doing great, just enjoying the day!", true),
+        _buildChatBubble(context, "That's awesome! Any plans?", false),
+        _buildChatBubble(
+            context, "Not much, maybe a walk with the dog later.", true),
+        _buildChatBubble(context, "Sounds fun! Enjoy!", false),
+        _buildChatBubble(context, "Hello! How are you?", true),
+        _buildChatBubble(context, "I'm good, thanks! How about you?", false),
+        _buildChatBubble(context, "Doing great, just enjoying the day!", true),
+        _buildChatBubble(context, "That's awesome! Any plans?", false),
+        _buildChatBubble(
+            context, "Not much, maybe a walk with the dog later.", true),
+        _buildChatBubble(context, "Sounds fun! Enjoy!", false),
+      ],
     );
   }
 
