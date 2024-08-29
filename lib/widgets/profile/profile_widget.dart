@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
 import 'package:doggymatch_flutter/widgets/profile/profile_image_stack.dart';
 import 'package:doggymatch_flutter/widgets/profile/profile_info_sections.dart';
+import 'package:doggymatch_flutter/widgets/profile_chat/profile_chat.dart';
 import 'package:doggymatch_flutter/profile/profile.dart';
 
 class ProfileWidget extends StatefulWidget {
@@ -25,6 +26,8 @@ class ProfileWidget extends StatefulWidget {
 }
 
 class _ProfileWidgetState extends State<ProfileWidget> {
+  bool _isInChat = false;
+
   @override
   Widget build(BuildContext context) {
     return _buildProfileContainer(
@@ -34,24 +37,38 @@ class _ProfileWidgetState extends State<ProfileWidget> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  ProfileImageStack(profile: widget.profile),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0, vertical: 8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  if (!_isInChat)
+                    Column(
                       children: [
-                        _buildHeader(),
-                        UserInfoSection(
-                            profile: widget.profile,
-                            clickedOnOtherUser: widget.clickedOnOtherUser,
-                            distance: widget.distance),
-                        if (widget.profile.isDogOwner)
-                          DogInfoSection(profile: widget.profile),
-                        AboutSection(profile: widget.profile),
+                        ProfileImageStack(profile: widget.profile),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0, vertical: 8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildHeader(),
+                              UserInfoSection(
+                                  profile: widget.profile,
+                                  clickedOnOtherUser: widget.clickedOnOtherUser,
+                                  distance: widget.distance),
+                              if (widget.profile.isDogOwner)
+                                DogInfoSection(profile: widget.profile),
+                              AboutSection(profile: widget.profile),
+                            ],
+                          ),
+                        ),
                       ],
+                    )
+                  else
+                    ProfileChat(
+                      profile: widget.profile,
+                      onHeaderTapped: () {
+                        setState(() {
+                          _isInChat = false; // Go back to profile view
+                        });
+                      },
                     ),
-                  ),
                 ],
               ),
             ),
@@ -105,14 +122,27 @@ class _ProfileWidgetState extends State<ProfileWidget> {
         ),
         IconButton(
           icon: Icon(
-            widget.clickedOnOtherUser
-                ? Icons.message_rounded
-                : Icons.border_color_rounded,
+            _isInChat
+                ? Icons.arrow_back_rounded
+                : widget.clickedOnOtherUser
+                    ? Icons.message_rounded
+                    : Icons.border_color_rounded,
             color: AppColors.customBlack,
           ),
-          onPressed: widget.clickedOnOtherUser
-              ? _sendMessage
-              : () => _openEditProfileDialog(context),
+          onPressed: () {
+            setState(() {
+              if (_isInChat) {
+                _isInChat = false; // Go back to profile view
+              } else {
+                if (widget.clickedOnOtherUser) {
+                  _isInChat = true; // Switch to chat view
+                } else {
+                  _openEditProfileDialog(
+                      context); // Open edit profile if not on another user's profile
+                }
+              }
+            });
+          },
         ),
       ],
     );

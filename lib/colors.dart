@@ -14,6 +14,7 @@ class AppColors {
 
   static const Color grey = Color(0xFF7E7E7E);
   static const Color greyLightest = Color.fromARGB(255, 236, 236, 236);
+  static const Color greySemiLightest = Color.fromARGB(255, 188, 188, 188);
 
   static const Color highlight = pastelPurple;
   static const Color accent1 = Color(0xFFC5D7ED);

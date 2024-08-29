@@ -1,3 +1,5 @@
+// File: custom_app_bar.dart
+
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
 
@@ -6,7 +8,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? toggleFilter;
   final bool showFilterIcon;
   final VoidCallback? onSettingsPressed;
-  final bool isProfileOpen; // New parameter to control clickability
+  final bool isProfileOpen;
+  final bool showSearchIcon; // New parameter for search icon
 
   const CustomAppBar({
     super.key,
@@ -14,7 +17,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.toggleFilter,
     this.showFilterIcon = true,
     this.onSettingsPressed,
-    this.isProfileOpen = false, // Default to false
+    this.isProfileOpen = false,
+    this.showSearchIcon = false, // Default to false
   });
 
   @override
@@ -85,7 +89,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                         ),
                       ],
                     ),
-                    if (showFilterIcon)
+                    if (showSearchIcon)
+                      IconButton(
+                        icon: const Icon(Icons.search_rounded, size: 30.0),
+                        onPressed: () {}, // Add action if needed
+                        color: AppColors.customBlack,
+                      )
+                    else if (showFilterIcon)
                       IconButton(
                         icon: Icon(
                           isFilterOpen
