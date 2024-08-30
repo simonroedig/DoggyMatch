@@ -99,7 +99,7 @@ class _ChatPageState extends State<ChatPage> {
           await _authService.fetchUserProfile();
 
       for (var chatRoom in snapshot.docs) {
-        final otherUserId = (chatRoom.data() as Map<String, dynamic>)['members']
+        final otherUserId = (chatRoom.data())['members']
             .where((id) => id != _currentUserId)
             .first;
 
