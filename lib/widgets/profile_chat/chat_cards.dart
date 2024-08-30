@@ -1,5 +1,7 @@
 // File: lib/widgets/profile_chat/chat_cards.dart
 
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
 import 'package:doggymatch_flutter/profile/profile.dart';
@@ -125,7 +127,8 @@ class _ChatCardState extends State<ChatCard> with TickerProviderStateMixin {
                       child: Row(
                         children: [
                           const Icon(Icons.person_rounded,
-                              color: AppColors.customBlack),
+                              color: AppColors.customBlack,
+                              size: 20), // Adjust the size as needed
                           const SizedBox(width: 4.0),
                           Text(
                             widget.otherUserProfile.userName,
@@ -147,7 +150,8 @@ class _ChatCardState extends State<ChatCard> with TickerProviderStateMixin {
                               ),
                             ),
                             const Icon(Icons.pets_rounded,
-                                color: AppColors.customBlack),
+                                color: AppColors.customBlack,
+                                size: 18), // Adjust the size as needed
                             const SizedBox(width: 4.0),
                             Text(
                               widget.otherUserProfile.dogName!,

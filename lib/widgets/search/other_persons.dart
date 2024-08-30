@@ -339,9 +339,11 @@ class _ScrollableText extends StatefulWidget {
   final IconData? prefixIcon;
   final double? prefixIconSize;
 
+  // ignore: use_super_parameters
   const _ScrollableText({
     Key? key,
     required this.text,
+    // ignore: unused_element
     this.prefixIcon,
     this.prefixIconSize,
   }) : super(key: key);
