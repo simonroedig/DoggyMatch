@@ -48,6 +48,19 @@ class AuthService {
       double filterDistance,
       double latitude,
       double longitude) async {
+    // if the filterDistance is 0.0 refetch alls these parameters here from firebase
+
+    if (filterDistance == 0.0 && latitude == 0.0 && longitude == 0.0) {
+      final userProfile = await fetchUserProfile();
+      if (userProfile != null) {
+        filterLookingForDogOwner = userProfile.filterLookingForDogOwner;
+        filterLookingForDogSitter = userProfile.filterLookingForDogSitter;
+        filterDistance = userProfile.filterDistance;
+        latitude = userProfile.latitude;
+        longitude = userProfile.longitude;
+      }
+    }
+
     // log all parameters
     dev.log('filterLookingForDogOwner: $filterLookingForDogOwner');
     dev.log('filterLookingForDogSitter: $filterLookingForDogSitter');
