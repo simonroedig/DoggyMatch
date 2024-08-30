@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'dart:developer' as developer;
 import 'dart:math';
 
@@ -15,7 +17,6 @@ class OtherPersons extends StatefulWidget {
   const OtherPersons({super.key, required this.onProfileSelected});
 
   @override
-  // ignore: library_private_types_in_public_api
   _OtherPersonsState createState() => _OtherPersonsState();
 }
 
@@ -27,12 +28,24 @@ class _OtherPersonsState extends State<OtherPersons>
 
   @override
   void initState() {
+    final userProfileState =
+        Provider.of<UserProfileState>(context, listen: false);
     super.initState();
-    _fetchUsers();
+    //_fetchUsers();
+    _fetchFilteredUsers(
+        userProfileState.userProfile.filterLookingForDogOwner,
+        userProfileState.userProfile.filterLookingForDogSitter,
+        userProfileState.userProfile.filterDistance,
+        userProfileState.userProfile.latitude,
+        userProfileState.userProfile.longitude);
   }
 
+  /*
   Future<void> _fetchUsers() async {
     try {
+      setState(() {
+        _isLoading = true; // Show progress indicator
+      });
       List<Map<String, dynamic>> users =
           await _authService.fetchAllUsersWithDocuments();
       setState(() {
@@ -46,12 +59,46 @@ class _OtherPersonsState extends State<OtherPersons>
       developer.log('Error fetching users: $e');
     }
   }
+  */
+
+  Future<void> _fetchFilteredUsers(
+      bool filterLookingForDogOwner,
+      bool filterLookingForDogSitter,
+      double filterDistance,
+      double latitude,
+      double longitude) async {
+    try {
+      setState(() {
+        _isLoading = true; // Show progress indicator
+      });
+      List<Map<String, dynamic>> users =
+          await _authService.fetchAllUsersWithinFilter(filterLookingForDogOwner,
+              filterLookingForDogSitter, filterDistance, latitude, longitude);
+      setState(() {
+        _users = users;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      developer.log('Error fetching filtered users: $e');
+    }
+  }
 
   Future<void> _refreshUsers() async {
     setState(() {
       _isLoading = true;
     });
-    await _fetchUsers();
+    //await _fetchUsers();
+    final userProfileState =
+        Provider.of<UserProfileState>(context, listen: false);
+    await _fetchFilteredUsers(
+        userProfileState.userProfile.filterLookingForDogOwner,
+        userProfileState.userProfile.filterLookingForDogSitter,
+        userProfileState.userProfile.filterDistance,
+        userProfileState.userProfile.latitude,
+        userProfileState.userProfile.longitude);
   }
 
   @override
@@ -109,9 +156,7 @@ class _OtherPersonsState extends State<OtherPersons>
                 fontFamily: 'Poppins',
                 fontSize: 10.0,
                 fontWeight: FontWeight.normal,
-                color: AppColors
-                    .customBlack // Ensure to set the color to avoid defaulting to primary color
-                ),
+                color: AppColors.customBlack),
             children: <TextSpan>[
               TextSpan(
                 text: 'DoggyMatch',
@@ -130,6 +175,7 @@ class _OtherPersonsState extends State<OtherPersons>
 
     return RefreshIndicator(
       onRefresh: _refreshUsers,
+      color: AppColors.customBlack,
       child: GridView.builder(
         padding: const EdgeInsets.all(18.0),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -158,42 +204,57 @@ class _OtherPersonsState extends State<OtherPersons>
   Widget _buildUserCard(Map<String, dynamic> data, bool isDogOwner,
       Color profileColor, String filterDistance) {
     return GestureDetector(
-      onTap: () {
-        // Create a UserProfile instance from the data map
-        UserProfile selectedProfile = UserProfile(
-          uid: data['uid'],
-          email: data['email'],
-          userName: data['userName'],
-          dogName: data['dogName'],
-          dogBreed: data['dogBreed'],
-          dogAge: data['dogAge'],
-          isDogOwner: data['isDogOwner'],
-          images: List<String>.from(data['images']),
-          profileColor: Color(data['profileColor']),
-          aboutText: data['aboutText'],
-          location: data['location'],
-          latitude: data['latitude'].toDouble(),
-          longitude: data['longitude'].toDouble(),
-          filterDistance: data['filterDistance'],
-          birthday: data['birthday'] != null
-              ? DateTime.parse(data['birthday'])
-              : null,
+      onTap: () async {
+        // Show progress indicator while fetching profile data
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          },
         );
 
-        // Calculate the distance
-        final userProfileState =
-            Provider.of<UserProfileState>(context, listen: false);
-        final mainUserLatitude = userProfileState.userProfile.latitude;
-        final mainUserLongitude = userProfileState.userProfile.longitude;
-        final distance = _calculateDistance(
-          mainUserLatitude,
-          mainUserLongitude,
-          selectedProfile.latitude,
-          selectedProfile.longitude,
-        ).toStringAsFixed(1);
+        try {
+          // Create a UserProfile instance from the data map
+          UserProfile selectedProfile = UserProfile(
+            uid: data['uid'],
+            email: data['email'],
+            userName: data['userName'],
+            dogName: data['dogName'],
+            dogBreed: data['dogBreed'],
+            dogAge: data['dogAge'],
+            isDogOwner: data['isDogOwner'],
+            images: List<String>.from(data['images']),
+            profileColor: Color(data['profileColor']),
+            aboutText: data['aboutText'],
+            location: data['location'],
+            latitude: data['latitude'].toDouble(),
+            longitude: data['longitude'].toDouble(),
+            filterDistance: data['filterDistance'],
+            birthday: data['birthday'] != null
+                ? DateTime.parse(data['birthday'])
+                : null,
+          );
 
-        // Call the callback to notify SearchPage
-        widget.onProfileSelected(selectedProfile, distance);
+          // Calculate the distance
+          final userProfileState =
+              Provider.of<UserProfileState>(context, listen: false);
+          final mainUserLatitude = userProfileState.userProfile.latitude;
+          final mainUserLongitude = userProfileState.userProfile.longitude;
+          final distance = _calculateDistance(
+            mainUserLatitude,
+            mainUserLongitude,
+            selectedProfile.latitude,
+            selectedProfile.longitude,
+          ).toStringAsFixed(1);
+
+          // Call the callback to notify SearchPage
+          widget.onProfileSelected(selectedProfile, distance);
+        } finally {
+          Navigator.pop(context); // Hide the progress indicator
+        }
       },
       child: Container(
         decoration: BoxDecoration(
@@ -239,6 +300,22 @@ class _OtherPersonsState extends State<OtherPersons>
         height: 120,
         width: double.infinity,
         fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(
+            child: CircularProgressIndicator(
+              value: loadingProgress.expectedTotalBytes != null
+                  ? loadingProgress.cumulativeBytesLoaded /
+                      loadingProgress.expectedTotalBytes!
+                  : null,
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return const Center(
+            child: Text('Error'),
+          );
+        },
       ),
     );
   }
@@ -246,23 +323,25 @@ class _OtherPersonsState extends State<OtherPersons>
   Widget _buildDogOwnerHeader(String dogName) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 10.0),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.pets_rounded,
-            color: AppColors.customBlack,
-            size: 18,
-          ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: _ScrollableText(
-              text: dogName,
-              prefixIconSize: 18,
+      child: Center(
+        // Ensures content is centered within the Row
+        child: Row(
+          mainAxisSize: MainAxisSize.min, // Adjusts to the size of the content
+          children: [
+            const Icon(
+              Icons.pets_rounded,
+              color: AppColors.customBlack,
+              size: 18,
             ),
-          ),
-        ],
+            const SizedBox(width: 4),
+            Flexible(
+              child: _ScrollableText(
+                text: dogName,
+                prefixIconSize: 18,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -46,7 +46,7 @@ class MainScreen extends StatelessWidget {
 
             List<Widget> pages = [
               SearchPage(profileCloseNotifier: profileCloseNotifier),
-              const ChatPage(),
+              ChatPage(profileCloseNotifier: profileCloseNotifier),
               ProfilePage(profile: profile),
             ];
 

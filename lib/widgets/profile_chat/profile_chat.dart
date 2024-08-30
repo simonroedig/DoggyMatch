@@ -22,7 +22,7 @@ class ProfileChat extends StatefulWidget {
   _ProfileChatState createState() => _ProfileChatState();
 }
 
-class _ProfileChatState extends State<ProfileChat> {
+class _ProfileChatState extends State<ProfileChat> with WidgetsBindingObserver {
   final TextEditingController _controller = TextEditingController();
   final ChatService _chatService = ChatService();
   final String _currentUserId = FirebaseAuth.instance.currentUser!.uid;
@@ -33,6 +33,11 @@ class _ProfileChatState extends State<ProfileChat> {
   void initState() {
     super.initState();
     _controller.addListener(_handleTextChange);
+    WidgetsBinding.instance.addObserver(this);
+    // Scroll to the bottom when the chat page is loaded
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
+    });
   }
 
   void _handleTextChange() {
@@ -46,6 +51,7 @@ class _ProfileChatState extends State<ProfileChat> {
     _controller.removeListener(_handleTextChange);
     _controller.dispose();
     _scrollController.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -64,11 +70,25 @@ class _ProfileChatState extends State<ProfileChat> {
 
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      });
+    }
+  }
+
+  @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+    // Detect when the keyboard appears or disappears
+    final bottomInset = WidgetsBinding
+        .instance.platformDispatcher.views.first.viewInsets.bottom;
+    if (bottomInset > 0.0) {
+      // Keyboard is visible, scroll to bottom once
+      _scrollToBottom();
     }
   }
 
@@ -92,7 +112,7 @@ class _ProfileChatState extends State<ProfileChat> {
 
               final messages = snapshot.data!.docs;
 
-              // Automatically scroll to the bottom when the chat is opened or when new messages are received
+              // Auto-scroll when new messages are received or the chat is viewed for the first time
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 _scrollToBottom();
               });
@@ -322,6 +342,12 @@ class _ProfileChatState extends State<ProfileChat> {
                   style: const TextStyle(color: AppColors.customBlack),
                   minLines: 1, // Minimum number of lines for the text field
                   maxLines: 5, // Maximum number of lines for the text field
+                  onTap: () {
+                    // Scroll to the bottom after the keyboard is fully visible
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      //_scrollToBottom();
+                    });
+                  },
                 ),
               ),
               IconButton(

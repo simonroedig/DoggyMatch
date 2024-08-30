@@ -530,7 +530,7 @@ class _ProfileImageEditState extends State<ProfileImageEdit> {
                       labelText: 'Name',
                       icon: Icons.person_rounded,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 0),
                     _buildHeadlineWithIcon(Icons.access_time, 'Birthday'),
                     GestureDetector(
                       onTap: () => _selectBirthday(context),
@@ -585,7 +585,7 @@ class _ProfileImageEditState extends State<ProfileImageEdit> {
                       maxLines: null,
                     ),
                     if (widget.profile.isDogOwner) ...[
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 0),
                       _buildTextFieldWithCounter(
                         controller: _dogNameController,
                         maxLength: _maxDogNameLength,
@@ -593,7 +593,7 @@ class _ProfileImageEditState extends State<ProfileImageEdit> {
                         labelText: 'Dog Name',
                         icon: Icons.pets_rounded,
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 0),
                       _buildTextFieldWithCounter(
                         controller: _dogBreedController,
                         maxLength: _maxDogBreedLength,
@@ -601,7 +601,7 @@ class _ProfileImageEditState extends State<ProfileImageEdit> {
                         labelText: 'Dog Breed',
                         icon: CupertinoIcons.heart_circle,
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 0),
                       _buildTextFieldWithCounter(
                         controller: _dogAgeController,
                         maxLength: _maxDogAgeLength,

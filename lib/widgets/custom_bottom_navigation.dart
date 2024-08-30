@@ -97,10 +97,8 @@ class CustomBottomNavigationBar extends StatelessWidget {
       },
       child: Center(
         child: Container(
-          color: Colors
-              .transparent, // Ensure the area around the icon is tappable without changing the visual appearance
-          padding: const EdgeInsets.symmetric(
-              horizontal: 20.0), // Increase hitbox horizontally
+          color: Colors.transparent,
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Container(
             width: double.infinity,
             height: 60.0,

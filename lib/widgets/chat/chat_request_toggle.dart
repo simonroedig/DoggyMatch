@@ -28,7 +28,7 @@ class _ChatRequestToggleState extends State<ChatRequestToggle> {
     return GestureDetector(
       onTap: toggleSwitch,
       child: Container(
-        width: MediaQuery.of(context).size.width * 0.91,
+        width: MediaQuery.of(context).size.width * 0.9,
         height: 40,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(25),

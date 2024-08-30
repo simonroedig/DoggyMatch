@@ -10,12 +10,14 @@ class ProfileWidget extends StatefulWidget {
   final UserProfile profile;
   final bool clickedOnOtherUser;
   final double distance;
+  final bool startInChat;
 
   const ProfileWidget({
     super.key,
     required this.profile,
     required this.clickedOnOtherUser,
     required this.distance,
+    this.startInChat = false,
   });
 
   @override
@@ -25,6 +27,12 @@ class ProfileWidget extends StatefulWidget {
 
 class _ProfileWidgetState extends State<ProfileWidget> {
   bool _isInChat = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _isInChat = widget.startInChat; // Initialize with the provided parameter
+  }
 
   @override
   Widget build(BuildContext context) {

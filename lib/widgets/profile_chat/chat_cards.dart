@@ -84,7 +84,7 @@ class _ChatCardState extends State<ChatCard> with TickerProviderStateMixin {
     return GestureDetector(
       onTap: widget.onTap,
       child: FractionallySizedBox(
-        widthFactor: 0.92, // Adjust the width factor as needed
+        widthFactor: 0.9, // Adjust the width factor as needed
         child: Container(
           height: 80,
           decoration: BoxDecoration(

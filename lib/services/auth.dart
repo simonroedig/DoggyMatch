@@ -1,5 +1,6 @@
-import 'dart:developer';
+import 'dart:developer' as dev;
 import 'dart:io';
+import 'dart:math';
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:doggymatch_flutter/profile/profile.dart';
@@ -34,10 +35,85 @@ class AuthService {
         });
       }
     } catch (e) {
-      log('Error fetching users and documents: $e');
+      dev.log('Error fetching users and documents: $e');
     }
 
     return usersWithDocuments;
+  }
+
+  // fetch all users within filter (certrain distance, looking for dog owner/sitter)
+  Future<List<Map<String, dynamic>>> fetchAllUsersWithinFilter(
+      bool filterLookingForDogOwner,
+      bool filterLookingForDogSitter,
+      double filterDistance,
+      double latitude,
+      double longitude) async {
+    // log all parameters
+    dev.log('filterLookingForDogOwner: $filterLookingForDogOwner');
+    dev.log('filterLookingForDogSitter: $filterLookingForDogSitter');
+    dev.log('filterDistance: $filterDistance');
+    dev.log('latitude: $latitude');
+    dev.log('longitude: $longitude');
+
+    List<Map<String, dynamic>> usersWithinFilter = [];
+    try {
+      // Constants for Earth's radius in km
+      const double earthRadius = 6371.0;
+
+      // Calculate bounding box
+      double latDelta = filterDistance / earthRadius;
+      double lonDelta =
+          filterDistance / (earthRadius * cos(pi * latitude / 180.0));
+
+      double minLat = latitude - latDelta * 180.0 / pi;
+      double maxLat = latitude + latDelta * 180.0 / pi;
+      double minLon = longitude - lonDelta * 180.0 / pi;
+      double maxLon = longitude + lonDelta * 180.0 / pi;
+
+      // Build query
+      Query query = FirebaseFirestore.instance
+          .collection('users')
+          .where('latitude', isGreaterThanOrEqualTo: minLat)
+          .where('latitude', isLessThanOrEqualTo: maxLat)
+          .where('longitude', isGreaterThanOrEqualTo: minLon)
+          .where('longitude', isLessThanOrEqualTo: maxLon);
+
+      // Apply additional filters
+      if (filterLookingForDogOwner && !filterLookingForDogSitter) {
+        query = query.where('isDogOwner', isEqualTo: true);
+      }
+      if (filterLookingForDogSitter && !filterLookingForDogOwner) {
+        query = query.where('isDogOwner', isEqualTo: false);
+      }
+      // looking for both
+      if (filterLookingForDogOwner && filterLookingForDogSitter) {}
+
+      // Execute query
+      QuerySnapshot querySnapshot = await query.get();
+
+      // Filter users based on precise distance calculation
+      for (var doc in querySnapshot.docs) {
+        final userData = doc.data() as Map<String, dynamic>;
+
+        final double userLatitude = userData['latitude'].toDouble();
+        final double userLongitude = userData['longitude'].toDouble();
+
+        double distance = _calculateDistance(
+            latitude, longitude, userLatitude, userLongitude);
+
+        if (distance <= filterDistance) {
+          usersWithinFilter.add({
+            'uid': doc.id,
+            'firestoreData': userData,
+          });
+        }
+      }
+    } catch (e) {
+      // Handle errors
+      dev.log('Error fetching users within filter: $e');
+    }
+
+    return usersWithinFilter;
   }
 
   Future<UserProfile?> fetchOtherUserProfile(String uid) async {
@@ -48,9 +124,9 @@ class AuthService {
       if (userDoc.exists) {
         final data = userDoc.data();
         if (data != null) {
-          // log the user email and username
-          log('User email: ${data['email']}');
-          log('User name: ${data['userName']}');
+          //dev.log the user email and username
+          dev.log('User email: ${data['email']}');
+          dev.log('User name: ${data['userName']}');
           return UserProfile(
             uid: uid,
             email: data['email'] ?? '',
@@ -76,7 +152,7 @@ class AuthService {
         }
       }
     } catch (e) {
-      log('Error fetching user profile: $e');
+      dev.log('Error fetching user profile: $e');
     }
     return null;
   }
@@ -109,7 +185,7 @@ class AuthService {
         return true;
       }
     } catch (e) {
-      log('Error deleting account and data: $e');
+      dev.log('Error deleting account and data: $e');
     }
     return false;
   }
@@ -276,5 +352,23 @@ class AuthService {
     } catch (e) {
       return false;
     }
+  }
+
+  double _calculateDistance(
+      double lat1, double lon1, double lat2, double lon2) {
+    const R = 6371;
+    final dLat = _deg2rad(lat2 - lat1);
+    final dLon = _deg2rad(lon2 - lon1);
+    final a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(_deg2rad(lat1)) *
+            cos(_deg2rad(lat2)) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
+    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    return R * c;
+  }
+
+  double _deg2rad(double deg) {
+    return deg * (pi / 180);
   }
 }
