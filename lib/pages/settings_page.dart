@@ -217,23 +217,23 @@ class _SettingsPageState extends State<SettingsPage> {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.lightPurple,
+                        backgroundColor: AppColors.customBlack,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         side: const BorderSide(
                           color: AppColors.customBlack,
                           width: 3,
                         ),
-                        elevation: 0, // Remove shadow
+                        //elevation: 0, // Remove shadow
                       ),
                       child: const Text(
                         '< Logout',
                         style: TextStyle(
                           color: AppColors.bg,
                           fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w600,
-                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
                         ),
                       ),
                     ),
@@ -318,16 +318,16 @@ class _SettingsPageState extends State<SettingsPage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.customRed,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   side: const BorderSide(
                     color: AppColors.customBlack,
                     width: 3,
                   ),
-                  elevation: 0, // Remove shadow
+                  //elevation: 0, // Remove shadow
                 ),
                 child: const Text(
-                  '😢 Delete Account',
+                  'Delete Account? 😢',
                   style: TextStyle(
                     color: AppColors.bg,
                     fontFamily: 'Poppins',

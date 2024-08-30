@@ -8,6 +8,7 @@ import 'package:doggymatch_flutter/widgets/profile/profile_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/state/user_profile_state.dart';
 import 'package:doggymatch_flutter/pages/notifiers/profile_close_notifier.dart';
+import 'package:doggymatch_flutter/pages/notifiers/filter_notifier.dart';
 
 class SearchPage extends StatefulWidget {
   final ProfileCloseNotifier profileCloseNotifier;
@@ -63,70 +64,79 @@ class SearchPageState extends State<SearchPage> {
     Provider.of<UserProfileState>(context, listen: false).openProfile();
   }
 
+  void _applyFilterChanges() {
+    setState(() {
+      _isFilterOpen = false;
+    });
+    // Optionally, refresh the profiles list or trigger a rebuild
+    Provider.of<UserProfileState>(context, listen: false).refreshUserProfile();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.bg,
-      body: Consumer<UserProfileState>(
-        builder: (context, userProfileState, child) {
-          return Column(
-            children: [
-              CustomAppBar(
-                isFilterOpen: _isFilterOpen,
-                toggleFilter: _toggleFilter,
-                showFilterIcon: true,
-                onSettingsPressed: null,
-                isProfileOpen: userProfileState
-                    .isProfileOpen, // Pass isProfileOpen state here
-              ),
-              Expanded(
-                child: Stack(
-                  children: [
-                    Container(
-                      color: AppColors.bg,
-                      child: OtherPersons(
-                        onProfileSelected: _openProfile,
+    return ChangeNotifierProvider(
+      create: (context) => FilterNotifier(),
+      child: Scaffold(
+        backgroundColor: AppColors.bg,
+        body: Consumer<UserProfileState>(
+          builder: (context, userProfileState, child) {
+            return Column(
+              children: [
+                CustomAppBar(
+                  isFilterOpen: _isFilterOpen,
+                  toggleFilter: _toggleFilter,
+                  showFilterIcon: true,
+                  onSettingsPressed: null,
+                  isProfileOpen: userProfileState.isProfileOpen,
+                ),
+                Expanded(
+                  child: Stack(
+                    children: [
+                      Container(
+                        color: AppColors.bg,
+                        child: OtherPersons(
+                          onProfileSelected: _openProfile,
+                        ),
                       ),
-                    ),
-                    if (_isFilterOpen) const FilterMenu(),
-                    if (_selectedProfile != null)
-                      Positioned.fill(
-                        child: Stack(
-                          children: [
-                            // Background that blocks interaction but does not close the profile
-                            GestureDetector(
-                              onTap:
-                                  () {}, // Does nothing on tap, prevents closing
-                              child: Container(
-                                color: Colors.black.withOpacity(
-                                    0), // You can adjust the opacity
+                      if (_isFilterOpen)
+                        FilterMenu(
+                          onClose: _applyFilterChanges,
+                        ),
+                      if (_selectedProfile != null)
+                        Positioned.fill(
+                          child: Stack(
+                            children: [
+                              GestureDetector(
+                                onTap: () {},
+                                child: Container(
+                                  color: Colors.black.withOpacity(0),
+                                ),
                               ),
-                            ),
-                            // Profile Widget in the center
-                            Center(
-                              child: Padding(
-                                padding: const EdgeInsets.all(0.0),
-                                child: Material(
-                                  borderRadius: BorderRadius.circular(16.0),
-                                  color: Colors.transparent,
-                                  child: ProfileWidget(
-                                    profile: _selectedProfile!,
-                                    clickedOnOtherUser: true,
-                                    distance:
-                                        double.parse(_selectedDistance ?? '?'),
+                              Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(0.0),
+                                  child: Material(
+                                    borderRadius: BorderRadius.circular(16.0),
+                                    color: Colors.transparent,
+                                    child: ProfileWidget(
+                                      profile: _selectedProfile!,
+                                      clickedOnOtherUser: true,
+                                      distance: double.parse(
+                                          _selectedDistance ?? '?'),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          );
-        },
+              ],
+            );
+          },
+        ),
       ),
     );
   }

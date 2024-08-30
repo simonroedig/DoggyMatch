@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/state/user_profile_state.dart';
 import 'package:doggymatch_flutter/colors.dart';
+import 'package:doggymatch_flutter/pages/notifiers/filter_notifier.dart';
 
 class FilterMenu extends StatefulWidget {
-  const FilterMenu({super.key});
+  const FilterMenu({super.key, required this.onClose});
+
+  final VoidCallback onClose;
 
   @override
   FilterMenuState createState() => FilterMenuState();
@@ -18,7 +21,6 @@ class FilterMenuState extends State<FilterMenu> {
   @override
   void initState() {
     super.initState();
-    // Initialize filter values based on the UserProfileState
     final userProfileState =
         Provider.of<UserProfileState>(context, listen: false);
     _currentDistanceValue = userProfileState.userProfile.filterDistance;
@@ -27,10 +29,20 @@ class FilterMenuState extends State<FilterMenu> {
         userProfileState.userProfile.filterLookingForDogSitter;
   }
 
+  void _applyChanges() {
+    final userProfileState =
+        Provider.of<UserProfileState>(context, listen: false);
+    userProfileState.updateFilterSettings(
+      filterLookingForDogOwner: _isDogOwnerSelected,
+      filterLookingForDogSitter: _isDogSitterSelected,
+      filterDistance: _currentDistanceValue,
+    );
+    Provider.of<FilterNotifier>(context, listen: false).notifyFilterChanged();
+    widget.onClose(); // Notify parent that the menu is closing
+  }
+
   @override
   Widget build(BuildContext context) {
-    final userProfileState = Provider.of<UserProfileState>(context);
-
     return Positioned(
       top: 0.0,
       left: MediaQuery.of(context).size.width * 0.05,
@@ -80,7 +92,6 @@ class FilterMenuState extends State<FilterMenu> {
                 setState(() {
                   _isDogOwnerSelected = !_isDogOwnerSelected;
                   _ensureAtLeastOneSelected();
-                  _updateFilterSettings(userProfileState);
                 });
               },
             ),
@@ -93,7 +104,6 @@ class FilterMenuState extends State<FilterMenu> {
                 setState(() {
                   _isDogSitterSelected = !_isDogSitterSelected;
                   _ensureAtLeastOneSelected();
-                  _updateFilterSettings(userProfileState);
                 });
               },
             ),
@@ -128,12 +138,43 @@ class FilterMenuState extends State<FilterMenu> {
                     onChanged: (double value) {
                       setState(() {
                         _currentDistanceValue = value;
-                        _updateFilterSettings(userProfileState);
                       });
                     },
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 16.0),
+            Center(
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width *
+                    0.9, // Set the button width
+                child: ElevatedButton(
+                  onPressed: _applyChanges,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.customBlack, // Button color
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12.0, // Increase the vertical padding
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0), // Curved edges
+                      side: const BorderSide(
+                        color: AppColors.customBlack, // Border color
+                        width: 3.0, // Border width
+                      ),
+                    ),
+                    //elevation: 0, // No shadow
+                  ),
+                  child: const Text(
+                    'Apply',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.bold, // Bold font weight
+                      color: AppColors.bg,
+                    ),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -191,13 +232,5 @@ class FilterMenuState extends State<FilterMenu> {
     if (!_isDogOwnerSelected && !_isDogSitterSelected) {
       _isDogOwnerSelected = true;
     }
-  }
-
-  void _updateFilterSettings(UserProfileState userProfileState) {
-    userProfileState.updateFilterSettings(
-      filterLookingForDogOwner: _isDogOwnerSelected,
-      filterLookingForDogSitter: _isDogSitterSelected,
-      filterDistance: _currentDistanceValue,
-    );
   }
 }

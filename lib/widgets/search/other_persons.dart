@@ -1,5 +1,3 @@
-// ignore_for_file: library_private_types_in_public_api
-
 import 'dart:developer' as developer;
 import 'dart:math';
 
@@ -9,6 +7,7 @@ import 'package:doggymatch_flutter/services/auth.dart';
 import 'package:doggymatch_flutter/state/user_profile_state.dart';
 import 'package:doggymatch_flutter/colors.dart';
 import 'package:doggymatch_flutter/profile/profile.dart';
+import 'package:doggymatch_flutter/pages/notifiers/filter_notifier.dart';
 
 class OtherPersons extends StatefulWidget {
   final Function(UserProfile, String)
@@ -25,55 +24,47 @@ class _OtherPersonsState extends State<OtherPersons>
   final AuthService _authService = AuthService();
   List<Map<String, dynamic>> _users = [];
   bool _isLoading = true;
+  late FilterNotifier _filterNotifier; // Add a state variable for the notifier
 
   @override
   void initState() {
+    super.initState();
+    _filterNotifier = Provider.of<FilterNotifier>(context,
+        listen: false); // Initialize in initState
+    _filterNotifier
+        .addListener(_loadFilteredUsers); // Add listener in initState
+    _loadFilteredUsers();
+  }
+
+  @override
+  void dispose() {
+    _filterNotifier.removeListener(
+        _loadFilteredUsers); // Remove listener safely in dispose
+    super.dispose();
+  }
+
+  Future<void> _loadFilteredUsers() async {
+    setState(() {
+      _isLoading = true; // Show progress indicator
+    });
     final userProfileState =
         Provider.of<UserProfileState>(context, listen: false);
-    super.initState();
-    //_fetchUsers();
-    _fetchFilteredUsers(
+    final String? currentUserId =
+        _authService.getCurrentUserId(); // Get the current user's UID
+
+    try {
+      List<Map<String, dynamic>> users =
+          await _authService.fetchAllUsersWithinFilter(
         userProfileState.userProfile.filterLookingForDogOwner,
         userProfileState.userProfile.filterLookingForDogSitter,
         userProfileState.userProfile.filterDistance,
         userProfileState.userProfile.latitude,
-        userProfileState.userProfile.longitude);
-  }
+        userProfileState.userProfile.longitude,
+      );
 
-  /*
-  Future<void> _fetchUsers() async {
-    try {
-      setState(() {
-        _isLoading = true; // Show progress indicator
-      });
-      List<Map<String, dynamic>> users =
-          await _authService.fetchAllUsersWithDocuments();
-      setState(() {
-        _users = users;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      developer.log('Error fetching users: $e');
-    }
-  }
-  */
+      // Exclude the current user's profile from the list
+      users = users.where((user) => user['uid'] != currentUserId).toList();
 
-  Future<void> _fetchFilteredUsers(
-      bool filterLookingForDogOwner,
-      bool filterLookingForDogSitter,
-      double filterDistance,
-      double latitude,
-      double longitude) async {
-    try {
-      setState(() {
-        _isLoading = true; // Show progress indicator
-      });
-      List<Map<String, dynamic>> users =
-          await _authService.fetchAllUsersWithinFilter(filterLookingForDogOwner,
-              filterLookingForDogSitter, filterDistance, latitude, longitude);
       setState(() {
         _users = users;
         _isLoading = false;
@@ -86,66 +77,15 @@ class _OtherPersonsState extends State<OtherPersons>
     }
   }
 
-  Future<void> _refreshUsers() async {
-    setState(() {
-      _isLoading = true;
-    });
-    //await _fetchUsers();
-    final userProfileState =
-        Provider.of<UserProfileState>(context, listen: false);
-    await _fetchFilteredUsers(
-        userProfileState.userProfile.filterLookingForDogOwner,
-        userProfileState.userProfile.filterLookingForDogSitter,
-        userProfileState.userProfile.filterDistance,
-        userProfileState.userProfile.latitude,
-        userProfileState.userProfile.longitude);
-  }
-
   @override
   Widget build(BuildContext context) {
-    final userProfileState = Provider.of<UserProfileState>(context);
-    final bool showDogOwner =
-        userProfileState.userProfile.filterLookingForDogOwner;
-    final bool showDogSitter =
-        userProfileState.userProfile.filterLookingForDogSitter;
-    final double selectedFilterDistance =
-        userProfileState.userProfile.filterDistance;
-
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(),
       );
     }
 
-    final filteredUsers = _users.where((user) {
-      final firestoreData = user['firestoreData'];
-      final bool isDogOwner = firestoreData['isDogOwner'] == true;
-
-      final String uid = user['uid'];
-      if (uid == _authService.getCurrentUserId()) {
-        return false;
-      }
-
-      // Calculate the distance between the main user and the current user
-      final double userLatitude = firestoreData['latitude'].toDouble();
-      final double userLongitude = firestoreData['longitude'].toDouble();
-      final double distance = _calculateDistance(
-        userProfileState.userProfile.latitude,
-        userProfileState.userProfile.longitude,
-        userLatitude,
-        userLongitude,
-      );
-
-      // Apply the filters: show based on owner/sitter selection and distance
-      bool withinDistance = distance <= selectedFilterDistance;
-      bool matchesFilter = (showDogOwner && showDogSitter) ||
-          (showDogOwner && isDogOwner) ||
-          (showDogSitter && !isDogOwner);
-
-      return withinDistance && matchesFilter;
-    }).toList();
-
-    if (filteredUsers.isEmpty) {
+    if (_users.isEmpty) {
       return Center(
         child: RichText(
           textAlign: TextAlign.center,
@@ -153,10 +93,11 @@ class _OtherPersonsState extends State<OtherPersons>
             text:
                 'No users found 😔\n\nAdjust your filter settings\nand spread the word about ',
             style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 10.0,
-                fontWeight: FontWeight.normal,
-                color: AppColors.customBlack),
+              fontFamily: 'Poppins',
+              fontSize: 10.0,
+              fontWeight: FontWeight.normal,
+              color: AppColors.customBlack,
+            ),
             children: <TextSpan>[
               TextSpan(
                 text: 'DoggyMatch',
@@ -174,7 +115,7 @@ class _OtherPersonsState extends State<OtherPersons>
     }
 
     return RefreshIndicator(
-      onRefresh: _refreshUsers,
+      onRefresh: _loadFilteredUsers,
       color: AppColors.customBlack,
       child: GridView.builder(
         padding: const EdgeInsets.all(18.0),
@@ -184,9 +125,9 @@ class _OtherPersonsState extends State<OtherPersons>
           mainAxisSpacing: 12.0,
           childAspectRatio: 0.68,
         ),
-        itemCount: filteredUsers.length,
+        itemCount: _users.length,
         itemBuilder: (context, index) {
-          final user = filteredUsers[index];
+          final user = _users[index];
           final firestoreData = user['firestoreData'];
           final bool isDogOwner = firestoreData['isDogOwner'] == true;
           final profileColor =
