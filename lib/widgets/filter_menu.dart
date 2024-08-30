@@ -4,33 +4,34 @@ import 'package:doggymatch_flutter/state/user_profile_state.dart';
 import 'package:doggymatch_flutter/colors.dart';
 
 class FilterMenu extends StatefulWidget {
-  const FilterMenu({super.key});
+  final VoidCallback onFilterClose; // Callback to notify filter close
+
+  const FilterMenu({super.key, required this.onFilterClose});
 
   @override
   FilterMenuState createState() => FilterMenuState();
 }
 
 class FilterMenuState extends State<FilterMenu> {
-  late double _currentDistanceValue;
-  late bool _isDogOwnerSelected;
-  late bool _isDogSitterSelected;
+  late double _tempDistanceValue;
+  late bool _tempIsDogOwnerSelected;
+  late bool _tempIsDogSitterSelected;
+  late UserProfileState userProfileState; // Cache the UserProfileState
 
   @override
-  void initState() {
-    super.initState();
-    // Initialize filter values based on the UserProfileState
-    final userProfileState =
-        Provider.of<UserProfileState>(context, listen: false);
-    _currentDistanceValue = userProfileState.userProfile.filterDistance;
-    _isDogOwnerSelected = userProfileState.userProfile.filterLookingForDogOwner;
-    _isDogSitterSelected =
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Cache the UserProfileState during initialization
+    userProfileState = Provider.of<UserProfileState>(context, listen: false);
+    _tempDistanceValue = userProfileState.userProfile.filterDistance;
+    _tempIsDogOwnerSelected =
+        userProfileState.userProfile.filterLookingForDogOwner;
+    _tempIsDogSitterSelected =
         userProfileState.userProfile.filterLookingForDogSitter;
   }
 
   @override
   Widget build(BuildContext context) {
-    final userProfileState = Provider.of<UserProfileState>(context);
-
     return Positioned(
       top: 0.0,
       left: MediaQuery.of(context).size.width * 0.05,
@@ -75,12 +76,11 @@ class FilterMenuState extends State<FilterMenu> {
             _buildSelectionMenu(
               icon: Icons.pets_rounded,
               text: "Dog Owner",
-              isSelected: _isDogOwnerSelected,
+              isSelected: _tempIsDogOwnerSelected,
               onTap: () {
                 setState(() {
-                  _isDogOwnerSelected = !_isDogOwnerSelected;
+                  _tempIsDogOwnerSelected = !_tempIsDogOwnerSelected;
                   _ensureAtLeastOneSelected();
-                  _updateFilterSettings(userProfileState);
                 });
               },
             ),
@@ -88,22 +88,21 @@ class FilterMenuState extends State<FilterMenu> {
             _buildSelectionMenu(
               icon: Icons.person_rounded,
               text: "Dog Sitter",
-              isSelected: _isDogSitterSelected,
+              isSelected: _tempIsDogSitterSelected,
               onTap: () {
                 setState(() {
-                  _isDogSitterSelected = !_isDogSitterSelected;
+                  _tempIsDogSitterSelected = !_tempIsDogSitterSelected;
                   _ensureAtLeastOneSelected();
-                  _updateFilterSettings(userProfileState);
                 });
               },
             ),
             const SizedBox(height: 20),
             Text(
-              _currentDistanceValue >= 30
+              _tempDistanceValue >= 30
                   ? "Distance >30 km"
-                  : _currentDistanceValue <= 0.1
+                  : _tempDistanceValue <= 0.1
                       ? "Distance <0.1 km"
-                      : "Distance ${_currentDistanceValue.toStringAsFixed(1)} km",
+                      : "Distance ${_tempDistanceValue.toStringAsFixed(1)} km",
               style: const TextStyle(
                 fontSize: 16,
                 color: AppColors.customBlack,
@@ -121,14 +120,13 @@ class FilterMenuState extends State<FilterMenu> {
                     thumbColor: AppColors.brownDarkest,
                     activeColor: AppColors.brownDarkest,
                     inactiveColor: AppColors.brownLight,
-                    value: _currentDistanceValue,
+                    value: _tempDistanceValue,
                     min: 0.1,
                     max: 30.0,
                     divisions: 300,
                     onChanged: (double value) {
                       setState(() {
-                        _currentDistanceValue = value;
-                        _updateFilterSettings(userProfileState);
+                        _tempDistanceValue = value;
                       });
                     },
                   ),
@@ -188,16 +186,23 @@ class FilterMenuState extends State<FilterMenu> {
   }
 
   void _ensureAtLeastOneSelected() {
-    if (!_isDogOwnerSelected && !_isDogSitterSelected) {
-      _isDogOwnerSelected = true;
+    if (!_tempIsDogOwnerSelected && !_tempIsDogSitterSelected) {
+      _tempIsDogOwnerSelected = true;
     }
   }
 
-  void _updateFilterSettings(UserProfileState userProfileState) {
-    userProfileState.updateFilterSettings(
-      filterLookingForDogOwner: _isDogOwnerSelected,
-      filterLookingForDogSitter: _isDogSitterSelected,
-      filterDistance: _currentDistanceValue,
+  // Function to update the filter settings in UserProfileState
+  void applyFilterSettings() {
+    userProfileState.updateTempFilterSettings(
+      filterLookingForDogOwner: _tempIsDogOwnerSelected,
+      filterLookingForDogSitter: _tempIsDogSitterSelected,
+      filterDistance: _tempDistanceValue,
     );
+  }
+
+  @override
+  void dispose() {
+    applyFilterSettings(); // Apply the filter settings before disposing of the widget
+    super.dispose();
   }
 }

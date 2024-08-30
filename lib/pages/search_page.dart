@@ -42,10 +42,16 @@ class SearchPageState extends State<SearchPage> {
     }
   }
 
-  void _toggleFilter() {
+  void _toggleFilter() async {
     setState(() {
       _isFilterOpen = !_isFilterOpen;
     });
+
+    if (!_isFilterOpen) {
+      // Apply filter settings when the filter menu is closed
+      await Provider.of<UserProfileState>(context, listen: false)
+          .applyFilterSettings();
+    }
   }
 
   void closeProfile() {
@@ -88,7 +94,11 @@ class SearchPageState extends State<SearchPage> {
                         onProfileSelected: _openProfile,
                       ),
                     ),
-                    if (_isFilterOpen) const FilterMenu(),
+                    if (_isFilterOpen)
+                      FilterMenu(
+                        onFilterClose:
+                            _toggleFilter, // Pass the toggle function
+                      ),
                     if (_selectedProfile != null)
                       Positioned.fill(
                         child: Stack(

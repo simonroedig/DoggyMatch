@@ -31,6 +31,11 @@ class UserProfileState extends ChangeNotifier {
     filterDistance: 0.0,
   );
 
+  // Temporary filter settings to be applied on filter close
+  bool _tempFilterLookingForDogOwner = false;
+  bool _tempFilterLookingForDogSitter = false;
+  double _tempFilterDistance = 0.0;
+
   int _currentIndex = 0;
   bool _isProfileOpen = false;
 
@@ -89,6 +94,9 @@ class UserProfileState extends ChangeNotifier {
         fetchedProfile = fetchedProfile.copyWith(images: [placeholderImageUrl]);
       }
       _userProfile = fetchedProfile;
+      _tempFilterLookingForDogOwner = _userProfile.filterLookingForDogOwner;
+      _tempFilterLookingForDogSitter = _userProfile.filterLookingForDogSitter;
+      _tempFilterDistance = _userProfile.filterDistance;
       notifyListeners();
     }
   }
@@ -135,15 +143,23 @@ class UserProfileState extends ChangeNotifier {
     await _auth.addUserProfileData(_userProfile);
   }
 
-  Future<void> updateFilterSettings({
+  // Update temporary filter settings
+  void updateTempFilterSettings({
     required bool filterLookingForDogOwner,
     required bool filterLookingForDogSitter,
     required double filterDistance,
-  }) async {
+  }) {
+    _tempFilterLookingForDogOwner = filterLookingForDogOwner;
+    _tempFilterLookingForDogSitter = filterLookingForDogSitter;
+    _tempFilterDistance = filterDistance;
+  }
+
+  // Apply temporary filter settings to the actual profile
+  Future<void> applyFilterSettings() async {
     _userProfile = _userProfile.copyWith(
-      filterLookingForDogOwner: filterLookingForDogOwner,
-      filterLookingForDogSitter: filterLookingForDogSitter,
-      filterDistance: filterDistance,
+      filterLookingForDogOwner: _tempFilterLookingForDogOwner,
+      filterLookingForDogSitter: _tempFilterLookingForDogSitter,
+      filterDistance: _tempFilterDistance,
     );
     notifyListeners();
     await _auth.addUserProfileData(_userProfile);
