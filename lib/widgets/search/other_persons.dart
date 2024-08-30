@@ -202,6 +202,14 @@ class _OtherPersonsState extends State<OtherPersons>
           color: profileColor,
           borderRadius: BorderRadius.circular(24.0),
           border: Border.all(color: AppColors.customBlack, width: 3),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.customBlack,
+              offset: const Offset(4, 4), // X: 4, Y: 4
+              blurRadius: 0, // No blur
+              spreadRadius: 0, // No spread
+            ),
+          ],
         ),
         child: Column(
           children: [

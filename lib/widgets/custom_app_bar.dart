@@ -1,5 +1,3 @@
-// File: custom_app_bar.dart
-
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
 
@@ -49,6 +47,14 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                     color: AppColors.customBlack,
                     width: 3.0,
                   ),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: AppColors.customBlack,
+                      offset: Offset(4, 4), // X: 4, Y: 4
+                      blurRadius: 0, // No blur
+                      spreadRadius: 0, // No spread
+                    ),
+                  ],
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Row(

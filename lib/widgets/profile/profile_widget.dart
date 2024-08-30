@@ -86,6 +86,14 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 17.0),
       decoration: BoxDecoration(
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.customBlack,
+            offset: Offset(4, 4), // X: 4, Y: 4
+            blurRadius: 0, // No blur
+            spreadRadius: 0, // No spread
+          ),
+        ],
         color:
             _isInChat ? AppColors.brownLightest : widget.profile.profileColor,
         borderRadius: BorderRadius.circular(24.0),

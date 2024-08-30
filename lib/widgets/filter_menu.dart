@@ -51,6 +51,14 @@ class FilterMenuState extends State<FilterMenu> {
         width: MediaQuery.of(context).size.width * 0.9,
         height: MediaQuery.of(context).size.height * 0.5,
         decoration: BoxDecoration(
+          boxShadow: const [
+            BoxShadow(
+              color: AppColors.customBlack,
+              offset: Offset(4, 4), // X: 4, Y: 4
+              blurRadius: 0, // No blur
+              spreadRadius: 0, // No spread
+            ),
+          ],
           color: AppColors.greyLightest,
           borderRadius: BorderRadius.circular(24.0),
           border: Border.all(
