@@ -1,7 +1,3 @@
-// File: lib/widgets/profile_chat/chat_cards.dart
-
-// ignore_for_file: library_private_types_in_public_api
-
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
 import 'package:doggymatch_flutter/profile/profile.dart';

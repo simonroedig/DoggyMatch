@@ -1,5 +1,3 @@
-// ignore_for_file: library_private_types_in_public_api
-
 import 'dart:async';
 import 'dart:math';
 import 'dart:developer' as developer;
@@ -36,7 +34,7 @@ class _ChatPageState extends State<ChatPage> {
   double? _selectedDistance;
 
   StreamSubscription<QuerySnapshot>? _chatRoomsSubscription;
-  List<Map<String, dynamic>> _chatRooms = [];
+  final List<Map<String, dynamic>> _chatRooms = [];
   bool _isLoading = true;
 
   @override
@@ -85,16 +83,14 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _listenToChatRooms() {
-    _chatRoomsSubscription
-        ?.cancel(); // Cancel any existing subscription before starting a new one
+    _chatRoomsSubscription?.cancel(); // Cancel any existing subscription
 
     _chatRoomsSubscription = FirebaseFirestore.instance
         .collection('chatrooms')
         .where('members', arrayContains: _currentUserId)
         .snapshots()
         .listen((snapshot) async {
-      final List<Map<String, dynamic>> chatRooms = [];
-
+      _chatRooms.clear();
       final UserProfile? currentUserProfile =
           await _authService.fetchUserProfile();
 
@@ -106,64 +102,89 @@ class _ChatPageState extends State<ChatPage> {
         final UserProfile? otherUserProfile =
             await _authService.fetchOtherUserProfile(otherUserId);
 
-        final messagesSnapshot = await chatRoom.reference
+        // Listen to messages in the chatroom to get the latest message in real time
+        chatRoom.reference
             .collection('messages')
             .orderBy('timestamp', descending: true)
-            .get();
+            .limit(1)
+            .snapshots()
+            .listen((messageSnapshot) {
+          if (otherUserProfile != null && messageSnapshot.docs.isNotEmpty) {
+            final lastMessage = messageSnapshot.docs.first['message'];
 
-        if (otherUserProfile != null && messagesSnapshot.docs.isNotEmpty) {
-          final lastMessage = messagesSnapshot.docs.first['message'];
+            final double distance = _calculateDistance(
+              currentUserProfile!.latitude,
+              currentUserProfile.longitude,
+              otherUserProfile.latitude,
+              otherUserProfile.longitude,
+            );
 
-          final double distance = _calculateDistance(
-            currentUserProfile!.latitude,
-            currentUserProfile.longitude,
-            otherUserProfile.latitude,
-            otherUserProfile.longitude,
-          );
+            bool userSentMessage = false;
+            bool otherUserSentMessage = false;
 
-          bool userSentMessage = false;
-          bool otherUserSentMessage = false;
+            for (var messageDoc in messageSnapshot.docs) {
+              String senderId = messageDoc['senderId'];
 
-          for (var messageDoc in messagesSnapshot.docs) {
-            String senderId = messageDoc['senderId'];
+              if (senderId == _currentUserId) {
+                userSentMessage = true;
+              } else if (senderId == otherUserId) {
+                otherUserSentMessage = true;
+              }
 
-            if (senderId == _currentUserId) {
-              userSentMessage = true;
-            } else if (senderId == otherUserId) {
-              otherUserSentMessage = true;
+              if (userSentMessage && otherUserSentMessage) {
+                break;
+              }
             }
 
+            String chatRoomState;
             if (userSentMessage && otherUserSentMessage) {
-              break;
+              chatRoomState = "COMMUNICATION";
+            } else if (userSentMessage) {
+              chatRoomState = "OUTGOING";
+            } else if (otherUserSentMessage) {
+              chatRoomState = "INCOMING";
+            } else {
+              chatRoomState = "NO MESSAGES";
             }
+
+            final chatRoomData = {
+              'profile': otherUserProfile,
+              'lastMessage': lastMessage,
+              'distance': distance.toStringAsFixed(1),
+              'chatRoomState': chatRoomState,
+            };
+
+            final existingIndex = _chatRooms.indexWhere(
+                (room) => room['profile'].uid == otherUserProfile.uid);
+
+            if (existingIndex != -1) {
+              setState(() {
+                _chatRooms[existingIndex] = chatRoomData;
+              });
+            } else {
+              setState(() {
+                _chatRooms.add(chatRoomData);
+              });
+            }
+
+            developer.log('ChatRoomState: $chatRoomState');
           }
-
-          String chatRoomState;
-          if (userSentMessage && otherUserSentMessage) {
-            chatRoomState = "COMMUNICATION";
-          } else if (userSentMessage) {
-            chatRoomState = "OUTGOING";
-          } else if (otherUserSentMessage) {
-            chatRoomState = "INCOMING";
-          } else {
-            chatRoomState = "NO MESSAGES";
-          }
-
-          chatRooms.add({
-            'profile': otherUserProfile,
-            'lastMessage': lastMessage,
-            'distance': distance.toStringAsFixed(1),
-            'chatRoomState': chatRoomState,
-          });
-
-          developer.log('ChatRoomState: $chatRoomState');
-        }
+        });
       }
 
       setState(() {
-        _chatRooms = chatRooms;
         _isLoading = false;
       });
+    });
+  }
+
+  Future<void> _refreshChatRooms() async {
+    setState(() {
+      _isLoading = true;
+    });
+    _listenToChatRooms();
+    setState(() {
+      _isLoading = false;
     });
   }
 
@@ -222,92 +243,95 @@ class _ChatPageState extends State<ChatPage> {
                                   );
                                 },
                               )
-                        : ListView(
-                            children: [
-                              const Center(
-                                child: Text(
-                                  "< Incoming Requests",
-                                  style: TextStyle(
-                                    fontFamily: 'Poppins',
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.customBlack,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              if (incomingRequests.isEmpty)
+                        : RefreshIndicator(
+                            onRefresh: _refreshChatRooms,
+                            child: ListView(
+                              children: [
                                 const Center(
                                   child: Text(
-                                    "(No incoming chat requests)",
+                                    "< Incoming Requests",
                                     style: TextStyle(
                                       fontFamily: 'Poppins',
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.normal,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
                                       color: AppColors.customBlack,
                                     ),
                                   ),
-                                )
-                              else
-                                ...incomingRequests.map((chatRoom) => Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 4.0),
-                                      child: ChatCard(
-                                        otherUserProfile:
-                                            chatRoom['profile'] as UserProfile,
-                                        lastMessage:
-                                            chatRoom['lastMessage'] as String,
-                                        onTap: () {
-                                          _openProfile(
-                                              chatRoom['profile']
-                                                  as UserProfile,
-                                              chatRoom['distance'] as String);
-                                        },
-                                      ),
-                                    )),
-                              const SizedBox(height: 30),
-                              const Center(
-                                child: Text(
-                                  "Outgoing Requests >",
-                                  style: TextStyle(
-                                    fontFamily: 'Poppins',
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.customBlack,
-                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 10),
-                              if (outgoingRequests.isEmpty)
+                                const SizedBox(height: 10),
+                                if (incomingRequests.isEmpty)
+                                  const Center(
+                                    child: Text(
+                                      "(No incoming chat requests)",
+                                      style: TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.normal,
+                                        color: AppColors.customBlack,
+                                      ),
+                                    ),
+                                  )
+                                else
+                                  ...incomingRequests.map((chatRoom) => Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 4.0),
+                                        child: ChatCard(
+                                          otherUserProfile: chatRoom['profile']
+                                              as UserProfile,
+                                          lastMessage:
+                                              chatRoom['lastMessage'] as String,
+                                          onTap: () {
+                                            _openProfile(
+                                                chatRoom['profile']
+                                                    as UserProfile,
+                                                chatRoom['distance'] as String);
+                                          },
+                                        ),
+                                      )),
+                                const SizedBox(height: 30),
                                 const Center(
                                   child: Text(
-                                    "(No outgoing chat requests)",
+                                    "Outgoing Requests >",
                                     style: TextStyle(
                                       fontFamily: 'Poppins',
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.normal,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
                                       color: AppColors.customBlack,
                                     ),
                                   ),
-                                )
-                              else
-                                ...outgoingRequests.map((chatRoom) => Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 4.0),
-                                      child: ChatCard(
-                                        otherUserProfile:
-                                            chatRoom['profile'] as UserProfile,
-                                        lastMessage:
-                                            chatRoom['lastMessage'] as String,
-                                        onTap: () {
-                                          _openProfile(
-                                              chatRoom['profile']
-                                                  as UserProfile,
-                                              chatRoom['distance'] as String);
-                                        },
+                                ),
+                                const SizedBox(height: 10),
+                                if (outgoingRequests.isEmpty)
+                                  const Center(
+                                    child: Text(
+                                      "(No outgoing chat requests)",
+                                      style: TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.normal,
+                                        color: AppColors.customBlack,
                                       ),
-                                    )),
-                            ],
+                                    ),
+                                  )
+                                else
+                                  ...outgoingRequests.map((chatRoom) => Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 4.0),
+                                        child: ChatCard(
+                                          otherUserProfile: chatRoom['profile']
+                                              as UserProfile,
+                                          lastMessage:
+                                              chatRoom['lastMessage'] as String,
+                                          onTap: () {
+                                            _openProfile(
+                                                chatRoom['profile']
+                                                    as UserProfile,
+                                                chatRoom['distance'] as String);
+                                          },
+                                        ),
+                                      )),
+                              ],
+                            ),
                           ),
               ),
             ],
