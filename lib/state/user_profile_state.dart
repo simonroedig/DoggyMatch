@@ -12,6 +12,8 @@ class UserProfileState extends ChangeNotifier {
       'https://firebasestorage.googleapis.com/v0/b/doggymatch-bb17f.appspot.com/o/placeholder.png?alt=media&token=6c364b4d-0e8b-4b34-b29e-58dc6dadcc65';
 
   UserProfile _userProfile = UserProfile(
+    uid: '',
+    email: '',
     userName: '',
     birthday: DateTime(2000, 1, 1),
     aboutText: '',
@@ -43,6 +45,8 @@ class UserProfileState extends ChangeNotifier {
   // Reset state method
   void resetState() {
     _userProfile = UserProfile(
+      uid: '',
+      email: '',
       userName: '',
       birthday: DateTime(2000, 1, 1),
       aboutText: '',

@@ -40,6 +40,47 @@ class AuthService {
     return usersWithDocuments;
   }
 
+  Future<UserProfile?> fetchOtherUserProfile(String uid) async {
+    try {
+      final userDoc =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+      if (userDoc.exists) {
+        final data = userDoc.data();
+        if (data != null) {
+          // log the user email and username
+          log('User email: ${data['email']}');
+          log('User name: ${data['userName']}');
+          return UserProfile(
+            uid: uid,
+            email: data['email'] ?? '',
+            userName: data['userName'] ?? '',
+            birthday: data['birthday'] != null
+                ? DateTime.parse(data['birthday'])
+                : null,
+            aboutText: data['aboutText'] ?? '',
+            profileColor: Color(data['profileColor'] ?? 0xFFFFFFFF),
+            images: List<String>.from(data['images'] ?? []),
+            location: data['location'] ?? '',
+            latitude: (data['latitude'] ?? 0.0).toDouble(),
+            longitude: (data['longitude'] ?? 0.0).toDouble(),
+            isDogOwner: data['isDogOwner'] ?? false,
+            dogName: data['dogName'] ?? '',
+            dogBreed: data['dogBreed'] ?? '',
+            dogAge: data['dogAge'] ?? '',
+            filterLookingForDogOwner: data['filterLookingForDogOwner'] ?? true,
+            filterLookingForDogSitter:
+                data['filterLookingForDogSitter'] ?? true,
+            filterDistance: (data['filterDistance'] ?? 10.0).toDouble(),
+          );
+        }
+      }
+    } catch (e) {
+      log('Error fetching user profile: $e');
+    }
+    return null;
+  }
+
   // Delete user account, associated Firestore document, and all user images in Firebase Storage
   Future<bool> deleteAccountAndData() async {
     try {
@@ -77,6 +118,12 @@ class AuthService {
   String? getCurrentUserId() {
     final user = _auth.currentUser;
     return user?.uid;
+  }
+
+  // Get the current user's email
+  String? getCurrentUserEmail() {
+    final user = _auth.currentUser;
+    return user?.email;
   }
 
   // Upload image to Firebase Storage
@@ -171,6 +218,8 @@ class AuthService {
         final data = userDoc.data();
         if (data != null) {
           return UserProfile(
+            uid: user.uid,
+            email: user.email!,
             userName: data['userName'] ?? '',
             birthday: data['birthday'] != null
                 ? DateTime.parse(data['birthday'])

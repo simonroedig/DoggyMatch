@@ -19,7 +19,8 @@ class OtherPersons extends StatefulWidget {
   _OtherPersonsState createState() => _OtherPersonsState();
 }
 
-class _OtherPersonsState extends State<OtherPersons> {
+class _OtherPersonsState extends State<OtherPersons>
+    with TickerProviderStateMixin {
   final AuthService _authService = AuthService();
   List<Map<String, dynamic>> _users = [];
   bool _isLoading = true;
@@ -160,8 +161,12 @@ class _OtherPersonsState extends State<OtherPersons> {
       onTap: () {
         // Create a UserProfile instance from the data map
         UserProfile selectedProfile = UserProfile(
+          uid: data['uid'],
+          email: data['email'],
           userName: data['userName'],
           dogName: data['dogName'],
+          dogBreed: data['dogBreed'],
+          dogAge: data['dogAge'],
           isDogOwner: data['isDogOwner'],
           images: List<String>.from(data['images']),
           profileColor: Color(data['profileColor']),
@@ -215,35 +220,6 @@ class _OtherPersonsState extends State<OtherPersons> {
     );
   }
 
-  Widget _buildDogOwnerHeader(String dogName) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.pets_rounded,
-            color: AppColors.customBlack,
-            size: 18,
-          ),
-          const SizedBox(width: 4),
-          Flexible(
-            child: Text(
-              dogName,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: AppColors.customBlack,
-                fontFamily: 'Poppins',
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildUserImage(List<dynamic> images, bool isDogOwner) {
     if (images.isEmpty) {
       return const SizedBox.shrink();
@@ -263,6 +239,30 @@ class _OtherPersonsState extends State<OtherPersons> {
         height: 120,
         width: double.infinity,
         fit: BoxFit.cover,
+      ),
+    );
+  }
+
+  Widget _buildDogOwnerHeader(String dogName) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 10.0),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.pets_rounded,
+            color: AppColors.customBlack,
+            size: 18,
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: _ScrollableText(
+              text: dogName,
+              prefixIconSize: 18,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -295,13 +295,9 @@ class _OtherPersonsState extends State<OtherPersons> {
           ),
           const SizedBox(width: 4),
           Expanded(
-            child: Text(
-              userName,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: AppColors.customBlack,
-              ),
+            child: _ScrollableText(
+              text: userName,
+              prefixIconSize: 18,
             ),
           ),
           const SizedBox(width: 8),
@@ -335,5 +331,100 @@ class _OtherPersonsState extends State<OtherPersons> {
 
   double _deg2rad(double deg) {
     return deg * (pi / 180);
+  }
+}
+
+class _ScrollableText extends StatefulWidget {
+  final String text;
+  final IconData? prefixIcon;
+  final double? prefixIconSize;
+
+  const _ScrollableText({
+    Key? key,
+    required this.text,
+    this.prefixIcon,
+    this.prefixIconSize,
+  }) : super(key: key);
+
+  @override
+  __ScrollableTextState createState() => __ScrollableTextState();
+}
+
+class __ScrollableTextState extends State<_ScrollableText>
+    with TickerProviderStateMixin {
+  late final ScrollController _scrollController;
+  late final AnimationController _animationController;
+  late final Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _scrollController = ScrollController();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 5),
+    );
+
+    _animation = Tween<double>(begin: 0.0, end: 1.0)
+        .animate(_animationController)
+      ..addListener(() {
+        if (_scrollController.hasClients) {
+          _scrollController.jumpTo(
+              _animation.value * _scrollController.position.maxScrollExtent);
+        }
+      })
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          Future.delayed(const Duration(seconds: 1), () {
+            if (_scrollController.hasClients) {
+              _scrollController.jumpTo(0);
+              _animationController.forward(from: 0.0);
+            }
+          });
+        }
+      });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startScrolling();
+    });
+  }
+
+  void _startScrolling() {
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      controller: _scrollController,
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          if (widget.prefixIcon != null)
+            Icon(
+              widget.prefixIcon,
+              color: AppColors.customBlack,
+              size: widget.prefixIconSize ?? 18,
+            ),
+          if (widget.prefixIcon != null) const SizedBox(width: 4.0),
+          Text(
+            widget.text,
+            style: const TextStyle(
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.bold,
+              color: AppColors.customBlack,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -91,11 +91,19 @@ class SearchPageState extends State<SearchPage> {
                     if (_isFilterOpen) const FilterMenu(),
                     if (_selectedProfile != null)
                       Positioned.fill(
-                        child: GestureDetector(
-                          onTap: closeProfile,
-                          child: Container(
-                            color: Colors.black.withOpacity(0),
-                            child: Center(
+                        child: Stack(
+                          children: [
+                            // Background that blocks interaction but does not close the profile
+                            GestureDetector(
+                              onTap:
+                                  () {}, // Does nothing on tap, prevents closing
+                              child: Container(
+                                color: Colors.black.withOpacity(
+                                    0), // You can adjust the opacity
+                              ),
+                            ),
+                            // Profile Widget in the center
+                            Center(
                               child: Padding(
                                 padding: const EdgeInsets.all(0.0),
                                 child: Material(
@@ -110,7 +118,7 @@ class SearchPageState extends State<SearchPage> {
                                 ),
                               ),
                             ),
-                          ),
+                          ],
                         ),
                       ),
                   ],

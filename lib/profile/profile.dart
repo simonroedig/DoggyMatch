@@ -1,6 +1,8 @@
 import 'dart:ui';
 
 class UserProfile {
+  final String uid;
+  final String email;
   final String userName;
   final DateTime? birthday;
   final String aboutText;
@@ -18,6 +20,8 @@ class UserProfile {
   final double filterDistance;
 
   UserProfile({
+    required this.uid,
+    required this.email,
     required this.userName,
     required this.birthday,
     required this.aboutText,
@@ -47,6 +51,8 @@ class UserProfile {
   }
 
   UserProfile copyWith({
+    String? uid,
+    String? email,
     String? userName,
     DateTime? birthday,
     String? aboutText,
@@ -64,6 +70,8 @@ class UserProfile {
     double? filterDistance,
   }) {
     return UserProfile(
+      uid: uid ?? this.uid,
+      email: email ?? this.email,
       userName: userName ?? this.userName,
       birthday: birthday ?? this.birthday,
       aboutText: aboutText ?? this.aboutText,
