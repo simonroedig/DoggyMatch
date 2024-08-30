@@ -61,7 +61,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
           else
             Expanded(
               child: ProfileChat(
-                profile: widget.profile,
+                otherUserProfile: widget.profile,
                 onHeaderTapped: () {
                   setState(() {
                     _isInChat = false; // Go back to profile view

@@ -8,12 +8,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:doggymatch_flutter/widgets/profile_chat/chat_dialogs.dart';
 
 class ProfileChat extends StatefulWidget {
-  final UserProfile profile;
+  final UserProfile otherUserProfile;
   final VoidCallback onHeaderTapped;
 
   const ProfileChat({
     super.key,
-    required this.profile,
+    required this.otherUserProfile,
     required this.onHeaderTapped,
   });
 
@@ -53,8 +53,8 @@ class _ProfileChatState extends State<ProfileChat> {
     if (_controller.text.isEmpty) return;
 
     await _chatService.sendMessage(
-      widget.profile.uid,
-      widget.profile.email,
+      widget.otherUserProfile.uid,
+      widget.otherUserProfile.email,
       _controller.text,
     );
 
@@ -83,8 +83,8 @@ class _ProfileChatState extends State<ProfileChat> {
         ),
         Expanded(
           child: StreamBuilder<QuerySnapshot>(
-            stream:
-                _chatService.getMessages(_currentUserId, widget.profile.uid),
+            stream: _chatService.getMessages(
+                _currentUserId, widget.otherUserProfile.uid),
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
                 return const Center(child: CircularProgressIndicator());
@@ -143,13 +143,14 @@ class _ProfileChatState extends State<ProfileChat> {
   }
 
   Widget _buildChatHeader(BuildContext context) {
-    final firstImage =
-        widget.profile.images.isNotEmpty ? widget.profile.images.first : '';
+    final firstImage = widget.otherUserProfile.images.isNotEmpty
+        ? widget.otherUserProfile.images.first
+        : '';
 
     return Container(
       height: 70,
       decoration: BoxDecoration(
-        color: widget.profile.profileColor,
+        color: widget.otherUserProfile.profileColor,
         border: const Border(
           bottom: BorderSide(
             color: AppColors.customBlack,
@@ -185,7 +186,7 @@ class _ProfileChatState extends State<ProfileChat> {
                         color: AppColors.customBlack),
                     const SizedBox(width: 8.0),
                     Text(
-                      widget.profile.userName,
+                      widget.otherUserProfile.userName,
                       style: const TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 14,
@@ -194,8 +195,8 @@ class _ProfileChatState extends State<ProfileChat> {
                     ),
                   ],
                 ),
-                if (widget.profile.isDogOwner &&
-                    widget.profile.dogName != null) ...[
+                if (widget.otherUserProfile.isDogOwner &&
+                    widget.otherUserProfile.dogName != null) ...[
                   const SizedBox(height: 4.0),
                   Row(
                     children: [
@@ -203,7 +204,7 @@ class _ProfileChatState extends State<ProfileChat> {
                           color: AppColors.customBlack),
                       const SizedBox(width: 8.0),
                       Text(
-                        widget.profile.dogName!,
+                        widget.otherUserProfile.dogName!,
                         style: const TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 14,
@@ -223,14 +224,15 @@ class _ProfileChatState extends State<ProfileChat> {
               switch (value) {
                 case 'delete':
                   showDeleteConfirmationDialog(
-                      context, widget.profile.userName);
+                      context, widget.otherUserProfile.userName);
                   break;
                 case 'hide':
-                  showHideConfirmationDialog(context, widget.profile.userName);
+                  showHideConfirmationDialog(
+                      context, widget.otherUserProfile.userName);
                   break;
                 case 'report':
                   showReportConfirmationDialog(
-                      context, widget.profile.userName);
+                      context, widget.otherUserProfile.userName);
                   break;
               }
             },
