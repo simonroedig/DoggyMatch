@@ -57,6 +57,7 @@ class _ChatPageState extends State<ChatPage> {
     if (widget.profileCloseNotifier.shouldCloseProfile) {
       _closeProfile();
       widget.profileCloseNotifier.reset();
+      _listenToChatRooms(); // Re-fetch chat rooms after profile closes
     }
   }
 
@@ -84,6 +85,9 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _listenToChatRooms() {
+    _chatRoomsSubscription
+        ?.cancel(); // Cancel any existing subscription before starting a new one
+
     _chatRoomsSubscription = FirebaseFirestore.instance
         .collection('chatrooms')
         .where('members', arrayContains: _currentUserId)
