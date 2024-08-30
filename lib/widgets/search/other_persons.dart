@@ -10,10 +10,14 @@ import 'package:doggymatch_flutter/profile/profile.dart';
 import 'package:doggymatch_flutter/pages/notifiers/filter_notifier.dart';
 
 class OtherPersons extends StatefulWidget {
-  final Function(UserProfile, String)
-      onProfileSelected; // Callback to notify profile selection
+  final Function(UserProfile, String) onProfileSelected;
 
   const OtherPersons({super.key, required this.onProfileSelected});
+
+  void triggerUserFetch(BuildContext context) {
+    final state = context.findAncestorStateOfType<_OtherPersonsState>();
+    state?._loadFilteredUsers();
+  }
 
   @override
   _OtherPersonsState createState() => _OtherPersonsState();
@@ -24,45 +28,40 @@ class _OtherPersonsState extends State<OtherPersons>
   final AuthService _authService = AuthService();
   List<Map<String, dynamic>> _users = [];
   bool _isLoading = true;
-  late FilterNotifier _filterNotifier; // Add a state variable for the notifier
+  late FilterNotifier _filterNotifier;
 
   @override
   void initState() {
     super.initState();
-    _filterNotifier = Provider.of<FilterNotifier>(context,
-        listen: false); // Initialize in initState
-    _filterNotifier
-        .addListener(_loadFilteredUsers); // Add listener in initState
+    _filterNotifier = Provider.of<FilterNotifier>(context, listen: false);
+    _filterNotifier.addListener(_loadFilteredUsers);
     _loadFilteredUsers();
   }
 
   @override
   void dispose() {
-    _filterNotifier.removeListener(
-        _loadFilteredUsers); // Remove listener safely in dispose
+    _filterNotifier.removeListener(_loadFilteredUsers);
     super.dispose();
   }
 
   Future<void> _loadFilteredUsers() async {
     setState(() {
-      _isLoading = true; // Show progress indicator
+      _isLoading = true;
     });
     final userProfileState =
         Provider.of<UserProfileState>(context, listen: false);
-    final String? currentUserId =
-        _authService.getCurrentUserId(); // Get the current user's UID
+    final String? currentUserId = _authService.getCurrentUserId();
 
     try {
       List<Map<String, dynamic>> users =
           await _authService.fetchAllUsersWithinFilter(
-        userProfileState.userProfile.filterLookingForDogOwner,
-        userProfileState.userProfile.filterLookingForDogSitter,
-        userProfileState.userProfile.filterDistance,
-        userProfileState.userProfile.latitude,
-        userProfileState.userProfile.longitude,
+        userProfileState.userProfile?.filterLookingForDogOwner ?? false,
+        userProfileState.userProfile?.filterLookingForDogSitter ?? false,
+        userProfileState.userProfile?.filterDistance ?? 0.0,
+        userProfileState.userProfile?.latitude ?? 0.0,
+        userProfileState.userProfile?.longitude ?? 0.0,
       );
 
-      // Exclude the current user's profile from the list
       users = users.where((user) => user['uid'] != currentUserId).toList();
 
       setState(() {
@@ -146,7 +145,6 @@ class _OtherPersonsState extends State<OtherPersons>
       Color profileColor, String filterDistance) {
     return GestureDetector(
       onTap: () async {
-        // Show progress indicator while fetching profile data
         showDialog(
           context: context,
           barrierDismissible: false,
@@ -158,7 +156,6 @@ class _OtherPersonsState extends State<OtherPersons>
         );
 
         try {
-          // Create a UserProfile instance from the data map
           UserProfile selectedProfile = UserProfile(
             uid: data['uid'],
             email: data['email'],
@@ -179,11 +176,12 @@ class _OtherPersonsState extends State<OtherPersons>
                 : null,
           );
 
-          // Calculate the distance
           final userProfileState =
               Provider.of<UserProfileState>(context, listen: false);
-          final mainUserLatitude = userProfileState.userProfile.latitude;
-          final mainUserLongitude = userProfileState.userProfile.longitude;
+          final mainUserLatitude =
+              userProfileState.userProfile?.latitude ?? 0.0;
+          final mainUserLongitude =
+              userProfileState.userProfile?.longitude ?? 0.0;
           final distance = _calculateDistance(
             mainUserLatitude,
             mainUserLongitude,
@@ -191,10 +189,9 @@ class _OtherPersonsState extends State<OtherPersons>
             selectedProfile.longitude,
           ).toStringAsFixed(1);
 
-          // Call the callback to notify SearchPage
           widget.onProfileSelected(selectedProfile, distance);
         } finally {
-          Navigator.pop(context); // Hide the progress indicator
+          Navigator.pop(context);
         }
       },
       child: Container(
@@ -265,9 +262,8 @@ class _OtherPersonsState extends State<OtherPersons>
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 10.0),
       child: Center(
-        // Ensures content is centered within the Row
         child: Row(
-          mainAxisSize: MainAxisSize.min, // Adjusts to the size of the content
+          mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(
               Icons.pets_rounded,
@@ -289,13 +285,11 @@ class _OtherPersonsState extends State<OtherPersons>
 
   Widget _buildUserFooter(
       String userName, double userLatitude, double userLongitude) {
-    // Get the main user's latitude and longitude from UserProfileState
     final userProfileState =
         Provider.of<UserProfileState>(context, listen: false);
-    final mainUserLatitude = userProfileState.userProfile.latitude;
-    final mainUserLongitude = userProfileState.userProfile.longitude;
+    final mainUserLatitude = userProfileState.userProfile?.latitude ?? 0.0;
+    final mainUserLongitude = userProfileState.userProfile?.longitude ?? 0.0;
 
-    // Calculate the distance
     final distance = _calculateDistance(
       mainUserLatitude,
       mainUserLongitude,
@@ -337,7 +331,7 @@ class _OtherPersonsState extends State<OtherPersons>
 
   double _calculateDistance(
       double lat1, double lon1, double lat2, double lon2) {
-    const R = 6371; // Radius of the Earth in kilometers
+    const R = 6371;
     final dLat = _deg2rad(lat2 - lat1);
     final dLon = _deg2rad(lon2 - lon1);
     final a = sin(dLat / 2) * sin(dLat / 2) +
@@ -346,7 +340,7 @@ class _OtherPersonsState extends State<OtherPersons>
             sin(dLon / 2) *
             sin(dLon / 2);
     final c = 2 * atan2(sqrt(a), sqrt(1 - a));
-    return R * c; // Distance in kilometers
+    return R * c;
   }
 
   double _deg2rad(double deg) {
@@ -359,11 +353,9 @@ class _ScrollableText extends StatefulWidget {
   final IconData? prefixIcon;
   final double? prefixIconSize;
 
-  // ignore: use_super_parameters
   const _ScrollableText({
     Key? key,
     required this.text,
-    // ignore: unused_element
     this.prefixIcon,
     this.prefixIconSize,
   }) : super(key: key);

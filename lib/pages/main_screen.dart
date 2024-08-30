@@ -1,7 +1,4 @@
-// ignore_for_file: deprecated_member_use
-
 import 'dart:developer';
-
 import 'package:doggymatch_flutter/pages/notifiers/profile_close_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
@@ -28,11 +25,11 @@ class MainScreen extends StatelessWidget {
 
         if (userProfileState.isProfileOpen) {
           userProfileState.closeProfile();
-          profileCloseNotifier.triggerCloseProfile(); // Signal to close profile
-          return false; // Prevent the default back button action
+          profileCloseNotifier.triggerCloseProfile();
+          return false;
         }
 
-        return true; // Allow the default back button action
+        return true;
       },
       child: Scaffold(
         backgroundColor: AppColors.bg,
@@ -69,8 +66,7 @@ class MainScreen extends StatelessWidget {
                     onTabTapped: (index) {
                       if (userProfileState.isProfileOpen) {
                         userProfileState.closeProfile();
-                        profileCloseNotifier
-                            .triggerCloseProfile(); // Signal to close profile
+                        profileCloseNotifier.triggerCloseProfile();
                       } else {
                         userProfileState.updateCurrentIndex(index);
                       }
@@ -79,8 +75,7 @@ class MainScreen extends StatelessWidget {
                     onCloseButtonTapped: () {
                       log("Close button callback triggered in MainScreen");
                       userProfileState.closeProfile();
-                      profileCloseNotifier
-                          .triggerCloseProfile(); // Signal to close profile
+                      profileCloseNotifier.triggerCloseProfile();
                     },
                   );
                 },

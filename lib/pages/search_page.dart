@@ -28,12 +28,30 @@ class SearchPageState extends State<SearchPage> {
   void initState() {
     super.initState();
     widget.profileCloseNotifier.addListener(_onProfileClose);
+    _initializeDataFetch();
   }
 
   @override
   void dispose() {
     widget.profileCloseNotifier.removeListener(_onProfileClose);
     super.dispose();
+  }
+
+  Future<void> _initializeDataFetch() async {
+    final userProfileState =
+        Provider.of<UserProfileState>(context, listen: false);
+
+    // Wait for the user profile to be loaded
+    await userProfileState.refreshUserProfile();
+
+    // Now that the profile is loaded, fetch the filtered users
+    _triggerUserFetchOnStartup();
+  }
+
+  void _triggerUserFetchOnStartup() {
+    final otherPersonsWidget =
+        context.findAncestorWidgetOfExactType<OtherPersons>();
+    otherPersonsWidget?.triggerUserFetch(context);
   }
 
   void _onProfileClose() {
@@ -68,7 +86,6 @@ class SearchPageState extends State<SearchPage> {
     setState(() {
       _isFilterOpen = false;
     });
-    // Optionally, refresh the profiles list or trigger a rebuild
     Provider.of<UserProfileState>(context, listen: false).refreshUserProfile();
   }
 
