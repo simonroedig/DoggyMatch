@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'dart:math';
+import 'dart:developer' as developer;
 
 import 'package:doggymatch_flutter/services/auth.dart';
 import 'package:doggymatch_flutter/widgets/profile/profile_widget.dart';
@@ -48,8 +49,7 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void dispose() {
     widget.profileCloseNotifier.removeListener(_onProfileClose);
-    _chatRoomsSubscription
-        ?.cancel(); // Cancel the subscription when the widget is disposed
+    _chatRoomsSubscription?.cancel();
     super.dispose();
   }
 
@@ -91,12 +91,10 @@ class _ChatPageState extends State<ChatPage> {
         .listen((snapshot) async {
       final List<Map<String, dynamic>> chatRooms = [];
 
-      // Fetch the current user's profile to get the latitude and longitude
       final UserProfile? currentUserProfile =
           await _authService.fetchUserProfile();
 
       for (var chatRoom in snapshot.docs) {
-        // ignore: unnecessary_cast
         final otherUserId = (chatRoom.data() as Map<String, dynamic>)['members']
             .where((id) => id != _currentUserId)
             .first;
@@ -104,16 +102,14 @@ class _ChatPageState extends State<ChatPage> {
         final UserProfile? otherUserProfile =
             await _authService.fetchOtherUserProfile(otherUserId);
 
-        final lastMessageSnapshot = await chatRoom.reference
+        final messagesSnapshot = await chatRoom.reference
             .collection('messages')
             .orderBy('timestamp', descending: true)
-            .limit(1)
             .get();
 
-        if (otherUserProfile != null && lastMessageSnapshot.docs.isNotEmpty) {
-          final lastMessage = lastMessageSnapshot.docs.first['message'];
+        if (otherUserProfile != null && messagesSnapshot.docs.isNotEmpty) {
+          final lastMessage = messagesSnapshot.docs.first['message'];
 
-          // Calculate the distance
           final double distance = _calculateDistance(
             currentUserProfile!.latitude,
             currentUserProfile.longitude,
@@ -121,41 +117,66 @@ class _ChatPageState extends State<ChatPage> {
             otherUserProfile.longitude,
           );
 
+          bool userSentMessage = false;
+          bool otherUserSentMessage = false;
+
+          for (var messageDoc in messagesSnapshot.docs) {
+            String senderId = messageDoc['senderId'];
+
+            if (senderId == _currentUserId) {
+              userSentMessage = true;
+            } else if (senderId == otherUserId) {
+              otherUserSentMessage = true;
+            }
+
+            if (userSentMessage && otherUserSentMessage) {
+              break;
+            }
+          }
+
+          String chatRoomState;
+          if (userSentMessage && otherUserSentMessage) {
+            chatRoomState = "COMMUNICATION";
+          } else if (userSentMessage) {
+            chatRoomState = "OUTGOING";
+          } else if (otherUserSentMessage) {
+            chatRoomState = "INCOMING";
+          } else {
+            chatRoomState = "NO MESSAGES";
+          }
+
           chatRooms.add({
             'profile': otherUserProfile,
             'lastMessage': lastMessage,
             'distance': distance.toStringAsFixed(1),
+            'chatRoomState': chatRoomState,
           });
+
+          developer.log('ChatRoomState: $chatRoomState');
         }
       }
 
       setState(() {
-        _chatRooms = chatRooms; // Update the chatRooms state with new data
-        _isLoading = false; // Stop showing the loading indicator
+        _chatRooms = chatRooms;
+        _isLoading = false;
       });
     });
   }
 
-  double _calculateDistance(
-      double lat1, double lon1, double lat2, double lon2) {
-    const R = 6371;
-    final dLat = _deg2rad(lat2 - lat1);
-    final dLon = _deg2rad(lon2 - lon1);
-    final a = sin(dLat / 2) * sin(dLat / 2) +
-        cos(_deg2rad(lat1)) *
-            cos(_deg2rad(lat2)) *
-            sin(dLon / 2) *
-            sin(dLon / 2);
-    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
-    return R * c;
-  }
-
-  double _deg2rad(double deg) {
-    return deg * (pi / 180);
-  }
-
   @override
   Widget build(BuildContext context) {
+    final List<Map<String, dynamic>> incomingRequests = _chatRooms
+        .where((chatRoom) => chatRoom['chatRoomState'] == "INCOMING")
+        .toList();
+
+    final List<Map<String, dynamic>> outgoingRequests = _chatRooms
+        .where((chatRoom) => chatRoom['chatRoomState'] == "OUTGOING")
+        .toList();
+
+    final List<Map<String, dynamic>> communicationChats = _chatRooms
+        .where((chatRoom) => chatRoom['chatRoomState'] == "COMMUNICATION")
+        .toList();
+
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: const CustomAppBar(
@@ -172,33 +193,117 @@ class _ChatPageState extends State<ChatPage> {
               const SizedBox(height: 20),
               Expanded(
                 child: _isLoading
-                    ? const Center(
-                        child:
-                            CircularProgressIndicator()) // Show loading indicator while fetching data
-                    : _chatRooms.isEmpty
-                        ? const Center(
-                            child: Text(
-                                'No chats available')) // Show "No chats available" if no chat rooms exist
-                        : ListView.builder(
-                            itemCount: _chatRooms.length,
-                            itemBuilder: (context, index) {
-                              final chatRoom = _chatRooms[index];
-                              return Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 4.0),
-                                child: ChatCard(
-                                  otherUserProfile:
-                                      chatRoom['profile'] as UserProfile,
-                                  lastMessage:
-                                      chatRoom['lastMessage'] as String,
-                                  onTap: () {
-                                    _openProfile(
-                                        chatRoom['profile'] as UserProfile,
-                                        chatRoom['distance'] as String);
-                                  },
+                    ? const Center(child: CircularProgressIndicator())
+                    : isChatSelected
+                        ? communicationChats.isEmpty
+                            ? const Center(child: Text('No chats available'))
+                            : ListView.builder(
+                                itemCount: communicationChats.length,
+                                itemBuilder: (context, index) {
+                                  final chatRoom = communicationChats[index];
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 4.0),
+                                    child: ChatCard(
+                                      otherUserProfile:
+                                          chatRoom['profile'] as UserProfile,
+                                      lastMessage:
+                                          chatRoom['lastMessage'] as String,
+                                      onTap: () {
+                                        _openProfile(
+                                            chatRoom['profile'] as UserProfile,
+                                            chatRoom['distance'] as String);
+                                      },
+                                    ),
+                                  );
+                                },
+                              )
+                        : ListView(
+                            children: [
+                              const Center(
+                                child: Text(
+                                  "< Incoming Requests",
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.customBlack,
+                                  ),
                                 ),
-                              );
-                            },
+                              ),
+                              const SizedBox(height: 10),
+                              if (incomingRequests.isEmpty)
+                                const Center(
+                                  child: Text(
+                                    "(No incoming chat requests)",
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.normal,
+                                      color: AppColors.customBlack,
+                                    ),
+                                  ),
+                                )
+                              else
+                                ...incomingRequests.map((chatRoom) => Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 4.0),
+                                      child: ChatCard(
+                                        otherUserProfile:
+                                            chatRoom['profile'] as UserProfile,
+                                        lastMessage:
+                                            chatRoom['lastMessage'] as String,
+                                        onTap: () {
+                                          _openProfile(
+                                              chatRoom['profile']
+                                                  as UserProfile,
+                                              chatRoom['distance'] as String);
+                                        },
+                                      ),
+                                    )),
+                              const SizedBox(height: 30),
+                              const Center(
+                                child: Text(
+                                  "Outgoing Requests >",
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.customBlack,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              if (outgoingRequests.isEmpty)
+                                const Center(
+                                  child: Text(
+                                    "(No outgoing chat requests)",
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.normal,
+                                      color: AppColors.customBlack,
+                                    ),
+                                  ),
+                                )
+                              else
+                                ...outgoingRequests.map((chatRoom) => Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 4.0),
+                                      child: ChatCard(
+                                        otherUserProfile:
+                                            chatRoom['profile'] as UserProfile,
+                                        lastMessage:
+                                            chatRoom['lastMessage'] as String,
+                                        onTap: () {
+                                          _openProfile(
+                                              chatRoom['profile']
+                                                  as UserProfile,
+                                              chatRoom['distance'] as String);
+                                        },
+                                      ),
+                                    )),
+                            ],
                           ),
               ),
             ],
@@ -234,5 +339,23 @@ class _ChatPageState extends State<ChatPage> {
         ],
       ),
     );
+  }
+
+  double _calculateDistance(
+      double lat1, double lon1, double lat2, double lon2) {
+    const R = 6371;
+    final dLat = _deg2rad(lat2 - lat1);
+    final dLon = _deg2rad(lon2 - lon1);
+    final a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(_deg2rad(lat1)) *
+            cos(_deg2rad(lat2)) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
+    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    return R * c;
+  }
+
+  double _deg2rad(double deg) {
+    return deg * (pi / 180);
   }
 }
