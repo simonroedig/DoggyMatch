@@ -1,5 +1,7 @@
 // File: lib/widgets/profile_chat/profile_chat.dart
 
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:doggymatch_flutter/colors.dart';
@@ -64,11 +66,11 @@ class _ProfileChatState extends State<ProfileChat> with WidgetsBindingObserver {
         final chatRoomId = chatRoom.id;
 
         // Only update if there was a new message
-        if (chatRoom.data()['hasNewMessage'] == true) {
+        if (chatRoom.data()['hasNewMessage_$_currentUserId'] == true) {
           await FirebaseFirestore.instance
               .collection('chatrooms')
               .doc(chatRoomId)
-              .update({'hasNewMessage': false});
+              .update({'hasNewMessage_$_currentUserId': false});
         }
         break;
       }
@@ -85,6 +87,7 @@ class _ProfileChatState extends State<ProfileChat> with WidgetsBindingObserver {
   }
 
   void _sendMessage() async {
+    log("eeee");
     if (_controller.text.isEmpty) return;
 
     final chatRoomsSnapshot = await FirebaseFirestore.instance
@@ -108,7 +111,7 @@ class _ProfileChatState extends State<ProfileChat> with WidgetsBindingObserver {
         await FirebaseFirestore.instance
             .collection('chatrooms')
             .doc(chatRoomId)
-            .update({'hasNewMessage': true});
+            .update({'hasNewMessage_$widget.otherUserProfile.uid': true});
 
         _controller.clear();
         _scrollToBottom();

@@ -7,14 +7,16 @@ import 'package:doggymatch_flutter/profile/profile.dart';
 class ChatCard extends StatefulWidget {
   final UserProfile otherUserProfile;
   final ValueNotifier<String> lastMessageNotifier;
-  final bool hasNewMessage; // Add this line
+  final bool hasNewMessageOwn;
+  final bool hasNewMessageOther;
   final VoidCallback onTap;
 
   const ChatCard({
     super.key,
     required this.otherUserProfile,
     required this.lastMessageNotifier,
-    required this.hasNewMessage, // Add this line
+    required this.hasNewMessageOwn,
+    required this.hasNewMessageOther,
     required this.onTap,
   });
 
@@ -179,7 +181,7 @@ class _ChatCardState extends State<ChatCard> with TickerProviderStateMixin {
                   ],
                 ),
               ),
-              if (widget.hasNewMessage) // Add this block
+              if (widget.hasNewMessageOwn) // Add this block
                 Container(
                   width: 10,
                   height: 10,

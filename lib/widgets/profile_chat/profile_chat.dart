@@ -77,7 +77,7 @@ class _ChatPageState extends State<ChatPage> {
       FirebaseFirestore.instance
           .collection('chatrooms')
           .doc(chatRoomId)
-          .update({'hasNewMessage': false});
+          .update({'hasNewMessage_$_currentUserId': false});
     });
   }
 
@@ -172,7 +172,10 @@ class _ChatPageState extends State<ChatPage> {
             'lastMessageNotifier': lastMessageNotifier,
             'distance': distance.toStringAsFixed(1),
             'chatRoomState': chatRoomState,
-            'hasNewMessage': chatRoom.data()['hasNewMessage'] ?? false,
+            'hasNewMessage_$_currentUserId':
+                chatRoom.data()['hasNewMessage_$_currentUserId'] ?? false,
+            'hasNewMessage_$otherUserId':
+                chatRoom.data()['hasNewMessage_$otherUserId'] ?? false,
           });
 
           developer.log('ChatRoomState: $chatRoomState');
@@ -233,8 +236,12 @@ class _ChatPageState extends State<ChatPage> {
                                       lastMessageNotifier:
                                           chatRoom['lastMessageNotifier']
                                               as ValueNotifier<String>,
-                                      hasNewMessage:
-                                          chatRoom['hasNewMessage'] as bool,
+                                      hasNewMessageOwn: chatRoom[
+                                              'hasNewMessage_$_currentUserId']
+                                          as bool,
+                                      hasNewMessageOther: chatRoom[
+                                              'hasNewMessage_${chatRoom['profile'].userId}']
+                                          as bool,
                                       onTap: () {
                                         _openProfile(
                                           chatRoom['profile'] as UserProfile,
@@ -282,8 +289,12 @@ class _ChatPageState extends State<ChatPage> {
                                         lastMessageNotifier:
                                             chatRoom['lastMessageNotifier']
                                                 as ValueNotifier<String>,
-                                        hasNewMessage:
-                                            chatRoom['hasNewMessage'] as bool,
+                                        hasNewMessageOwn: chatRoom[
+                                                'hasNewMessage_$_currentUserId']
+                                            as bool,
+                                        hasNewMessageOther: chatRoom[
+                                                'hasNewMessage_${chatRoom['profile'].userId}']
+                                            as bool,
                                         onTap: () {
                                           _openProfile(
                                             chatRoom['profile'] as UserProfile,
@@ -328,8 +339,11 @@ class _ChatPageState extends State<ChatPage> {
                                         lastMessageNotifier:
                                             chatRoom['lastMessageNotifier']
                                                 as ValueNotifier<String>,
-                                        hasNewMessage:
-                                            chatRoom['hasNewMessage'] as bool,
+                                        hasNewMessageOwn: chatRoom[
+                                                'hasNewMessage_$_currentUserId']
+                                            as bool,
+                                        hasNewMessageOther: chatRoom[
+                                            'hasNewMessage_${chatRoom['profile'].userId}'],
                                         onTap: () {
                                           _openProfile(
                                             chatRoom['profile'] as UserProfile,

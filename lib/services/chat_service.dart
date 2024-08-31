@@ -15,6 +15,7 @@ class ChatService extends ChangeNotifier {
   // SEND MESSAGE
   Future<void> sendMessage(
       String receiverID, String receiverEmail, String message) async {
+    log(message);
     // get current user info
     final String currentUserID = _auth.currentUser!.uid;
     final String currentUserEmail = _auth.currentUser!.email!;

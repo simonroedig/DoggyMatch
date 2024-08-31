@@ -3,12 +3,12 @@
 import 'dart:developer';
 
 import 'package:doggymatch_flutter/pages/notifiers/profile_close_notifier.dart';
+import 'package:doggymatch_flutter/widgets/profile_chat/profile_chat.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
 import 'package:doggymatch_flutter/pages/register_page_2.dart';
 import 'package:doggymatch_flutter/state/user_profile_state.dart';
 import 'package:doggymatch_flutter/pages/search_page.dart';
-import 'package:doggymatch_flutter/pages/chat_page.dart';
 import 'package:doggymatch_flutter/pages/profile_page.dart';
 import 'package:doggymatch_flutter/widgets/custom_bottom_navigation.dart';
 import 'package:provider/provider.dart';
