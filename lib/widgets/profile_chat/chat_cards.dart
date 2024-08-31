@@ -19,6 +19,7 @@ class ChatCard extends StatefulWidget {
   });
 
   @override
+  // ignore: library_private_types_in_public_api
   _ChatCardState createState() => _ChatCardState();
 }
 
@@ -184,7 +185,7 @@ class _ChatCardState extends State<ChatCard> with TickerProviderStateMixin {
                   width: 10,
                   height: 10,
                   margin: const EdgeInsets.only(right: 15.0),
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: Colors.green,
                     shape: BoxShape.circle,
                   ),

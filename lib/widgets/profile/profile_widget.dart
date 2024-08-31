@@ -1,9 +1,9 @@
+import 'package:doggymatch_flutter/pages/chat_page.dart';
 import 'package:doggymatch_flutter/widgets/profile/profile_edit_all.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
 import 'package:doggymatch_flutter/widgets/profile/profile_image_stack.dart';
 import 'package:doggymatch_flutter/widgets/profile/profile_info_sections.dart';
-import 'package:doggymatch_flutter/widgets/profile_chat/profile_chat.dart';
 import 'package:doggymatch_flutter/profile/profile.dart';
 
 class ProfileWidget extends StatefulWidget {
