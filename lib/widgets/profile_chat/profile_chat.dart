@@ -1,444 +1,397 @@
+// Modify the chatRooms map to include 'hasNewMessage'
+import 'dart:async';
+import 'dart:math';
+import 'dart:developer' as developer;
+
+import 'package:doggymatch_flutter/services/auth.dart';
+import 'package:doggymatch_flutter/widgets/profile/profile_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:doggymatch_flutter/widgets/custom_app_bar.dart';
 import 'package:doggymatch_flutter/colors.dart';
-import 'package:doggymatch_flutter/profile/profile.dart';
-import 'package:doggymatch_flutter/services/chat_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:doggymatch_flutter/widgets/chat/chat_request_toggle.dart';
+import 'package:doggymatch_flutter/widgets/profile_chat/chat_cards.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:doggymatch_flutter/widgets/profile_chat/chat_dialogs.dart';
+import 'package:doggymatch_flutter/profile/profile.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import 'package:doggymatch_flutter/state/user_profile_state.dart';
+import 'package:doggymatch_flutter/pages/notifiers/profile_close_notifier.dart';
 
-class ProfileChat extends StatefulWidget {
-  final UserProfile otherUserProfile;
-  final VoidCallback onHeaderTapped;
+class ChatPage extends StatefulWidget {
+  final ProfileCloseNotifier profileCloseNotifier;
 
-  const ProfileChat({
-    super.key,
-    required this.otherUserProfile,
-    required this.onHeaderTapped,
-  });
+  const ChatPage({super.key, required this.profileCloseNotifier});
 
   @override
-  // ignore: library_private_types_in_public_api
-  _ProfileChatState createState() => _ProfileChatState();
+  _ChatPageState createState() => _ChatPageState();
 }
 
-class _ProfileChatState extends State<ProfileChat> with WidgetsBindingObserver {
-  final TextEditingController _controller = TextEditingController();
-  final ChatService _chatService = ChatService();
+class _ChatPageState extends State<ChatPage> {
+  final AuthService _authService = AuthService();
   final String _currentUserId = FirebaseAuth.instance.currentUser!.uid;
-  final ScrollController _scrollController = ScrollController();
-  bool _hasText = false;
+  bool isChatSelected = true;
+  UserProfile? _selectedProfile;
+  bool _isProfileOpen = false;
+  double? _selectedDistance;
+
+  StreamSubscription<QuerySnapshot>? _chatRoomsSubscription;
+  List<Map<String, dynamic>> _chatRooms = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _controller.addListener(_handleTextChange);
-    WidgetsBinding.instance.addObserver(this);
-    // Scroll to the bottom when the chat page is loaded
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollToBottom();
-    });
-  }
-
-  void _handleTextChange() {
-    setState(() {
-      _hasText = _controller.text.isNotEmpty;
-    });
+    widget.profileCloseNotifier.addListener(_onProfileClose);
+    _listenToChatRooms();
   }
 
   @override
   void dispose() {
-    _controller.removeListener(_handleTextChange);
-    _controller.dispose();
-    _scrollController.dispose();
-    WidgetsBinding.instance.removeObserver(this);
+    widget.profileCloseNotifier.removeListener(_onProfileClose);
+    _chatRoomsSubscription?.cancel();
     super.dispose();
   }
 
-  void _sendMessage() async {
-    if (_controller.text.isEmpty) return;
-
-    await _chatService.sendMessage(
-      widget.otherUserProfile.uid,
-      widget.otherUserProfile.email,
-      _controller.text,
-    );
-
-    _controller.clear();
-    _scrollToBottom();
+  void _onProfileClose() {
+    if (widget.profileCloseNotifier.shouldCloseProfile) {
+      _closeProfile();
+      widget.profileCloseNotifier.reset();
+      _listenToChatRooms(); // Re-fetch chat rooms after profile closes
+    }
   }
 
-  void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
+  void handleToggle(bool isChat) {
+    setState(() {
+      isChatSelected = isChat;
+    });
+  }
+
+  void _openProfile(UserProfile profile, String distance, String chatRoomId) {
+    setState(() {
+      _selectedProfile = profile;
+      _isProfileOpen = true;
+      _selectedDistance = double.parse(distance);
+      Provider.of<UserProfileState>(context, listen: false).openProfile();
+
+      // Update the chat room to mark that the user has seen the message
+      FirebaseFirestore.instance
+          .collection('chatrooms')
+          .doc(chatRoomId)
+          .update({'hasNewMessage': false});
+    });
+  }
+
+  void _closeProfile() {
+    setState(() {
+      _isProfileOpen = false;
+      _selectedProfile = null;
+    });
+    Provider.of<UserProfileState>(context, listen: false).closeProfile();
+  }
+
+  void _listenToChatRooms() {
+    _chatRoomsSubscription
+        ?.cancel(); // Cancel any existing subscription before starting a new one
+
+    _chatRoomsSubscription = FirebaseFirestore.instance
+        .collection('chatrooms')
+        .where('members', arrayContains: _currentUserId)
+        .snapshots()
+        .listen((snapshot) async {
+      final List<Map<String, dynamic>> chatRooms = [];
+
+      final UserProfile? currentUserProfile =
+          await _authService.fetchUserProfile();
+
+      for (var chatRoom in snapshot.docs) {
+        final otherUserId = (chatRoom.data())['members']
+            .where((id) => id != _currentUserId)
+            .first;
+
+        final UserProfile? otherUserProfile =
+            await _authService.fetchOtherUserProfile(otherUserId);
+
+        final messagesSnapshot = await chatRoom.reference
+            .collection('messages')
+            .orderBy('timestamp', descending: true)
+            .get();
+
+        if (otherUserProfile != null && messagesSnapshot.docs.isNotEmpty) {
+          final ValueNotifier<String> lastMessageNotifier =
+              ValueNotifier<String>(messagesSnapshot.docs.first['message']);
+
+          // Listen to updates on the messages collection for real-time updates
+          chatRoom.reference
+              .collection('messages')
+              .orderBy('timestamp', descending: true)
+              .snapshots()
+              .listen((messageSnapshot) {
+            if (messageSnapshot.docs.isNotEmpty) {
+              lastMessageNotifier.value = messageSnapshot.docs.first['message'];
+            }
+          });
+
+          final double distance = _calculateDistance(
+            currentUserProfile!.latitude,
+            currentUserProfile.longitude,
+            otherUserProfile.latitude,
+            otherUserProfile.longitude,
+          );
+
+          bool userSentMessage = false;
+          bool otherUserSentMessage = false;
+
+          for (var messageDoc in messagesSnapshot.docs) {
+            String senderId = messageDoc['senderId'];
+
+            if (senderId == _currentUserId) {
+              userSentMessage = true;
+            } else if (senderId == otherUserId) {
+              otherUserSentMessage = true;
+            }
+
+            if (userSentMessage && otherUserSentMessage) {
+              break;
+            }
+          }
+
+          String chatRoomState;
+          if (userSentMessage && otherUserSentMessage) {
+            chatRoomState = "COMMUNICATION";
+          } else if (userSentMessage) {
+            chatRoomState = "OUTGOING";
+          } else if (otherUserSentMessage) {
+            chatRoomState = "INCOMING";
+          } else {
+            chatRoomState = "NO MESSAGES";
+          }
+
+          chatRooms.add({
+            'chatRoomId': chatRoom.id,
+            'profile': otherUserProfile,
+            'lastMessageNotifier': lastMessageNotifier,
+            'distance': distance.toStringAsFixed(1),
+            'chatRoomState': chatRoomState,
+            'hasNewMessage': chatRoom.data()['hasNewMessage'] ?? false,
+          });
+
+          developer.log('ChatRoomState: $chatRoomState');
+        }
+      }
+
+      setState(() {
+        _chatRooms = chatRooms;
+        _isLoading = false;
       });
-    }
-  }
-
-  @override
-  void didChangeMetrics() {
-    super.didChangeMetrics();
-    // Detect when the keyboard appears or disappears
-    final bottomInset = WidgetsBinding
-        .instance.platformDispatcher.views.first.viewInsets.bottom;
-    if (bottomInset > 0.0) {
-      // Keyboard is visible, scroll to bottom once
-      _scrollToBottom();
-    }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.max,
-      children: [
-        GestureDetector(
-          onTap: widget.onHeaderTapped,
-          child: _buildChatHeader(context),
-        ),
-        Expanded(
-          child: StreamBuilder<QuerySnapshot>(
-            stream: _chatService.getMessages(
-                _currentUserId, widget.otherUserProfile.uid),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return const Center(child: CircularProgressIndicator());
-              }
+    final List<Map<String, dynamic>> incomingRequests = _chatRooms
+        .where((chatRoom) => chatRoom['chatRoomState'] == "INCOMING")
+        .toList();
 
-              final messages = snapshot.data!.docs;
+    final List<Map<String, dynamic>> outgoingRequests = _chatRooms
+        .where((chatRoom) => chatRoom['chatRoomState'] == "OUTGOING")
+        .toList();
 
-              // Auto-scroll when new messages are received or the chat is viewed for the first time
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                _scrollToBottom();
-              });
+    final List<Map<String, dynamic>> communicationChats = _chatRooms
+        .where((chatRoom) => chatRoom['chatRoomState'] == "COMMUNICATION")
+        .toList();
 
-              return ListView.builder(
-                controller: _scrollController,
-                padding: const EdgeInsets.all(16.0),
-                itemCount: messages.length,
-                itemBuilder: (context, index) {
-                  final messageData = messages[index];
-                  final isSender = messageData['senderId'] == _currentUserId;
-                  final DateTime timestamp =
-                      (messageData['timestamp'] as Timestamp).toDate();
-
-                  bool shouldShowTimestamp = true;
-                  if (index > 0) {
-                    final previousMessageData = messages[index - 1];
-                    final DateTime previousTimestamp =
-                        (previousMessageData['timestamp'] as Timestamp)
-                            .toDate();
-                    shouldShowTimestamp =
-                        !isSameMinute(timestamp, previousTimestamp);
-                  }
-
-                  return Column(
-                    children: [
-                      if (shouldShowTimestamp) _buildTimestamp(timestamp),
-                      _buildChatBubble(
-                          context, messageData['message'], isSender),
-                    ],
-                  );
-                },
-              );
-            },
-          ),
-        ),
-        _buildMessageInput(context),
-      ],
-    );
-  }
-
-  bool isSameMinute(DateTime timestamp1, DateTime timestamp2) {
-    return timestamp1.year == timestamp2.year &&
-        timestamp1.month == timestamp2.month &&
-        timestamp1.day == timestamp2.day &&
-        timestamp1.hour == timestamp2.hour &&
-        timestamp1.minute == timestamp2.minute;
-  }
-
-  Widget _buildChatHeader(BuildContext context) {
-    final firstImage = widget.otherUserProfile.images.isNotEmpty
-        ? widget.otherUserProfile.images.first
-        : '';
-
-    return Container(
-      height: 70,
-      decoration: BoxDecoration(
-        color: widget.otherUserProfile.profileColor,
-        border: const Border(
-          bottom: BorderSide(
-            color: AppColors.customBlack,
-            width: 3.0,
-          ),
-        ),
+    return Scaffold(
+      backgroundColor: AppColors.bg,
+      appBar: const CustomAppBar(
+        showSearchIcon: true,
+        showFilterIcon: false,
+        onSettingsPressed: null,
       ),
-      child: Row(
+      body: Stack(
         children: [
-          Container(
-            width: 70,
-            decoration: const BoxDecoration(
-              border: Border(
-                right: BorderSide(
-                  color: AppColors.customBlack,
-                  width: 3.0,
-                ),
-              ),
-            ),
-            child: firstImage.startsWith('http')
-                ? Image.network(firstImage, fit: BoxFit.cover)
-                : Image.asset(firstImage, fit: BoxFit.cover),
-          ),
-          const SizedBox(width: 8.0),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.person_rounded,
-                        color: AppColors.customBlack),
-                    const SizedBox(width: 8.0),
-                    Text(
-                      widget.otherUserProfile.userName,
-                      style: const TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 14,
-                        color: AppColors.customBlack,
-                      ),
-                    ),
-                  ],
-                ),
-                if (widget.otherUserProfile.isDogOwner &&
-                    widget.otherUserProfile.dogName != null) ...[
-                  const SizedBox(height: 4.0),
-                  Row(
-                    children: [
-                      const Icon(Icons.pets_rounded,
-                          color: AppColors.customBlack),
-                      const SizedBox(width: 8.0),
-                      Text(
-                        widget.otherUserProfile.dogName!,
-                        style: const TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 14,
-                          color: AppColors.customBlack,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert_rounded,
-                color: AppColors.customBlack),
-            onSelected: (String value) {
-              switch (value) {
-                case 'delete':
-                  showDeleteConfirmationDialog(
-                      context, widget.otherUserProfile.userName);
-                  break;
-                case 'hide':
-                  showHideConfirmationDialog(
-                      context, widget.otherUserProfile.userName);
-                  break;
-                case 'report':
-                  showReportConfirmationDialog(
-                      context, widget.otherUserProfile.userName);
-                  break;
-              }
-            },
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              const PopupMenuItem<String>(
-                value: 'delete',
-                child: Center(
-                  child: Text(
-                    'Delete',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.customBlack,
-                    ),
-                  ),
-                ),
-              ),
-              const PopupMenuItem<String>(
-                value: 'hide',
-                child: Center(
-                  child: Text(
-                    'Hide',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.customBlack,
-                    ),
-                  ),
-                ),
-              ),
-              const PopupMenuItem<String>(
-                value: 'report',
-                child: Center(
-                  child: Text(
-                    'Report',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.customRed,
-                    ),
-                  ),
-                ),
+          Column(
+            children: [
+              const SizedBox(height: 5),
+              ChatRequestToggle(onToggle: handleToggle),
+              const SizedBox(height: 20),
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : isChatSelected
+                        ? communicationChats.isEmpty
+                            ? const Center(child: Text('No chats available'))
+                            : ListView.builder(
+                                itemCount: communicationChats.length,
+                                itemBuilder: (context, index) {
+                                  final chatRoom = communicationChats[index];
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 4.0),
+                                    child: ChatCard(
+                                      otherUserProfile:
+                                          chatRoom['profile'] as UserProfile,
+                                      lastMessageNotifier:
+                                          chatRoom['lastMessageNotifier']
+                                              as ValueNotifier<String>,
+                                      hasNewMessage:
+                                          chatRoom['hasNewMessage'] as bool,
+                                      onTap: () {
+                                        _openProfile(
+                                          chatRoom['profile'] as UserProfile,
+                                          chatRoom['distance'] as String,
+                                          chatRoom['chatRoomId'] as String,
+                                        );
+                                      },
+                                    ),
+                                  );
+                                },
+                              )
+                        : ListView(
+                            children: [
+                              const Center(
+                                child: Text(
+                                  "< Incoming Requests",
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.customBlack,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              if (incomingRequests.isEmpty)
+                                const Center(
+                                  child: Text(
+                                    "(No incoming chat requests)",
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.normal,
+                                      color: AppColors.customBlack,
+                                    ),
+                                  ),
+                                )
+                              else
+                                ...incomingRequests.map((chatRoom) => Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 4.0),
+                                      child: ChatCard(
+                                        otherUserProfile:
+                                            chatRoom['profile'] as UserProfile,
+                                        lastMessageNotifier:
+                                            chatRoom['lastMessageNotifier']
+                                                as ValueNotifier<String>,
+                                        hasNewMessage:
+                                            chatRoom['hasNewMessage'] as bool,
+                                        onTap: () {
+                                          _openProfile(
+                                            chatRoom['profile'] as UserProfile,
+                                            chatRoom['distance'] as String,
+                                            chatRoom['chatRoomId'] as String,
+                                          );
+                                        },
+                                      ),
+                                    )),
+                              const SizedBox(height: 30),
+                              const Center(
+                                child: Text(
+                                  "Outgoing Requests >",
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.customBlack,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              if (outgoingRequests.isEmpty)
+                                const Center(
+                                  child: Text(
+                                    "(No outgoing chat requests)",
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.normal,
+                                      color: AppColors.customBlack,
+                                    ),
+                                  ),
+                                )
+                              else
+                                ...outgoingRequests.map((chatRoom) => Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 4.0),
+                                      child: ChatCard(
+                                        otherUserProfile:
+                                            chatRoom['profile'] as UserProfile,
+                                        lastMessageNotifier:
+                                            chatRoom['lastMessageNotifier']
+                                                as ValueNotifier<String>,
+                                        hasNewMessage:
+                                            chatRoom['hasNewMessage'] as bool,
+                                        onTap: () {
+                                          _openProfile(
+                                            chatRoom['profile'] as UserProfile,
+                                            chatRoom['distance'] as String,
+                                            chatRoom['chatRoomId'] as String,
+                                          );
+                                        },
+                                      ),
+                                    )),
+                            ],
+                          ),
               ),
             ],
-            offset: const Offset(
-                -10, 40), // Adjust to position the menu beneath the icon
-            color: AppColors.bg, // Custom background color
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16.0), // Curved edges
-              side: const BorderSide(
-                color: AppColors.customBlack, // Border color
-                width: 3.0, // Border width
+          ),
+          if (_isProfileOpen && _selectedProfile != null)
+            Positioned.fill(
+              child: Stack(
+                children: [
+                  GestureDetector(
+                    onTap: _closeProfile,
+                    child: Container(
+                      color: Colors.transparent,
+                    ),
+                  ),
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(0.0),
+                      child: Material(
+                        borderRadius: BorderRadius.circular(16.0),
+                        color: Colors.transparent,
+                        child: ProfileWidget(
+                          profile: _selectedProfile!,
+                          clickedOnOtherUser: true,
+                          distance: _selectedDistance ?? 0.0,
+                          startInChat: true,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildMessageInput(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0, top: 14.0),
-      child: Center(
-        child: Container(
-          width: MediaQuery.of(context).size.width * 0.84,
-          padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
-          decoration: BoxDecoration(
-            color: AppColors.bg,
-            borderRadius: BorderRadius.circular(20.0),
-            border: Border.all(
-              color: AppColors.customBlack,
-              width: 3.0,
-            ),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _controller,
-                  decoration: const InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16.0),
-                    hintText: 'Send a message..',
-                    hintStyle: TextStyle(color: AppColors.grey),
-                    border: InputBorder.none,
-                  ),
-                  style: const TextStyle(color: AppColors.customBlack),
-                  minLines: 1, // Minimum number of lines for the text field
-                  maxLines: 5, // Maximum number of lines for the text field
-                  onTap: () {
-                    // Scroll to the bottom after the keyboard is fully visible
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      //_scrollToBottom();
-                    });
-                  },
-                ),
-              ),
-              IconButton(
-                icon: Icon(
-                  Icons.send_rounded,
-                  color: _hasText ? AppColors.customBlack : AppColors.grey,
-                ),
-                onPressed: _hasText ? _sendMessage : null,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  double _calculateDistance(
+      double lat1, double lon1, double lat2, double lon2) {
+    const R = 6371;
+    final dLat = _deg2rad(lat2 - lat1);
+    final dLon = _deg2rad(lon2 - lon1);
+    final a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(_deg2rad(lat1)) *
+            cos(_deg2rad(lat2)) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
+    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    return R * c;
   }
 
-  Widget _buildChatBubble(BuildContext context, String message, bool isSender) {
-    return Align(
-      alignment: isSender ? Alignment.centerRight : Alignment.centerLeft,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width *
-              0.6, // Limit max width to 60% of screen width
-        ),
-        child: Container(
-          margin: const EdgeInsets.symmetric(vertical: 4.0),
-          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-          decoration: BoxDecoration(
-            color: isSender ? AppColors.brownLight : AppColors.greyLightest,
-            borderRadius: BorderRadius.only(
-              topLeft: const Radius.circular(24.0),
-              topRight: const Radius.circular(24.0),
-              bottomLeft: isSender
-                  ? const Radius.circular(24.0)
-                  : const Radius.circular(10.0),
-              bottomRight: isSender
-                  ? const Radius.circular(10.0)
-                  : const Radius.circular(24.0),
-            ),
-            border: Border.all(
-              color: AppColors.customBlack,
-              width: 3.0,
-            ),
-          ),
-          child: Text(
-            message,
-            style: const TextStyle(
-              color: AppColors.customBlack,
-              fontFamily: 'Poppins',
-              fontSize: 14,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTimestamp(DateTime timestamp) {
-    final DateFormat dateFormat = DateFormat('EEE, d MMM • ');
-    final DateFormat timeFormat = DateFormat('HH:mm');
-    final String formattedDate = dateFormat.format(timestamp);
-    final String formattedTime = timeFormat.format(timestamp);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Center(
-        child: Text.rich(
-          TextSpan(
-            children: [
-              TextSpan(
-                text: '$formattedDate ',
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.customBlack,
-                ),
-              ),
-              TextSpan(
-                text: formattedTime,
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 10,
-                  fontWeight: FontWeight.w300,
-                  color: AppColors.customBlack,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  double _deg2rad(double deg) {
+    return deg * (pi / 180);
   }
 }
