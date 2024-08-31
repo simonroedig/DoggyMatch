@@ -112,7 +112,19 @@ class _ChatPageState extends State<ChatPage> {
             .get();
 
         if (otherUserProfile != null && messagesSnapshot.docs.isNotEmpty) {
-          final lastMessage = messagesSnapshot.docs.first['message'];
+          final ValueNotifier<String> lastMessageNotifier =
+              ValueNotifier<String>(messagesSnapshot.docs.first['message']);
+
+          // Listen to updates on the messages collection for real-time updates
+          chatRoom.reference
+              .collection('messages')
+              .orderBy('timestamp', descending: true)
+              .snapshots()
+              .listen((messageSnapshot) {
+            if (messageSnapshot.docs.isNotEmpty) {
+              lastMessageNotifier.value = messageSnapshot.docs.first['message'];
+            }
+          });
 
           final double distance = _calculateDistance(
             currentUserProfile!.latitude,
@@ -151,7 +163,7 @@ class _ChatPageState extends State<ChatPage> {
 
           chatRooms.add({
             'profile': otherUserProfile,
-            'lastMessage': lastMessage,
+            'lastMessageNotifier': lastMessageNotifier,
             'distance': distance.toStringAsFixed(1),
             'chatRoomState': chatRoomState,
           });
@@ -211,8 +223,9 @@ class _ChatPageState extends State<ChatPage> {
                                     child: ChatCard(
                                       otherUserProfile:
                                           chatRoom['profile'] as UserProfile,
-                                      lastMessage:
-                                          chatRoom['lastMessage'] as String,
+                                      lastMessageNotifier:
+                                          chatRoom['lastMessageNotifier']
+                                              as ValueNotifier<String>,
                                       onTap: () {
                                         _openProfile(
                                             chatRoom['profile'] as UserProfile,
@@ -255,8 +268,9 @@ class _ChatPageState extends State<ChatPage> {
                                       child: ChatCard(
                                         otherUserProfile:
                                             chatRoom['profile'] as UserProfile,
-                                        lastMessage:
-                                            chatRoom['lastMessage'] as String,
+                                        lastMessageNotifier:
+                                            chatRoom['lastMessageNotifier']
+                                                as ValueNotifier<String>,
                                         onTap: () {
                                           _openProfile(
                                               chatRoom['profile']
@@ -297,8 +311,9 @@ class _ChatPageState extends State<ChatPage> {
                                       child: ChatCard(
                                         otherUserProfile:
                                             chatRoom['profile'] as UserProfile,
-                                        lastMessage:
-                                            chatRoom['lastMessage'] as String,
+                                        lastMessageNotifier:
+                                            chatRoom['lastMessageNotifier']
+                                                as ValueNotifier<String>,
                                         onTap: () {
                                           _openProfile(
                                               chatRoom['profile']

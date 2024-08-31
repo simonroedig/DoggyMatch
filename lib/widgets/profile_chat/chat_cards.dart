@@ -8,13 +8,13 @@ import 'package:doggymatch_flutter/profile/profile.dart';
 
 class ChatCard extends StatefulWidget {
   final UserProfile otherUserProfile;
-  final String lastMessage;
+  final ValueNotifier<String> lastMessageNotifier;
   final VoidCallback onTap;
 
   const ChatCard({
     super.key,
     required this.otherUserProfile,
-    required this.lastMessage,
+    required this.lastMessageNotifier,
     required this.onTap,
   });
 
@@ -34,26 +34,23 @@ class _ChatCardState extends State<ChatCard> with TickerProviderStateMixin {
     _scrollController = ScrollController();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 5), // Adjust the duration as needed
+      duration: const Duration(seconds: 5),
     );
 
     _animation = Tween<double>(begin: 0.0, end: 1.0)
         .animate(_animationController)
       ..addListener(() {
         if (_scrollController.hasClients) {
-          // Check if the controller is attached to a scroll view
           _scrollController.jumpTo(
               _animation.value * _scrollController.position.maxScrollExtent);
         }
       })
       ..addStatusListener((status) {
         if (status == AnimationStatus.completed) {
-          // Wait for 3 seconds before jumping back to the start
           Future.delayed(const Duration(seconds: 1), () {
             if (_scrollController.hasClients) {
-              // Ensure the controller is still attached
               _scrollController.jumpTo(0);
-              _animationController.forward(from: 0.0); // Restart the animation
+              _animationController.forward(from: 0.0);
             }
           });
         }
@@ -84,7 +81,7 @@ class _ChatCardState extends State<ChatCard> with TickerProviderStateMixin {
     return GestureDetector(
       onTap: widget.onTap,
       child: FractionallySizedBox(
-        widthFactor: 0.9, // Adjust the width factor as needed
+        widthFactor: 0.9,
         child: Container(
           height: 80,
           decoration: BoxDecoration(
@@ -127,8 +124,7 @@ class _ChatCardState extends State<ChatCard> with TickerProviderStateMixin {
                       child: Row(
                         children: [
                           const Icon(Icons.person_rounded,
-                              color: AppColors.customBlack,
-                              size: 20), // Adjust the size as needed
+                              color: AppColors.customBlack, size: 20),
                           const SizedBox(width: 4.0),
                           Text(
                             widget.otherUserProfile.userName,
@@ -150,8 +146,7 @@ class _ChatCardState extends State<ChatCard> with TickerProviderStateMixin {
                               ),
                             ),
                             const Icon(Icons.pets_rounded,
-                                color: AppColors.customBlack,
-                                size: 18), // Adjust the size as needed
+                                color: AppColors.customBlack, size: 18),
                             const SizedBox(width: 4.0),
                             Text(
                               widget.otherUserProfile.dogName!,
@@ -165,16 +160,21 @@ class _ChatCardState extends State<ChatCard> with TickerProviderStateMixin {
                       ),
                     ),
                     const SizedBox(height: 2.0),
-                    Text(
-                      widget.lastMessage,
-                      style: const TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w300,
-                        color: AppColors.grey,
-                      ),
-                      overflow: TextOverflow.ellipsis, // Ellipsis added here
-                      maxLines: 1, // Ensure it stays on one line
+                    ValueListenableBuilder<String>(
+                      valueListenable: widget.lastMessageNotifier,
+                      builder: (context, lastMessage, child) {
+                        return Text(
+                          lastMessage,
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 12,
+                            fontWeight: FontWeight.w300,
+                            color: AppColors.grey,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        );
+                      },
                     ),
                   ],
                 ),
