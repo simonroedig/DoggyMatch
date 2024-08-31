@@ -1,7 +1,5 @@
 // File: lib/widgets/profile_chat/chat_cards.dart
 
-// ignore_for_file: library_private_types_in_public_api
-
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
 import 'package:doggymatch_flutter/profile/profile.dart';
@@ -9,12 +7,14 @@ import 'package:doggymatch_flutter/profile/profile.dart';
 class ChatCard extends StatefulWidget {
   final UserProfile otherUserProfile;
   final ValueNotifier<String> lastMessageNotifier;
+  final bool hasNewMessage; // Add this line
   final VoidCallback onTap;
 
   const ChatCard({
     super.key,
     required this.otherUserProfile,
     required this.lastMessageNotifier,
+    required this.hasNewMessage, // Add this line
     required this.onTap,
   });
 
@@ -179,7 +179,16 @@ class _ChatCardState extends State<ChatCard> with TickerProviderStateMixin {
                   ],
                 ),
               ),
-              const SizedBox(width: 5.0),
+              if (widget.hasNewMessage) // Add this block
+                Container(
+                  width: 10,
+                  height: 10,
+                  margin: const EdgeInsets.only(right: 15.0),
+                  decoration: BoxDecoration(
+                    color: Colors.green,
+                    shape: BoxShape.circle,
+                  ),
+                ),
               const Icon(Icons.more_vert_rounded,
                   color: AppColors.customBlack, size: 28),
               const SizedBox(width: 15.0),
