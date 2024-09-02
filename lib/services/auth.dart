@@ -118,9 +118,13 @@ class AuthService {
           usersWithinFilter.add({
             'uid': doc.id,
             'firestoreData': userData,
+            'distance': distance, // Include the distance in the user data
           });
         }
       }
+
+      // Sort users by distance (ascending)
+      usersWithinFilter.sort((a, b) => a['distance'].compareTo(b['distance']));
     } catch (e) {
       // Handle errors
       dev.log('Error fetching users within filter: $e');
