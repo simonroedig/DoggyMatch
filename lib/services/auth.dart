@@ -165,6 +165,9 @@ class AuthService {
             filterLookingForDogSitter:
                 data['filterLookingForDogSitter'] ?? true,
             filterDistance: (data['filterDistance'] ?? 10.0).toDouble(),
+            lastOnline: data['lastOnline'] != null
+                ? DateTime.parse(data['lastOnline'])
+                : null,
           );
         }
       }
@@ -290,12 +293,24 @@ class AuthService {
         'filterLookingForDogOwner': userProfile.filterLookingForDogOwner,
         'filterLookingForDogSitter': userProfile.filterLookingForDogSitter,
         'filterDistance': userProfile.filterDistance,
+        'lastOnline': userProfile.lastOnline?.toIso8601String(),
       };
 
       await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
           .update(userProfileData);
+    }
+  }
+
+  // update last online timestamp
+  Future<void> updateLastOnline() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .update({'lastOnline': DateTime.now().toIso8601String()});
     }
   }
 
@@ -331,6 +346,9 @@ class AuthService {
             filterLookingForDogSitter:
                 data['filterLookingForDogSitter'] ?? true,
             filterDistance: (data['filterDistance'] ?? 10.0).toDouble(),
+            lastOnline: data['lastOnline'] != null
+                ? DateTime.parse(data['lastOnline'])
+                : null,
           );
         }
       }

@@ -178,6 +178,9 @@ class _OtherPersonsState extends State<OtherPersons>
             birthday: data['birthday'] != null
                 ? DateTime.parse(data['birthday'])
                 : null,
+            lastOnline: data['lastOnline'] != null
+                ? DateTime.parse(data['lastOnline'])
+                : null,
           );
 
           // Calculate the distance

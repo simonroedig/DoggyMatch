@@ -29,6 +29,7 @@ class UserProfileState extends ChangeNotifier {
     filterLookingForDogOwner: false,
     filterLookingForDogSitter: false,
     filterDistance: 0.0,
+    lastOnline: DateTime.now(),
   );
 
   int _currentIndex = 0;
@@ -62,6 +63,7 @@ class UserProfileState extends ChangeNotifier {
       filterLookingForDogOwner: false,
       filterLookingForDogSitter: false,
       filterDistance: 0.0,
+      lastOnline: DateTime.now(),
     );
     _currentIndex = 0;
     _isProfileOpen = false;

@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/state/user_profile_state.dart';
 import 'package:doggymatch_flutter/pages/notifiers/profile_close_notifier.dart';
 import 'package:doggymatch_flutter/pages/notifiers/filter_notifier.dart';
+import 'package:doggymatch_flutter/services/auth.dart';
 
 class SearchPage extends StatefulWidget {
   final ProfileCloseNotifier profileCloseNotifier;
@@ -23,11 +24,18 @@ class SearchPageState extends State<SearchPage> {
   bool _isFilterOpen = false;
   UserProfile? _selectedProfile;
   String? _selectedDistance;
+  final AuthService _authService = AuthService();
 
   @override
   void initState() {
     super.initState();
     widget.profileCloseNotifier.addListener(_onProfileClose);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _authService.updateLastOnline(); // Call your function here
   }
 
   @override
