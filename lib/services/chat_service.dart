@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -38,8 +37,11 @@ class ChatService extends ChangeNotifier {
     // add or update chatroom document with members array
     await _firestore.collection('chatrooms').doc(chatRoomID).set(
       {
-        'members': ids, // This adds a 'members' array containing both user IDs.
-        // other metadata if needed
+        'members': ids,
+        'chatSeenBy': {
+          '${currentUserID}_hasSeenAllAndLastMessage': true,
+          '${receiverID}_hasSeenAllAndLastMessage': false,
+        },
       },
       SetOptions(
           merge:
@@ -100,5 +102,62 @@ class ChatService extends ChangeNotifier {
     }
 
     return chatRooms;
+  }
+
+  // UPDATE chatSeenBy
+  Future<void> updateChatSeenStatus(
+      String receiverID, bool hasSeenAllAndLastMessage) async {
+    // get current user info
+    final String currentUserID = _auth.currentUser!.uid;
+
+    // construct chatroom id from sender and receiver id (sorted to ensure uniqueness)
+    List<String> ids = [currentUserID, receiverID];
+    ids.sort();
+    String chatRoomID = ids.join('_');
+
+    // create a field name based on the current user id
+    String seenStatusField = '${currentUserID}_hasSeenAllAndLastMessage';
+
+    // reference to the chatroom document
+    DocumentReference chatRoomDoc =
+        _firestore.collection('chatrooms').doc(chatRoomID);
+
+    // check if the chatroom document exists
+    DocumentSnapshot chatRoomSnapshot = await chatRoomDoc.get();
+
+    if (chatRoomSnapshot.exists) {
+      // update the 'chatSeenBy' field in the chatroom document
+      await chatRoomDoc.update({
+        'chatSeenBy.$seenStatusField': hasSeenAllAndLastMessage,
+      }).catchError((error) {
+        log('Failed to update chatSeenBy field: $error');
+      });
+    } else {
+      log('Chatroom does not exist, no update performed.');
+    }
+  }
+
+  // GET chatSeenBy
+  Future<bool> getChatSeenStatus(String receiverID) async {
+    // get current user info
+    final String currentUserID = _auth.currentUser!.uid;
+
+    // construct chatroom id from sender and receiver id (sorted to ensure uniqueness)
+    List<String> ids = [currentUserID, receiverID];
+    ids.sort();
+    String chatRoomID = ids.join('_');
+
+    // create a field name based on the current user id
+    String seenStatusField = '${currentUserID}_hasSeenAllAndLastMessage';
+
+    // get the 'chatSeenBy' field in the chatroom document
+    final DocumentSnapshot chatRoomSnapshot =
+        await _firestore.collection('chatrooms').doc(chatRoomID).get();
+
+    if (chatRoomSnapshot.exists) {
+      return chatRoomSnapshot['chatSeenBy'][seenStatusField];
+    } else {
+      return true;
+    }
   }
 }

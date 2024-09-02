@@ -38,6 +38,7 @@ class _ProfileChatState extends State<ProfileChat> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToBottom();
     });
+    _chatService.updateChatSeenStatus(widget.otherUserProfile.uid, true);
   }
 
   void _handleTextChange() {

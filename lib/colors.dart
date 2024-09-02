@@ -24,4 +24,5 @@ class AppColors {
   static const Color accent5 = Color.fromARGB(255, 255, 240, 172);
 
   static const Color customRed = Color(0xFFFF6961);
+  static const Color customGreen = Color.fromARGB(255, 145, 217, 145);
 }
