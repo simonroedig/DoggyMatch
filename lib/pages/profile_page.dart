@@ -30,7 +30,10 @@ class ProfilePage extends StatelessWidget {
           ),
           Expanded(
             child: ProfileWidget(
-                profile: profile, clickedOnOtherUser: false, distance: 0.0),
+                profile: profile,
+                clickedOnOtherUser: false,
+                distance: 0.0,
+                lastOnline: ''),
           ),
         ],
       ),

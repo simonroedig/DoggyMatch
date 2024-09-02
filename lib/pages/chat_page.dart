@@ -34,6 +34,7 @@ class _ChatPageState extends State<ChatPage> {
   UserProfile? _selectedProfile;
   bool _isProfileOpen = false;
   double? _selectedDistance;
+  String? _lastOnline;
 
   StreamSubscription<QuerySnapshot>? _chatRoomsSubscription;
   List<Map<String, dynamic>> _chatRooms = [];
@@ -67,11 +68,12 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
-  void _openProfile(UserProfile profile, String distance) {
+  void _openProfile(UserProfile profile, String distance, String lastOnline) {
     setState(() {
       _selectedProfile = profile;
       _isProfileOpen = true;
       _selectedDistance = double.parse(distance);
+      _lastOnline = lastOnline;
       Provider.of<UserProfileState>(context, listen: false).openProfile();
     });
   }
@@ -133,6 +135,9 @@ class _ChatPageState extends State<ChatPage> {
             otherUserProfile.longitude,
           );
 
+          final String lastOnline =
+              calculateLastOnline(otherUserProfile.lastOnline);
+
           bool userSentMessage = false;
           bool otherUserSentMessage = false;
 
@@ -165,6 +170,7 @@ class _ChatPageState extends State<ChatPage> {
             'profile': otherUserProfile,
             'lastMessageNotifier': lastMessageNotifier,
             'distance': distance.toStringAsFixed(1),
+            'lastOnline': lastOnline,
             'chatRoomState': chatRoomState,
           });
 
@@ -229,7 +235,8 @@ class _ChatPageState extends State<ChatPage> {
                                       onTap: () {
                                         _openProfile(
                                             chatRoom['profile'] as UserProfile,
-                                            chatRoom['distance'] as String);
+                                            chatRoom['distance'] as String,
+                                            chatRoom['lastOnline'] as String);
                                       },
                                     ),
                                   );
@@ -275,7 +282,8 @@ class _ChatPageState extends State<ChatPage> {
                                           _openProfile(
                                               chatRoom['profile']
                                                   as UserProfile,
-                                              chatRoom['distance'] as String);
+                                              chatRoom['distance'] as String,
+                                              chatRoom['lastOnline'] as String);
                                         },
                                       ),
                                     )),
@@ -318,7 +326,8 @@ class _ChatPageState extends State<ChatPage> {
                                           _openProfile(
                                               chatRoom['profile']
                                                   as UserProfile,
-                                              chatRoom['distance'] as String);
+                                              chatRoom['distance'] as String,
+                                              chatRoom['lastOnline'] as String);
                                         },
                                       ),
                                     )),
@@ -347,6 +356,7 @@ class _ChatPageState extends State<ChatPage> {
                           profile: _selectedProfile!,
                           clickedOnOtherUser: true,
                           distance: _selectedDistance ?? 0.0,
+                          lastOnline: _lastOnline ?? '',
                           startInChat: true,
                         ),
                       ),
@@ -376,5 +386,20 @@ class _ChatPageState extends State<ChatPage> {
 
   double _deg2rad(double deg) {
     return deg * (pi / 180);
+  }
+
+  String calculateLastOnline(DateTime? lastOnline) {
+    final now = DateTime.now();
+    final difference = now.difference(lastOnline!);
+
+    if (difference.inDays > 0) {
+      return '${difference.inDays}d';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m';
+    } else {
+      return 'Just now';
+    }
   }
 }

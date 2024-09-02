@@ -24,6 +24,7 @@ class SearchPageState extends State<SearchPage> {
   bool _isFilterOpen = false;
   UserProfile? _selectedProfile;
   String? _selectedDistance;
+  String? _lastOnline;
   final AuthService _authService = AuthService();
 
   @override
@@ -64,10 +65,11 @@ class SearchPageState extends State<SearchPage> {
     Provider.of<UserProfileState>(context, listen: false).closeProfile();
   }
 
-  void _openProfile(UserProfile profile, String distance) {
+  void _openProfile(UserProfile profile, String distance, String lastOnline) {
     setState(() {
       _selectedProfile = profile;
       _selectedDistance = distance;
+      _lastOnline = lastOnline;
     });
     Provider.of<UserProfileState>(context, listen: false).openProfile();
   }
@@ -131,6 +133,7 @@ class SearchPageState extends State<SearchPage> {
                                       clickedOnOtherUser: true,
                                       distance: double.parse(
                                           _selectedDistance ?? '?'),
+                                      lastOnline: _lastOnline ?? '',
                                     ),
                                   ),
                                 ),

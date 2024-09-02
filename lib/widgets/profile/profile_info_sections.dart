@@ -7,12 +7,14 @@ class UserInfoSection extends StatelessWidget {
   final UserProfile profile;
   final bool clickedOnOtherUser;
   final double distance;
+  final String lastOnline;
 
   const UserInfoSection(
       {super.key,
       required this.profile,
       required this.clickedOnOtherUser,
-      required this.distance});
+      required this.distance,
+      required this.lastOnline});
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +41,13 @@ class UserInfoSection extends StatelessWidget {
             _buildInfoRow(
               icon: Icons.social_distance_rounded,
               text: '${distance.toStringAsFixed(1)} km',
+            ),
+          ],
+          if (clickedOnOtherUser) ...[
+            const SizedBox(height: 8.0),
+            _buildInfoRow(
+              icon: Icons.circle_rounded,
+              text: '${lastOnline} ago',
             ),
           ],
         ],

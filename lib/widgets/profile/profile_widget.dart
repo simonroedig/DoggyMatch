@@ -10,6 +10,7 @@ class ProfileWidget extends StatefulWidget {
   final UserProfile profile;
   final bool clickedOnOtherUser;
   final double distance;
+  final String lastOnline;
   final bool startInChat;
 
   const ProfileWidget({
@@ -17,6 +18,7 @@ class ProfileWidget extends StatefulWidget {
     required this.profile,
     required this.clickedOnOtherUser,
     required this.distance,
+    required this.lastOnline,
     this.startInChat = false,
   });
 
@@ -55,7 +57,8 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                           UserInfoSection(
                               profile: widget.profile,
                               clickedOnOtherUser: widget.clickedOnOtherUser,
-                              distance: widget.distance),
+                              distance: widget.distance,
+                              lastOnline: widget.lastOnline),
                           if (widget.profile.isDogOwner)
                             DogInfoSection(profile: widget.profile),
                           AboutSection(profile: widget.profile),

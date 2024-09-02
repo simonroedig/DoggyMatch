@@ -10,7 +10,7 @@ import 'package:doggymatch_flutter/profile/profile.dart';
 import 'package:doggymatch_flutter/pages/notifiers/filter_notifier.dart';
 
 class OtherPersons extends StatefulWidget {
-  final Function(UserProfile, String)
+  final Function(UserProfile, String, String)
       onProfileSelected; // Callback to notify profile selection
 
   const OtherPersons({super.key, required this.onProfileSelected});
@@ -195,8 +195,10 @@ class _OtherPersonsState extends State<OtherPersons>
             selectedProfile.longitude,
           ).toStringAsFixed(1);
 
+          final lastOnline = calculateLastOnline(selectedProfile.lastOnline);
+
           // Call the callback to notify SearchPage
-          widget.onProfileSelected(selectedProfile, distance);
+          widget.onProfileSelected(selectedProfile, distance, lastOnline);
         } finally {
           Navigator.pop(context); // Hide the progress indicator
         }
@@ -355,6 +357,21 @@ class _OtherPersonsState extends State<OtherPersons>
 
   double _deg2rad(double deg) {
     return deg * (pi / 180);
+  }
+
+  String calculateLastOnline(DateTime? lastOnline) {
+    final now = DateTime.now();
+    final difference = now.difference(lastOnline!);
+
+    if (difference.inDays > 0) {
+      return '${difference.inDays}d';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m';
+    } else {
+      return 'Just now';
+    }
   }
 }
 
