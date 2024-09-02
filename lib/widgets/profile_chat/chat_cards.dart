@@ -215,17 +215,17 @@ class _ChatCardState extends State<ChatCard> with TickerProviderStateMixin {
                 builder: (context, snapshot) {
                   if (snapshot.hasData && !snapshot.data!) {
                     return Positioned(
-                      top: 6,
-                      right: 6,
+                      top: 8,
+                      right: 8,
                       child: Container(
-                        width: 16,
-                        height: 16,
+                        width: 10,
+                        height: 10,
                         decoration: BoxDecoration(
                           color: AppColors.customGreen,
                           shape: BoxShape.circle,
                           border: Border.all(
                             color: AppColors.customBlack,
-                            width: 3,
+                            width: 2,
                           ),
                         ),
                       ),

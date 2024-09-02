@@ -2,6 +2,8 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final int activeIndex;
@@ -49,7 +51,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         _buildIcon(0, Icons.search_rounded),
-        _buildIcon(1, Icons.chat_rounded),
+        _buildChatIconWithNotification(), // Chat icon with notification dot
         _buildIcon(2, Icons.person_rounded),
       ],
     );
@@ -114,6 +116,84 @@ class CustomBottomNavigationBar extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildChatIconWithNotification() {
+    return StreamBuilder<bool>(
+      stream: _hasUnseenMessagesStream(),
+      builder: (context, snapshot) {
+        bool hasUnseenMessages = snapshot.data ?? false;
+
+        return Stack(
+          children: [
+            GestureDetector(
+              onTap: () => onTabTapped(1), // Index 1 for the chat page
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.chat_rounded,
+                    size: 30.0,
+                    color: activeIndex == 1
+                        ? _getHighlightColor(1)
+                        : AppColors.customBlack,
+                  ),
+                  if (activeIndex == 1)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2.0),
+                      child: Container(
+                        width: 30.0,
+                        height: 3.0,
+                        decoration: BoxDecoration(
+                          color: _getHighlightColor(1),
+                          shape: BoxShape.rectangle,
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(40.0)),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            if (hasUnseenMessages)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Container(
+                  width: 10.0,
+                  height: 10.0,
+                  decoration: BoxDecoration(
+                    color: AppColors.customGreen,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.customBlack,
+                      width: 2.0,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  Stream<bool> _hasUnseenMessagesStream() {
+    final String currentUserID = FirebaseAuth.instance.currentUser!.uid;
+
+    return FirebaseFirestore.instance
+        .collection('chatrooms')
+        .where('members', arrayContains: currentUserID)
+        .snapshots()
+        .map((snapshot) {
+      for (var doc in snapshot.docs) {
+        String seenStatusField = '${currentUserID}_hasSeenAllAndLastMessage';
+        if (!(doc.data()['chatSeenBy'][seenStatusField] ?? true)) {
+          return true;
+        }
+      }
+      return false;
+    });
   }
 
   Color _getHighlightColor(int index) {
