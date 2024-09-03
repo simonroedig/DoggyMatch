@@ -49,8 +49,7 @@ class AuthService {
       double latitude,
       double longitude,
       int filterLastOnline) async {
-    // if the filterDistance is 0.0 refetch alls these parameters here from firebase
-
+    // if the filterDistance is 0.0 refetch all these parameters here from firebase
     if (filterDistance == 0.0 && latitude == 0.0 && longitude == 0.0) {
       final userProfile = await fetchUserProfile();
       if (userProfile != null) {
@@ -101,8 +100,33 @@ class AuthService {
       if (filterLookingForDogSitter && !filterLookingForDogOwner) {
         query = query.where('isDogOwner', isEqualTo: false);
       }
-      // looking for both
-      if (filterLookingForDogOwner && filterLookingForDogSitter) {}
+
+      // Calculate the timestamp for the lastOnline filter
+      DateTime now = DateTime.now();
+      DateTime? lastOnlineThreshold;
+
+      switch (filterLastOnline) {
+        case 2:
+          lastOnlineThreshold = now.subtract(const Duration(days: 1));
+          break;
+        case 3:
+          lastOnlineThreshold = now.subtract(const Duration(days: 3));
+          break;
+        case 4:
+          lastOnlineThreshold = now.subtract(const Duration(days: 7));
+          break;
+        case 5:
+          lastOnlineThreshold = now.subtract(const Duration(days: 30));
+          break;
+        case 1:
+        default:
+          lastOnlineThreshold = null; // No filtering if case 1
+      }
+
+      if (lastOnlineThreshold != null) {
+        query = query.where('lastOnline',
+            isGreaterThanOrEqualTo: lastOnlineThreshold.toIso8601String());
+      }
 
       // Execute query
       QuerySnapshot querySnapshot = await query.get();
