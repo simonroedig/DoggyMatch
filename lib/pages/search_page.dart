@@ -11,6 +11,7 @@ import 'package:doggymatch_flutter/pages/notifiers/profile_close_notifier.dart';
 import 'package:doggymatch_flutter/pages/notifiers/filter_notifier.dart';
 import 'package:doggymatch_flutter/services/auth.dart';
 import 'package:doggymatch_flutter/widgets/search/profiles_announcement_toggle.dart';
+import 'package:doggymatch_flutter/pages/new_announcement_page.dart';
 
 class SearchPage extends StatefulWidget {
   final ProfileCloseNotifier profileCloseNotifier;
@@ -90,6 +91,14 @@ class SearchPageState extends State<SearchPage> {
     });
   }
 
+  void _navigateToNewAnnouncement() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const NewAnnouncementPage(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -111,6 +120,7 @@ class SearchPageState extends State<SearchPage> {
                 ProfilesAnnouncementToggle(
                   onToggle: _onToggle,
                 ),
+                const SizedBox(height: 15),
                 Expanded(
                   child: Container(
                     color: AppColors.bg,
@@ -118,14 +128,31 @@ class SearchPageState extends State<SearchPage> {
                         ? OtherPersons(
                             onProfileSelected: _openProfile,
                           )
-                        : const Center(
-                            child: Text(
-                              "No announcements available.",
-                              style: TextStyle(
-                                color: AppColors.customBlack,
-                                fontSize: 18,
+                        : Stack(
+                            children: [
+                              const Center(
+                                child: Text(
+                                  "No announcements available.",
+                                  style: TextStyle(
+                                    color: AppColors.customBlack,
+                                    fontSize: 18,
+                                  ),
+                                ),
                               ),
-                            ),
+                              Positioned(
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                child: IconButton(
+                                  iconSize: 60, // Increase the size of the icon
+                                  icon: const Icon(
+                                    Icons.add_circle_outline_rounded,
+                                    color: AppColors.customBlack,
+                                  ),
+                                  onPressed: _navigateToNewAnnouncement,
+                                ),
+                              ),
+                            ],
                           ),
                   ),
                 ),

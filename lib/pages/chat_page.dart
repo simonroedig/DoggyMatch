@@ -212,7 +212,7 @@ class _ChatPageState extends State<ChatPage> {
             children: [
               const SizedBox(height: 5),
               ChatRequestToggle(onToggle: handleToggle),
-              const SizedBox(height: 20),
+              const SizedBox(height: 15),
               Expanded(
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())

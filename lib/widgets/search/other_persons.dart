@@ -116,11 +116,15 @@ class _OtherPersonsState extends State<OtherPersons>
       );
     }
 
+    // GRID of the OTHERPERSONS
     return RefreshIndicator(
       onRefresh: _loadFilteredUsers,
       color: AppColors.customBlack,
       child: GridView.builder(
-        padding: const EdgeInsets.all(18.0),
+        padding: const EdgeInsets.symmetric(
+          vertical: 0.0, // Set the vertical padding
+          horizontal: 18.0, // Set the horizontal padding
+        ),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           crossAxisSpacing: 12.0,
@@ -312,7 +316,7 @@ class _OtherPersonsState extends State<OtherPersons>
     ).toStringAsFixed(1);
 
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 10.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
