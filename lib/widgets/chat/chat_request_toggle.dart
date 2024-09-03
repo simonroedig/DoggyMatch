@@ -32,10 +32,6 @@ class _ChatRequestToggleState extends State<ChatRequestToggle> {
         height: 40,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(25),
-          border: Border.all(
-            color: AppColors.customBlack,
-            width: 3,
-          ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -44,12 +40,31 @@ class _ChatRequestToggleState extends State<ChatRequestToggle> {
               child: Container(
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: isChatSelected
-                      ? AppColors.customBlack
-                      : AppColors.greyLightest,
+                  color: isChatSelected ? AppColors.customBlack : AppColors.bg,
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(25),
                     bottomLeft: Radius.circular(25),
+                  ),
+                  border: Border(
+                    left: BorderSide(
+                      color: !isChatSelected
+                          ? AppColors.customBlack
+                          : Colors.transparent,
+                      width: 3,
+                    ),
+                    top: BorderSide(
+                      color: !isChatSelected
+                          ? AppColors.customBlack
+                          : Colors.transparent,
+                      width: 3,
+                    ),
+                    right: BorderSide.none, // No border on the right side
+                    bottom: BorderSide(
+                      color: !isChatSelected
+                          ? AppColors.customBlack
+                          : Colors.transparent,
+                      width: 3,
+                    ),
                   ),
                 ),
                 child: Text(
@@ -65,19 +80,38 @@ class _ChatRequestToggleState extends State<ChatRequestToggle> {
               ),
             ),
             Container(
-              width: 3,
+              width: 2, // Adjusted the width to be consistent
               color: AppColors.customBlack,
             ),
             Expanded(
               child: Container(
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: !isChatSelected
-                      ? AppColors.customBlack
-                      : AppColors.greyLightest,
+                  color: !isChatSelected ? AppColors.customBlack : AppColors.bg,
                   borderRadius: const BorderRadius.only(
                     topRight: Radius.circular(25),
                     bottomRight: Radius.circular(25),
+                  ),
+                  border: Border(
+                    top: BorderSide(
+                      color: isChatSelected
+                          ? AppColors.customBlack
+                          : Colors.transparent,
+                      width: 3,
+                    ),
+                    right: BorderSide(
+                      color: isChatSelected
+                          ? AppColors.customBlack
+                          : Colors.transparent,
+                      width: 3,
+                    ),
+                    bottom: BorderSide(
+                      color: isChatSelected
+                          ? AppColors.customBlack
+                          : Colors.transparent,
+                      width: 3,
+                    ),
+                    left: BorderSide.none, // No border on the left side
                   ),
                 ),
                 child: Text(
