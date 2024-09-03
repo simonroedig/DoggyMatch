@@ -10,6 +10,7 @@ import 'package:doggymatch_flutter/state/user_profile_state.dart';
 import 'package:doggymatch_flutter/pages/notifiers/profile_close_notifier.dart';
 import 'package:doggymatch_flutter/pages/notifiers/filter_notifier.dart';
 import 'package:doggymatch_flutter/services/auth.dart';
+import 'package:doggymatch_flutter/widgets/search/profiles_announcement_toggle.dart';
 
 class SearchPage extends StatefulWidget {
   final ProfileCloseNotifier profileCloseNotifier;
@@ -22,6 +23,7 @@ class SearchPage extends StatefulWidget {
 
 class SearchPageState extends State<SearchPage> {
   bool _isFilterOpen = false;
+  bool _isProfilesSelected = true; // To track toggle state
   UserProfile? _selectedProfile;
   String? _selectedDistance;
   String? _lastOnline;
@@ -82,71 +84,93 @@ class SearchPageState extends State<SearchPage> {
     Provider.of<UserProfileState>(context, listen: false).refreshUserProfile();
   }
 
+  void _onToggle(bool isProfilesSelected) {
+    setState(() {
+      _isProfilesSelected = isProfilesSelected;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => FilterNotifier(),
       child: Scaffold(
         backgroundColor: AppColors.bg,
-        body: Consumer<UserProfileState>(
-          builder: (context, userProfileState, child) {
-            return Column(
+        appBar: CustomAppBar(
+          isFilterOpen: _isFilterOpen,
+          toggleFilter: _toggleFilter,
+          showFilterIcon: true,
+          onSettingsPressed: null,
+          isProfileOpen: Provider.of<UserProfileState>(context).isProfileOpen,
+        ),
+        body: Stack(
+          children: [
+            Column(
               children: [
-                CustomAppBar(
-                  isFilterOpen: _isFilterOpen,
-                  toggleFilter: _toggleFilter,
-                  showFilterIcon: true,
-                  onSettingsPressed: null,
-                  isProfileOpen: userProfileState.isProfileOpen,
+                const SizedBox(height: 5),
+                ProfilesAnnouncementToggle(
+                  onToggle: _onToggle,
                 ),
                 Expanded(
-                  child: Stack(
-                    children: [
-                      Container(
-                        color: AppColors.bg,
-                        child: OtherPersons(
-                          onProfileSelected: _openProfile,
-                        ),
-                      ),
-                      if (_isFilterOpen)
-                        FilterMenu(
-                          onClose: _applyFilterChanges,
-                        ),
-                      if (_selectedProfile != null)
-                        Positioned.fill(
-                          child: Stack(
-                            children: [
-                              GestureDetector(
-                                onTap: () {},
-                                child: Container(
-                                  color: Colors.black.withOpacity(0),
-                                ),
+                  child: Container(
+                    color: AppColors.bg,
+                    child: _isProfilesSelected
+                        ? OtherPersons(
+                            onProfileSelected: _openProfile,
+                          )
+                        : const Center(
+                            child: Text(
+                              "No announcements available.",
+                              style: TextStyle(
+                                color: AppColors.customBlack,
+                                fontSize: 18,
                               ),
-                              Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(0.0),
-                                  child: Material(
-                                    borderRadius: BorderRadius.circular(16.0),
-                                    color: Colors.transparent,
-                                    child: ProfileWidget(
-                                      profile: _selectedProfile!,
-                                      clickedOnOtherUser: true,
-                                      distance: double.parse(
-                                          _selectedDistance ?? '?'),
-                                      lastOnline: _lastOnline ?? '',
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                    ],
                   ),
                 ),
               ],
-            );
-          },
+            ),
+            if (_isFilterOpen)
+              Positioned(
+                top:
+                    kToolbarHeight - 55, // Positioning it just below the AppBar
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: FilterMenu(
+                  onClose: _applyFilterChanges,
+                ),
+              ),
+            if (_selectedProfile != null)
+              Positioned.fill(
+                child: Stack(
+                  children: [
+                    GestureDetector(
+                      onTap: () {},
+                      child: Container(
+                        color: Colors.black.withOpacity(0),
+                      ),
+                    ),
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(0.0),
+                        child: Material(
+                          borderRadius: BorderRadius.circular(16.0),
+                          color: Colors.transparent,
+                          child: ProfileWidget(
+                            profile: _selectedProfile!,
+                            clickedOnOtherUser: true,
+                            distance: double.parse(_selectedDistance ?? '?'),
+                            lastOnline: _lastOnline ?? '',
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
         ),
       ),
     );
