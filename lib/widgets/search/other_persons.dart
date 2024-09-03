@@ -61,6 +61,7 @@ class _OtherPersonsState extends State<OtherPersons>
         userProfileState.userProfile.filterDistance,
         userProfileState.userProfile.latitude,
         userProfileState.userProfile.longitude,
+        userProfileState.userProfile.filterLastOnline,
       );
 
       // Exclude the current user's profile from the list
@@ -181,6 +182,7 @@ class _OtherPersonsState extends State<OtherPersons>
             lastOnline: data['lastOnline'] != null
                 ? DateTime.parse(data['lastOnline'])
                 : null,
+            filterLastOnline: data['filterLastOnline'] ?? '',
           );
 
           // Calculate the distance

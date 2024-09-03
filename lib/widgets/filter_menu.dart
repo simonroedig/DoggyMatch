@@ -17,6 +17,7 @@ class FilterMenuState extends State<FilterMenu> {
   late double _currentDistanceValue;
   late bool _isDogOwnerSelected;
   late bool _isDogSitterSelected;
+  late String _filterLastOnline;
 
   @override
   void initState() {
@@ -27,6 +28,7 @@ class FilterMenuState extends State<FilterMenu> {
     _isDogOwnerSelected = userProfileState.userProfile.filterLookingForDogOwner;
     _isDogSitterSelected =
         userProfileState.userProfile.filterLookingForDogSitter;
+    _filterLastOnline = userProfileState.userProfile.filterLastOnline;
   }
 
   void _applyChanges() {
@@ -36,6 +38,7 @@ class FilterMenuState extends State<FilterMenu> {
       filterLookingForDogOwner: _isDogOwnerSelected,
       filterLookingForDogSitter: _isDogSitterSelected,
       filterDistance: _currentDistanceValue,
+      filterLastOnline: _filterLastOnline,
     );
     Provider.of<FilterNotifier>(context, listen: false).notifyFilterChanged();
     widget.onClose(); // Notify parent that the menu is closing
@@ -49,7 +52,7 @@ class FilterMenuState extends State<FilterMenu> {
       right: MediaQuery.of(context).size.width * 0.05,
       child: Container(
         width: MediaQuery.of(context).size.width * 0.9,
-        height: MediaQuery.of(context).size.height * 0.5,
+        height: MediaQuery.of(context).size.height * 0.7,
         decoration: BoxDecoration(
           color: AppColors.greyLightest,
           borderRadius: BorderRadius.circular(24.0),
@@ -143,6 +146,16 @@ class FilterMenuState extends State<FilterMenu> {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 16.0),
+            const Text(
+              "Last Online",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.customBlack,
+                fontFamily: 'Poppins',
+              ),
             ),
             const SizedBox(height: 16.0),
             Center(

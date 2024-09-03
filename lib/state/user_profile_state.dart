@@ -12,40 +12,6 @@ class UserProfileState extends ChangeNotifier {
       'https://firebasestorage.googleapis.com/v0/b/doggymatch-bb17f.appspot.com/o/placeholder.png?alt=media&token=6c364b4d-0e8b-4b34-b29e-58dc6dadcc65';
 
   UserProfile _userProfile = UserProfile(
-    uid: '',
-    email: '',
-    userName: '',
-    birthday: DateTime(2000, 1, 1),
-    aboutText: '',
-    profileColor: AppColors.accent1,
-    images: [placeholderImageUrl],
-    location: '',
-    latitude: 0.0,
-    longitude: 0.0,
-    isDogOwner: false,
-    dogName: '',
-    dogBreed: '',
-    dogAge: '',
-    filterLookingForDogOwner: false,
-    filterLookingForDogSitter: false,
-    filterDistance: 0.0,
-    lastOnline: DateTime.now(),
-  );
-
-  int _currentIndex = 0;
-  bool _isProfileOpen = false;
-
-  UserProfile get userProfile => _userProfile;
-  int get currentIndex => _currentIndex;
-  bool get isProfileOpen => _isProfileOpen;
-
-  UserProfileState() {
-    _initializeUserProfile();
-  }
-
-  // Reset state method
-  void resetState() {
-    _userProfile = UserProfile(
       uid: '',
       email: '',
       userName: '',
@@ -64,7 +30,41 @@ class UserProfileState extends ChangeNotifier {
       filterLookingForDogSitter: false,
       filterDistance: 0.0,
       lastOnline: DateTime.now(),
-    );
+      filterLastOnline: '');
+
+  int _currentIndex = 0;
+  bool _isProfileOpen = false;
+
+  UserProfile get userProfile => _userProfile;
+  int get currentIndex => _currentIndex;
+  bool get isProfileOpen => _isProfileOpen;
+
+  UserProfileState() {
+    _initializeUserProfile();
+  }
+
+  // Reset state method
+  void resetState() {
+    _userProfile = UserProfile(
+        uid: '',
+        email: '',
+        userName: '',
+        birthday: DateTime(2000, 1, 1),
+        aboutText: '',
+        profileColor: AppColors.accent1,
+        images: [placeholderImageUrl],
+        location: '',
+        latitude: 0.0,
+        longitude: 0.0,
+        isDogOwner: false,
+        dogName: '',
+        dogBreed: '',
+        dogAge: '',
+        filterLookingForDogOwner: false,
+        filterLookingForDogSitter: false,
+        filterDistance: 0.0,
+        lastOnline: DateTime.now(),
+        filterLastOnline: '');
     _currentIndex = 0;
     _isProfileOpen = false;
     notifyListeners();
@@ -141,11 +141,13 @@ class UserProfileState extends ChangeNotifier {
     required bool filterLookingForDogOwner,
     required bool filterLookingForDogSitter,
     required double filterDistance,
+    required String filterLastOnline,
   }) async {
     _userProfile = _userProfile.copyWith(
       filterLookingForDogOwner: filterLookingForDogOwner,
       filterLookingForDogSitter: filterLookingForDogSitter,
       filterDistance: filterDistance,
+      filterLastOnline: filterLastOnline,
     );
     notifyListeners();
     await _auth.addUserProfileData(_userProfile);

@@ -41,13 +41,14 @@ class AuthService {
     return usersWithDocuments;
   }
 
-  // fetch all users within filter (certrain distance, looking for dog owner/sitter)
+  // fetch all users within filter (certain distance, looking for dog owner/sitter)
   Future<List<Map<String, dynamic>>> fetchAllUsersWithinFilter(
       bool filterLookingForDogOwner,
       bool filterLookingForDogSitter,
       double filterDistance,
       double latitude,
-      double longitude) async {
+      double longitude,
+      String filterLastOnline) async {
     // if the filterDistance is 0.0 refetch alls these parameters here from firebase
 
     if (filterDistance == 0.0 && latitude == 0.0 && longitude == 0.0) {
@@ -58,6 +59,7 @@ class AuthService {
         filterDistance = userProfile.filterDistance;
         latitude = userProfile.latitude;
         longitude = userProfile.longitude;
+        filterLastOnline = userProfile.filterLastOnline;
       }
     }
 
@@ -67,6 +69,7 @@ class AuthService {
     dev.log('filterDistance: $filterDistance');
     dev.log('latitude: $latitude');
     dev.log('longitude: $longitude');
+    dev.log('filterLastOnline: $filterLastOnline');
 
     List<Map<String, dynamic>> usersWithinFilter = [];
     try {
@@ -168,6 +171,7 @@ class AuthService {
             lastOnline: data['lastOnline'] != null
                 ? DateTime.parse(data['lastOnline'])
                 : null,
+            filterLastOnline: data['filterLastOnline'] ?? 'Anytime',
           );
         }
       }
@@ -294,6 +298,7 @@ class AuthService {
         'filterLookingForDogSitter': userProfile.filterLookingForDogSitter,
         'filterDistance': userProfile.filterDistance,
         'lastOnline': userProfile.lastOnline?.toIso8601String(),
+        'filterLastOnline': userProfile.filterLastOnline,
       };
 
       await FirebaseFirestore.instance
@@ -349,6 +354,7 @@ class AuthService {
             lastOnline: data['lastOnline'] != null
                 ? DateTime.parse(data['lastOnline'])
                 : null,
+            filterLastOnline: data['filterLastOnline'] ?? 'Anytime',
           );
         }
       }

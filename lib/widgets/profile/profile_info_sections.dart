@@ -47,7 +47,7 @@ class UserInfoSection extends StatelessWidget {
             const SizedBox(height: 8.0),
             _buildInfoRow(
               icon: Icons.circle_rounded,
-              text: '${lastOnline} ago',
+              text: '$lastOnline ago',
             ),
           ],
         ],
