@@ -19,7 +19,7 @@ class UserProfile {
   final bool filterLookingForDogSitter;
   final double filterDistance;
   final DateTime? lastOnline;
-  final String filterLastOnline;
+  final int filterLastOnline;
 
   UserProfile({
     required this.uid,
@@ -40,7 +40,7 @@ class UserProfile {
     this.filterLookingForDogSitter = true,
     this.filterDistance = 10.0,
     this.lastOnline,
-    this.filterLastOnline = 'Anytime',
+    this.filterLastOnline = 3,
   });
 
   int get userAge {
@@ -73,7 +73,7 @@ class UserProfile {
     bool? filterLookingForDogSitter,
     double? filterDistance,
     DateTime? lastOnline,
-    String? filterLastOnline,
+    int? filterLastOnline,
   }) {
     return UserProfile(
       uid: uid ?? this.uid,

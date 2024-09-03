@@ -30,7 +30,7 @@ class UserProfileState extends ChangeNotifier {
       filterLookingForDogSitter: false,
       filterDistance: 0.0,
       lastOnline: DateTime.now(),
-      filterLastOnline: '');
+      filterLastOnline: 3);
 
   int _currentIndex = 0;
   bool _isProfileOpen = false;
@@ -64,7 +64,7 @@ class UserProfileState extends ChangeNotifier {
         filterLookingForDogSitter: false,
         filterDistance: 0.0,
         lastOnline: DateTime.now(),
-        filterLastOnline: '');
+        filterLastOnline: 3);
     _currentIndex = 0;
     _isProfileOpen = false;
     notifyListeners();
@@ -141,7 +141,7 @@ class UserProfileState extends ChangeNotifier {
     required bool filterLookingForDogOwner,
     required bool filterLookingForDogSitter,
     required double filterDistance,
-    required String filterLastOnline,
+    required int filterLastOnline,
   }) async {
     _userProfile = _userProfile.copyWith(
       filterLookingForDogOwner: filterLookingForDogOwner,

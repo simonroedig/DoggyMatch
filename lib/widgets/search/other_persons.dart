@@ -182,7 +182,7 @@ class _OtherPersonsState extends State<OtherPersons>
             lastOnline: data['lastOnline'] != null
                 ? DateTime.parse(data['lastOnline'])
                 : null,
-            filterLastOnline: data['filterLastOnline'] ?? '',
+            filterLastOnline: data['filterLastOnline'] ?? 3,
           );
 
           // Calculate the distance

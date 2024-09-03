@@ -48,7 +48,7 @@ class AuthService {
       double filterDistance,
       double latitude,
       double longitude,
-      String filterLastOnline) async {
+      int filterLastOnline) async {
     // if the filterDistance is 0.0 refetch alls these parameters here from firebase
 
     if (filterDistance == 0.0 && latitude == 0.0 && longitude == 0.0) {
@@ -171,7 +171,7 @@ class AuthService {
             lastOnline: data['lastOnline'] != null
                 ? DateTime.parse(data['lastOnline'])
                 : null,
-            filterLastOnline: data['filterLastOnline'] ?? 'Anytime',
+            filterLastOnline: data['filterLastOnline'] ?? 3,
           );
         }
       }
@@ -354,7 +354,7 @@ class AuthService {
             lastOnline: data['lastOnline'] != null
                 ? DateTime.parse(data['lastOnline'])
                 : null,
-            filterLastOnline: data['filterLastOnline'] ?? 'Anytime',
+            filterLastOnline: data['filterLastOnline'] ?? 3,
           );
         }
       }
