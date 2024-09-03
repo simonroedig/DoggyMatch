@@ -6,8 +6,13 @@ import 'package:doggymatch_flutter/profile/profile.dart';
 
 class ProfileImageStack extends StatefulWidget {
   final UserProfile profile;
+  final bool clickedOnOtherUser; // Added this parameter
 
-  const ProfileImageStack({super.key, required this.profile});
+  const ProfileImageStack({
+    super.key,
+    required this.profile,
+    required this.clickedOnOtherUser, // Default to false
+  });
 
   @override
   // ignore: library_private_types_in_public_api
@@ -51,6 +56,20 @@ class _ProfileImageStackState extends State<ProfileImageStack> {
             color: AppColors.customBlack,
           ),
         ),
+        if (widget.clickedOnOtherUser)
+          Positioned(
+            top: 0.0,
+            right: 0.0,
+            child: IconButton(
+              icon: const Icon(
+                Icons.more_vert_rounded,
+                color: AppColors.customBlack,
+              ),
+              onPressed: () {
+                // Handle more options here
+              },
+            ),
+          ),
       ],
     );
   }
