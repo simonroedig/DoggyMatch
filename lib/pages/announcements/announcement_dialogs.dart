@@ -1,6 +1,9 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
 import 'package:intl/intl.dart';
+import 'package:doggymatch_flutter/services/announcement_service.dart';
 
 class AnnouncementDialogs {
   static void showDismissConfirmationDialog(BuildContext context) {
@@ -146,7 +149,7 @@ class AnnouncementDialogs {
               ),
               const SizedBox(height: 8),
               Container(
-                height: 100, // Set a height for the text container
+                height: 100,
                 padding: const EdgeInsets.all(8.0),
                 decoration: BoxDecoration(
                   border: Border.all(color: AppColors.customBlack),
@@ -217,10 +220,18 @@ class AnnouncementDialogs {
                     ),
                   ),
                   ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
+                      AnnouncementService announcementService =
+                          AnnouncementService();
+                      await announcementService.createAnnouncement(
+                        announcementText: announcementController.text,
+                        showUntilDate: selectedDate,
+                        showForever: showForever,
+                      );
                       Navigator.of(context).pop();
                       Navigator.of(context)
                           .pop(); // Close the page after creation
+                      showSuccessDialog(context);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.customBlack,
@@ -244,5 +255,56 @@ class AnnouncementDialogs {
         );
       },
     );
+  }
+
+  static void showSuccessDialog(BuildContext context) {
+    // Declare dialogContext as nullable
+    BuildContext? dialogContext;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        dialogContext = context; // Assign the dialog's context
+        return AlertDialog(
+          backgroundColor: AppColors.bg,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+            side: const BorderSide(
+              color: AppColors.customBlack,
+              width: 3.0,
+            ),
+          ),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.check_circle_outline_rounded,
+                color: AppColors.customGreen,
+                size: 50,
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Announcement successfully created!',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: AppColors.customBlack,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    Future.delayed(const Duration(seconds: 3), () {
+      // Ensure dialogContext is not null before using it
+      if (dialogContext != null && Navigator.of(dialogContext!).mounted) {
+        Navigator.of(dialogContext!).pop();
+      }
+    });
   }
 }
