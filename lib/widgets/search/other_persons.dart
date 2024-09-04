@@ -67,10 +67,12 @@ class _OtherPersonsState extends State<OtherPersons>
       // Exclude the current user's profile from the list
       users = users.where((user) => user['uid'] != currentUserId).toList();
 
-      setState(() {
-        _users = users;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _users = users;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       setState(() {
         _isLoading = false;

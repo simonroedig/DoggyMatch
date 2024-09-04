@@ -98,6 +98,7 @@ class AnnouncementDialogs {
 
   static void showCreateConfirmationDialog(
       BuildContext context,
+      TextEditingController titleController, // Added titleController
       TextEditingController announcementController,
       DateTime? selectedDate,
       bool showForever) {
@@ -136,6 +137,32 @@ class AnnouncementDialogs {
                   color: AppColors.customBlack,
                 ),
                 textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Announcement Title:',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: AppColors.customBlack,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(8.0),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.customBlack),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: Text(
+                  titleController.text, // Display the announcement title
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 14,
+                    color: AppColors.customBlack,
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
               const Text(
@@ -224,6 +251,7 @@ class AnnouncementDialogs {
                       AnnouncementService announcementService =
                           AnnouncementService();
                       await announcementService.createAnnouncement(
+                        announcementTitle: titleController.text, // Pass title
                         announcementText: announcementController.text,
                         showUntilDate: selectedDate,
                         showForever: showForever,

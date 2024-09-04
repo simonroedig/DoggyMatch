@@ -7,6 +7,7 @@ class AnnouncementService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<void> createAnnouncement({
+    required String announcementTitle,
     required String announcementText,
     required DateTime? showUntilDate,
     required bool showForever,
@@ -21,9 +22,10 @@ class AnnouncementService {
     final DateTime timestamp = DateTime.now();
 
     try {
-      final docRef = _firestore.collection('announcements').doc(uid);
+      final docRef = _firestore.collection('users').doc(uid);
 
       final announcementData = {
+        'announcementTitle': announcementTitle,
         'announcementText': announcementText,
         'createdAt': timestamp.toIso8601String(),
         'showUntil':

@@ -14,21 +14,26 @@ class NewAnnouncementPage extends StatefulWidget {
 
 class _NewAnnouncementPageState extends State<NewAnnouncementPage> {
   final TextEditingController _announcementController = TextEditingController();
+  final TextEditingController _titleController = TextEditingController();
   DateTime? _selectedDate;
   bool _showForever = false;
 
   final int _minAnnouncementLength = 10;
+  final int _minTitleLength = 3;
 
   @override
   void initState() {
     super.initState();
     _announcementController.addListener(_updateButtonState);
+    _titleController.addListener(_updateButtonState);
   }
 
   @override
   void dispose() {
     _announcementController.removeListener(_updateButtonState);
     _announcementController.dispose();
+    _titleController.removeListener(_updateButtonState);
+    _titleController.dispose();
     super.dispose();
   }
 
@@ -108,8 +113,11 @@ class _NewAnnouncementPageState extends State<NewAnnouncementPage> {
   Widget build(BuildContext context) {
     final bool isAnnouncementTextValid =
         _announcementController.text.length >= _minAnnouncementLength;
+    final bool isTitleTextValid =
+        _titleController.text.length >= _minTitleLength;
     final bool isDateValid = _selectedDate != null || _showForever;
-    final bool isButtonEnabled = isAnnouncementTextValid && isDateValid;
+    final bool isButtonEnabled =
+        isAnnouncementTextValid && isTitleTextValid && isDateValid;
 
     return Scaffold(
       appBar: AppBar(
@@ -131,7 +139,8 @@ class _NewAnnouncementPageState extends State<NewAnnouncementPage> {
             color: AppColors.customBlack,
           ),
           onPressed: () {
-            if (_announcementController.text.isNotEmpty) {
+            if (_announcementController.text.isNotEmpty ||
+                _titleController.text.isNotEmpty) {
               AnnouncementDialogs.showDismissConfirmationDialog(context);
             } else {
               Navigator.of(context).pop();
@@ -146,10 +155,19 @@ class _NewAnnouncementPageState extends State<NewAnnouncementPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildTextFieldWithCounter(
+              controller: _titleController,
+              maxLength: 75,
+              minLength: _minTitleLength,
+              labelText: 'Title',
+              icon: Icons.title_rounded,
+              keyboardType: TextInputType.text,
+            ),
+            const SizedBox(height: 16),
+            _buildTextFieldWithCounter(
               controller: _announcementController,
-              maxLength: 2000,
+              maxLength: 1000,
               minLength: _minAnnouncementLength,
-              labelText: 'Announcement Text',
+              labelText: 'Text',
               icon: Icons.announcement_rounded,
               keyboardType: TextInputType.multiline,
               minLines: 3,
@@ -220,6 +238,7 @@ class _NewAnnouncementPageState extends State<NewAnnouncementPage> {
                           AnnouncementDialogs.showCreateConfirmationDialog(
                               context,
                               _announcementController,
+                              _titleController,
                               _selectedDate,
                               _showForever);
                         }
