@@ -121,35 +121,29 @@ class SearchPageState extends State<SearchPage> {
                 ProfilesAnnouncementToggle(
                   onToggle: _onToggle,
                 ),
-                const SizedBox(height: 15),
-                Expanded(
-                  child: Container(
-                    color: AppColors.bg,
-                    child: _isProfilesSelected
-                        ? OtherPersons(
-                            onProfileSelected: _openProfile,
-                          )
-                        : Stack(
-                            children: [
-                              // Display OtherPersonsAnnouncements when announcements are toggled
-                              OtherPersonsAnnouncements(),
-                              Positioned(
-                                top: 0,
-                                left: 0,
-                                right: 0,
-                                child: IconButton(
-                                  iconSize: 60, // Increase the size of the icon
-                                  icon: const Icon(
-                                    Icons.add_circle_outline_rounded,
-                                    color: AppColors.customBlack,
-                                  ),
-                                  onPressed: _navigateToNewAnnouncement,
-                                ),
-                              ),
-                            ],
-                          ),
+                SizedBox(height: _isProfilesSelected ? 15 : 5),
+                if (!_isProfilesSelected) ...[
+                  // IconButton to add new announcements
+                  IconButton(
+                    iconSize: 50, // Increase the size of the icon
+                    icon: const Icon(
+                      Icons.add_circle_outline_rounded,
+                      color: AppColors.customBlack,
+                    ),
+                    onPressed: _navigateToNewAnnouncement,
                   ),
-                ),
+                  const SizedBox(height: 0), // Spacing below the button
+                  // Display OtherPersonsAnnouncements list
+                  const Expanded(
+                    child: OtherPersonsAnnouncements(),
+                  ),
+                ] else
+                  // Display OtherPersons when profiles are selected
+                  Expanded(
+                    child: OtherPersons(
+                      onProfileSelected: _openProfile,
+                    ),
+                  ),
               ],
             ),
             if (_isFilterOpen)

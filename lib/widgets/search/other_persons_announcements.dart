@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api, use_super_parameters
+
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +9,8 @@ import 'package:doggymatch_flutter/state/user_profile_state.dart';
 import 'package:doggymatch_flutter/services/auth.dart';
 
 class OtherPersonsAnnouncements extends StatefulWidget {
+  const OtherPersonsAnnouncements({super.key});
+
   @override
   _OtherPersonsAnnouncementsState createState() =>
       _OtherPersonsAnnouncementsState();
@@ -119,7 +123,7 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(10.0),
       width: MediaQuery.of(context).size.width * 0.9,
       decoration: BoxDecoration(
         color: profileColor,
@@ -175,13 +179,8 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
                         dogName: dogName,
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        announcementTitle,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: AppColors.customBlack,
-                        ),
+                      _AutoScrollingTitleRow(
+                        title: announcementTitle,
                       ),
                     ],
                   ),
@@ -248,7 +247,8 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
     return RefreshIndicator(
       onRefresh: _loadAnnouncements,
       child: ListView.builder(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.only(
+            top: 0, left: 20, right: 20), // Remove top padding
         itemCount: _announcements.length,
         itemBuilder: (context, index) {
           return _buildAnnouncementCard(_announcements[index]);
@@ -350,7 +350,7 @@ class __AutoScrollingRowState extends State<_AutoScrollingRow>
               " • ",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                fontSize: 14,
+                fontSize: 18,
                 color: AppColors.customBlack,
               ),
             ),
@@ -370,6 +370,86 @@ class __AutoScrollingRowState extends State<_AutoScrollingRow>
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+class _AutoScrollingTitleRow extends StatefulWidget {
+  final String title;
+
+  const _AutoScrollingTitleRow({
+    Key? key,
+    required this.title,
+  }) : super(key: key);
+
+  @override
+  __AutoScrollingTitleRowState createState() => __AutoScrollingTitleRowState();
+}
+
+class __AutoScrollingTitleRowState extends State<_AutoScrollingTitleRow>
+    with TickerProviderStateMixin {
+  late ScrollController _scrollController;
+  late AnimationController _animationController;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _scrollController = ScrollController();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 5),
+    );
+
+    _animation = Tween<double>(begin: 0.0, end: 1.0)
+        .animate(_animationController)
+      ..addListener(() {
+        if (_scrollController.hasClients) {
+          _scrollController.jumpTo(
+              _animation.value * _scrollController.position.maxScrollExtent);
+        }
+      })
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          Future.delayed(const Duration(seconds: 1), () {
+            if (_scrollController.hasClients) {
+              _scrollController.jumpTo(0);
+              _animationController.forward(from: 0.0);
+            }
+          });
+        }
+      });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startScrolling();
+    });
+  }
+
+  void _startScrolling() {
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      controller: _scrollController,
+      scrollDirection: Axis.horizontal,
+      child: Text(
+        widget.title,
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 14,
+          color: AppColors.customBlack,
+        ),
       ),
     );
   }

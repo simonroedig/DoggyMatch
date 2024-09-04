@@ -237,8 +237,8 @@ class _NewAnnouncementPageState extends State<NewAnnouncementPage> {
                       ? () {
                           AnnouncementDialogs.showCreateConfirmationDialog(
                               context,
-                              _announcementController,
                               _titleController,
+                              _announcementController,
                               _selectedDate,
                               _showForever);
                         }
