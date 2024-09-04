@@ -13,7 +13,7 @@ import 'package:doggymatch_flutter/services/auth.dart';
 import 'package:doggymatch_flutter/widgets/search/profiles_announcement_toggle.dart';
 import 'package:doggymatch_flutter/pages/new_announcement_page.dart';
 import 'package:doggymatch_flutter/widgets/search/other_persons_announcements.dart';
-import 'package:doggymatch_flutter/pages/announcements/own_all_announcements_toggle.dart'; // Import the custom toggle
+import 'package:doggymatch_flutter/pages/announcements/own_all_announcements_toggle.dart';
 
 class SearchPage extends StatefulWidget {
   final ProfileCloseNotifier profileCloseNotifier;
@@ -27,6 +27,7 @@ class SearchPage extends StatefulWidget {
 class SearchPageState extends State<SearchPage> {
   bool _isFilterOpen = false;
   bool _isProfilesSelected = true; // To track toggle state
+  bool _isAllAnnouncSelected = true; // Track Own/All Shouts toggle state
   UserProfile? _selectedProfile;
   String? _selectedDistance;
   String? _lastOnline;
@@ -102,7 +103,9 @@ class SearchPageState extends State<SearchPage> {
   }
 
   void _onOwnAllAnnouncementsToggle(bool isAllSelected) {
-    // Handle the toggle action
+    setState(() {
+      _isAllAnnouncSelected = isAllSelected;
+    });
   }
 
   @override
@@ -155,8 +158,11 @@ class SearchPageState extends State<SearchPage> {
 
                   const SizedBox(height: 0), // Spacing below the buttons
                   // Display OtherPersonsAnnouncements list
-                  const Expanded(
-                    child: OtherPersonsAnnouncements(),
+                  Expanded(
+                    child: OtherPersonsAnnouncements(
+                      isAllAnnouncSelected:
+                          _isAllAnnouncSelected, // Pass the toggle state
+                    ),
                   ),
                 ] else
                   // Display OtherPersons when profiles are selected

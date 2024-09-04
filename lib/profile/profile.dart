@@ -99,4 +99,28 @@ class UserProfile {
       filterLastOnline: filterLastOnline ?? this.filterLastOnline,
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'uid': uid,
+      'email': email,
+      'userName': userName,
+      'birthday': birthday?.toIso8601String(),
+      'aboutText': aboutText,
+      'profileColor': profileColor.value,
+      'images': images,
+      'location': location,
+      'latitude': latitude,
+      'longitude': longitude,
+      'isDogOwner': isDogOwner,
+      'dogName': dogName,
+      'dogBreed': dogBreed,
+      'dogAge': dogAge,
+      'filterLookingForDogOwner': filterLookingForDogOwner,
+      'filterLookingForDogSitter': filterLookingForDogSitter,
+      'filterDistance': filterDistance,
+      'lastOnline': lastOnline?.toIso8601String(),
+      'filterLastOnline': filterLastOnline,
+    };
+  }
 }

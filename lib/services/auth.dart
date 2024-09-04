@@ -343,7 +343,7 @@ class AuthService {
     }
   }
 
-  // get current user document
+  // get current user document of the user that is logged in currently
   Future<UserProfile?> fetchUserProfile() async {
     final user = _auth.currentUser;
     if (user != null) {

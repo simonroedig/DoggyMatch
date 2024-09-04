@@ -11,7 +11,10 @@ import 'package:doggymatch_flutter/services/auth.dart';
 import 'package:doggymatch_flutter/pages/notifiers/filter_notifier.dart';
 
 class OtherPersonsAnnouncements extends StatefulWidget {
-  const OtherPersonsAnnouncements({super.key});
+  final bool isAllAnnouncSelected; // Add a parameter to control display type
+
+  const OtherPersonsAnnouncements(
+      {super.key, required this.isAllAnnouncSelected});
 
   @override
   _OtherPersonsAnnouncementsState createState() =>
@@ -49,32 +52,45 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
         _authService.getCurrentUserId(); // Get the current user's UID
 
     try {
-      // Fetch all users within the filter
-      List<Map<String, dynamic>> users =
-          await _authService.fetchAllUsersWithinFilter(
-        userProfileState.userProfile.filterLookingForDogOwner,
-        userProfileState.userProfile.filterLookingForDogSitter,
-        userProfileState.userProfile.filterDistance,
-        userProfileState.userProfile.latitude,
-        userProfileState.userProfile.longitude,
-        userProfileState.userProfile.filterLastOnline,
-      );
-
-      // Exclude the current user's profile from the list
-      users = users.where((user) => user['uid'] != currentUserId).toList();
-
       List<Map<String, dynamic>> announcements = [];
 
-      // Iterate over filtered users and fetch their announcements
-      for (var user in users) {
-        final userAnnouncements = await _fetchUserAnnouncements(user['uid']);
-        if (userAnnouncements.isNotEmpty) {
-          for (var announcement in userAnnouncements) {
-            announcements.add({
-              'user': user['firestoreData'],
-              'announcement': announcement,
-            });
+      if (widget.isAllAnnouncSelected) {
+        // Fetch all users' announcements
+        List<Map<String, dynamic>> users =
+            await _authService.fetchAllUsersWithinFilter(
+          userProfileState.userProfile.filterLookingForDogOwner,
+          userProfileState.userProfile.filterLookingForDogSitter,
+          userProfileState.userProfile.filterDistance,
+          userProfileState.userProfile.latitude,
+          userProfileState.userProfile.longitude,
+          userProfileState.userProfile.filterLastOnline,
+        );
+
+        // Exclude the current user's profile from the list
+        users = users.where((user) => user['uid'] != currentUserId).toList();
+
+        for (var user in users) {
+          final userAnnouncements = await _fetchUserAnnouncements(user['uid']);
+          if (userAnnouncements.isNotEmpty) {
+            for (var announcement in userAnnouncements) {
+              announcements.add({
+                'user': user['firestoreData'],
+                'announcement': announcement,
+              });
+            }
           }
+        }
+      } else {
+        // Fetch only the current user's announcements
+        final userAnnouncements = await _fetchUserAnnouncements(currentUserId!);
+        if (userAnnouncements.isNotEmpty) {
+          announcements = userAnnouncements
+              .map((announcement) async => {
+                    'user': await _authService.fetchUserProfile(),
+                    'announcement': announcement,
+                  })
+              .cast<Map<String, dynamic>>()
+              .toList();
         }
       }
 
@@ -114,6 +130,7 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
     }
   }
 
+  // Helper method to calculate distance between two coordinates
   double _calculateDistance(
       double lat1, double lon1, double lat2, double lon2) {
     const R = 6371; // Radius of the Earth in kilometers
@@ -132,6 +149,7 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
     return deg * (pi / 180);
   }
 
+  // Helper method to format time ago
   String _calculateTimeAgo(DateTime createdAt) {
     final now = DateTime.now();
     final difference = now.difference(createdAt);
@@ -150,6 +168,7 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
     }
   }
 
+  // Build the announcement card widget
   Widget _buildAnnouncementCard(Map<String, dynamic> announcementData) {
     final user = announcementData['user'];
     final announcement = announcementData['announcement'];
@@ -231,14 +250,24 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
                         .center, // Center the content vertically
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _AutoScrollingRow(
-                        userName: userName,
-                        isDogOwner: isDogOwner,
-                        dogName: dogName,
+                      Text(
+                        userName,
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: AppColors.customBlack,
+                        ),
                       ),
                       const SizedBox(height: 4),
-                      _AutoScrollingTitleRow(
-                        title: announcementTitle,
+                      Text(
+                        announcementTitle,
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: AppColors.customBlack,
+                        ),
                       ),
                     ],
                   ),
@@ -331,203 +360,6 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
         itemBuilder: (context, index) {
           return _buildAnnouncementCard(_announcements[index]);
         },
-      ),
-    );
-  }
-}
-
-class _AutoScrollingRow extends StatefulWidget {
-  final String userName;
-  final bool isDogOwner;
-  final String dogName;
-
-  const _AutoScrollingRow({
-    Key? key,
-    required this.userName,
-    required this.isDogOwner,
-    required this.dogName,
-  }) : super(key: key);
-
-  @override
-  __AutoScrollingRowState createState() => __AutoScrollingRowState();
-}
-
-class __AutoScrollingRowState extends State<_AutoScrollingRow>
-    with TickerProviderStateMixin {
-  late ScrollController _scrollController;
-  late AnimationController _animationController;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _scrollController = ScrollController();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 5),
-    );
-
-    _animation = Tween<double>(begin: 0.0, end: 1.0)
-        .animate(_animationController)
-      ..addListener(() {
-        if (_scrollController.hasClients) {
-          _scrollController.jumpTo(
-              _animation.value * _scrollController.position.maxScrollExtent);
-        }
-      })
-      ..addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          Future.delayed(const Duration(seconds: 1), () {
-            if (_scrollController.hasClients) {
-              _scrollController.jumpTo(0);
-              _animationController.forward(from: 0.0);
-            }
-          });
-        }
-      });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _startScrolling();
-    });
-  }
-
-  void _startScrolling() {
-    _animationController.forward();
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      controller: _scrollController,
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          const Icon(Icons.person_rounded,
-              size: 20, color: AppColors.customBlack),
-          const SizedBox(width: 4),
-          Text(
-            widget.userName,
-            style: const TextStyle(
-              fontFamily: 'Poppins',
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-              color: AppColors.customBlack,
-            ),
-          ),
-          if (widget.isDogOwner) ...[
-            const SizedBox(width: 4),
-            const Text(
-              " • ",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-                color: AppColors.customBlack,
-              ),
-            ),
-            const Icon(
-              Icons.pets_rounded,
-              size: 18,
-              color: AppColors.customBlack,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              widget.dogName,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-                color: AppColors.customBlack,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _AutoScrollingTitleRow extends StatefulWidget {
-  final String title;
-
-  const _AutoScrollingTitleRow({
-    Key? key,
-    required this.title,
-  }) : super(key: key);
-
-  @override
-  __AutoScrollingTitleRowState createState() => __AutoScrollingTitleRowState();
-}
-
-class __AutoScrollingTitleRowState extends State<_AutoScrollingTitleRow>
-    with TickerProviderStateMixin {
-  late ScrollController _scrollController;
-  late AnimationController _animationController;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _scrollController = ScrollController();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 5),
-    );
-
-    _animation = Tween<double>(begin: 0.0, end: 1.0)
-        .animate(_animationController)
-      ..addListener(() {
-        if (_scrollController.hasClients) {
-          _scrollController.jumpTo(
-              _animation.value * _scrollController.position.maxScrollExtent);
-        }
-      })
-      ..addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          Future.delayed(const Duration(seconds: 1), () {
-            if (_scrollController.hasClients) {
-              _scrollController.jumpTo(0);
-              _animationController.forward(from: 0.0);
-            }
-          });
-        }
-      });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _startScrolling();
-    });
-  }
-
-  void _startScrolling() {
-    _animationController.forward();
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      controller: _scrollController,
-      scrollDirection: Axis.horizontal,
-      child: Text(
-        widget.title,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 14,
-          color: AppColors.customBlack,
-        ),
       ),
     );
   }
