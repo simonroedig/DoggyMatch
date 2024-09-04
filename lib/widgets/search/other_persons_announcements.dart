@@ -1,12 +1,14 @@
 // ignore_for_file: library_private_types_in_public_api, use_super_parameters
 
-import 'dart:developer';
+import 'dart:developer' as developer;
+import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/colors.dart';
 import 'package:doggymatch_flutter/state/user_profile_state.dart';
 import 'package:doggymatch_flutter/services/auth.dart';
+import 'package:doggymatch_flutter/pages/notifiers/filter_notifier.dart';
 
 class OtherPersonsAnnouncements extends StatefulWidget {
   const OtherPersonsAnnouncements({super.key});
@@ -20,53 +22,77 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
   final AuthService _authService = AuthService();
   bool _isLoading = true;
   List<Map<String, dynamic>> _announcements = [];
+  late FilterNotifier _filterNotifier; // Add a state variable for the notifier
 
   @override
   void initState() {
     super.initState();
-    _loadAnnouncements();
+    _filterNotifier = Provider.of<FilterNotifier>(context, listen: false);
+    _filterNotifier.addListener(_loadFilteredUsersAnnouncements);
+    _loadFilteredUsersAnnouncements();
   }
 
-  Future<void> _loadAnnouncements() async {
+  @override
+  void dispose() {
+    _filterNotifier.removeListener(_loadFilteredUsersAnnouncements);
+    super.dispose();
+  }
+
+  Future<void> _loadFilteredUsersAnnouncements() async {
     setState(() {
       _isLoading = true; // Show progress indicator
     });
 
-    Provider.of<UserProfileState>(context, listen: false);
-    final currentUser = _authService.getCurrentUserId();
+    final userProfileState =
+        Provider.of<UserProfileState>(context, listen: false);
+    final String? currentUserId =
+        _authService.getCurrentUserId(); // Get the current user's UID
 
     try {
-      // Fetch all users
-      final users = await _authService.fetchAllUsersWithDocuments();
+      // Fetch all users within the filter
+      List<Map<String, dynamic>> users =
+          await _authService.fetchAllUsersWithinFilter(
+        userProfileState.userProfile.filterLookingForDogOwner,
+        userProfileState.userProfile.filterLookingForDogSitter,
+        userProfileState.userProfile.filterDistance,
+        userProfileState.userProfile.latitude,
+        userProfileState.userProfile.longitude,
+        userProfileState.userProfile.filterLastOnline,
+      );
+
+      // Exclude the current user's profile from the list
+      users = users.where((user) => user['uid'] != currentUserId).toList();
+
       List<Map<String, dynamic>> announcements = [];
 
-      // Iterate over users and fetch their announcements
+      // Iterate over filtered users and fetch their announcements
       for (var user in users) {
-        if (user['uid'] != currentUser) {
-          final userAnnouncements = await _fetchUserAnnouncements(user['uid']);
-          if (userAnnouncements.isNotEmpty) {
-            for (var announcement in userAnnouncements) {
-              announcements.add({
-                'user': user['firestoreData'],
-                'announcement': announcement,
-              });
-            }
+        final userAnnouncements = await _fetchUserAnnouncements(user['uid']);
+        if (userAnnouncements.isNotEmpty) {
+          for (var announcement in userAnnouncements) {
+            announcements.add({
+              'user': user['firestoreData'],
+              'announcement': announcement,
+            });
           }
         }
       }
 
+      // Sort announcements by the createdAt field
       announcements.sort((a, b) {
         final dateA = DateTime.parse(a['announcement']['createdAt']);
         final dateB = DateTime.parse(b['announcement']['createdAt']);
         return dateB.compareTo(dateA); // Newest first
       });
 
-      setState(() {
-        _announcements = announcements;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _announcements = announcements;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      log('Error loading announcements: $e');
+      developer.log('Error loading filtered users and announcements: $e');
       setState(() {
         _isLoading = false;
       });
@@ -83,9 +109,27 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
           .get();
       return announcements.docs.map((doc) => doc.data()).toList();
     } catch (e) {
-      log('Error fetching announcements: $e');
+      developer.log('Error fetching announcements: $e');
       return [];
     }
+  }
+
+  double _calculateDistance(
+      double lat1, double lon1, double lat2, double lon2) {
+    const R = 6371; // Radius of the Earth in kilometers
+    final dLat = _deg2rad(lat2 - lat1);
+    final dLon = _deg2rad(lon2 - lon1);
+    final a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(_deg2rad(lat1)) *
+            cos(_deg2rad(lat2)) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
+    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    return R * c; // Distance in kilometers
+  }
+
+  double _deg2rad(double deg) {
+    return deg * (pi / 180);
   }
 
   String _calculateTimeAgo(DateTime createdAt) {
@@ -120,6 +164,20 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
     final String userName = user['userName'] ?? '';
     final String announcementTitle = announcement['announcementTitle'] ?? '';
     final String announcementText = announcement['announcementText'] ?? '';
+
+    // Get the main user's latitude and longitude from UserProfileState
+    final userProfileState =
+        Provider.of<UserProfileState>(context, listen: false);
+    final mainUserLatitude = userProfileState.userProfile.latitude;
+    final mainUserLongitude = userProfileState.userProfile.longitude;
+
+    // Calculate the distance between the main user and the announcement user
+    final distance = _calculateDistance(
+      mainUserLatitude,
+      mainUserLongitude,
+      user['latitude'].toDouble(),
+      user['longitude'].toDouble(),
+    ).toStringAsFixed(1);
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
@@ -215,7 +273,7 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
           // Time ago and distance section, bold and centered with Poppins font
           Center(
             child: Text(
-              '$timeAgo • 0.0 km', // Distance can be added here
+              '$timeAgo • $distance km',
               style: const TextStyle(
                 color: AppColors.grey,
                 fontFamily: 'Poppins',
@@ -236,16 +294,36 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
     }
 
     if (_announcements.isEmpty) {
-      return const Center(
-        child: Text(
-          "No announcements available.",
-          style: TextStyle(color: AppColors.customBlack, fontSize: 18),
+      return Center(
+        child: RichText(
+          textAlign: TextAlign.center,
+          text: const TextSpan(
+            text:
+                'No announcements found 😔\n\nAdjust your filter settings\nand spread the word about ',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 10.0,
+              fontWeight: FontWeight.normal,
+              color: AppColors.customBlack,
+            ),
+            children: <TextSpan>[
+              TextSpan(
+                text: 'DoggyMatch',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              TextSpan(
+                text: ' 🐶❤️',
+              ),
+            ],
+          ),
         ),
       );
     }
 
     return RefreshIndicator(
-      onRefresh: _loadAnnouncements,
+      onRefresh: _loadFilteredUsersAnnouncements,
       child: ListView.builder(
         padding: const EdgeInsets.only(
             top: 0, left: 20, right: 20), // Remove top padding

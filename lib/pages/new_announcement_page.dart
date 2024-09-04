@@ -156,7 +156,7 @@ class _NewAnnouncementPageState extends State<NewAnnouncementPage> {
           children: [
             _buildTextFieldWithCounter(
               controller: _titleController,
-              maxLength: 75,
+              maxLength: 50,
               minLength: _minTitleLength,
               labelText: 'Title',
               icon: Icons.title_rounded,
