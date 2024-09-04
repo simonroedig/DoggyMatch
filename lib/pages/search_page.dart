@@ -12,7 +12,8 @@ import 'package:doggymatch_flutter/pages/notifiers/filter_notifier.dart';
 import 'package:doggymatch_flutter/services/auth.dart';
 import 'package:doggymatch_flutter/widgets/search/profiles_announcement_toggle.dart';
 import 'package:doggymatch_flutter/pages/new_announcement_page.dart';
-import 'package:doggymatch_flutter/widgets/search/other_persons_announcements.dart'; // Import the new announcements widget
+import 'package:doggymatch_flutter/widgets/search/other_persons_announcements.dart';
+import 'package:doggymatch_flutter/pages/announcements/own_all_announcements_toggle.dart'; // Import the custom toggle
 
 class SearchPage extends StatefulWidget {
   final ProfileCloseNotifier profileCloseNotifier;
@@ -100,6 +101,10 @@ class SearchPageState extends State<SearchPage> {
     );
   }
 
+  void _onOwnAllAnnouncementsToggle(bool isAllSelected) {
+    // Handle the toggle action
+  }
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -123,16 +128,32 @@ class SearchPageState extends State<SearchPage> {
                 ),
                 SizedBox(height: _isProfilesSelected ? 15 : 5),
                 if (!_isProfilesSelected) ...[
-                  // IconButton to add new announcements
-                  IconButton(
-                    iconSize: 50, // Increase the size of the icon
-                    icon: const Icon(
-                      Icons.add_circle_outline_rounded,
-                      color: AppColors.customBlack,
-                    ),
-                    onPressed: _navigateToNewAnnouncement,
+                  // Row for both buttons: toggle on the left, add icon on the right
+                  Row(
+                    mainAxisAlignment:
+                        MainAxisAlignment.center, // Center the whole group
+                    children: [
+                      // Centered OwnAllAnnouncementsToggle
+                      OwnAllAnnouncementsToggle(
+                        onToggle: _onOwnAllAnnouncementsToggle,
+                      ),
+                      // Add some spacing between the toggle and the icon
+                      const SizedBox(
+                          width:
+                              16), // Adjust this width for spacing between the two elements
+                      // Centered Add Circle Icon
+                      IconButton(
+                        iconSize: 48, // Size of the icon
+                        icon: const Icon(
+                          Icons.add_circle_outline_rounded,
+                          color: AppColors.customBlack,
+                        ),
+                        onPressed: _navigateToNewAnnouncement,
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 0), // Spacing below the button
+
+                  const SizedBox(height: 0), // Spacing below the buttons
                   // Display OtherPersonsAnnouncements list
                   const Expanded(
                     child: OtherPersonsAnnouncements(),

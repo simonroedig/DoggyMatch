@@ -246,7 +246,7 @@ class _ChatPageState extends State<ChatPage> {
                             children: [
                               const Center(
                                 child: Text(
-                                  "< Incoming Requests",
+                                  "📥 Incoming Requests",
                                   style: TextStyle(
                                     fontFamily: 'Poppins',
                                     fontSize: 16,
@@ -290,7 +290,7 @@ class _ChatPageState extends State<ChatPage> {
                               const SizedBox(height: 30),
                               const Center(
                                 child: Text(
-                                  "Outgoing Requests >",
+                                  "Outgoing Requests 📤",
                                   style: TextStyle(
                                     fontFamily: 'Poppins',
                                     fontSize: 16,

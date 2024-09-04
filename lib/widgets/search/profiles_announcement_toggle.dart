@@ -122,7 +122,7 @@ class _ProfilesAnnouncementToggleState
                   ),
                 ),
                 child: Text(
-                  !isProfilesSelected ? '🐶 Announcements' : 'Announcements',
+                  !isProfilesSelected ? '📣 Shouts' : 'Shouts',
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontWeight: !isProfilesSelected

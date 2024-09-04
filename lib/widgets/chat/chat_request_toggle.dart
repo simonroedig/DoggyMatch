@@ -68,7 +68,7 @@ class _ChatRequestToggleState extends State<ChatRequestToggle> {
                   ),
                 ),
                 child: Text(
-                  isChatSelected ? '🐶 Chats' : 'Chats',
+                  isChatSelected ? '💬 Chats' : 'Chats',
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontWeight:
@@ -115,7 +115,7 @@ class _ChatRequestToggleState extends State<ChatRequestToggle> {
                   ),
                 ),
                 child: Text(
-                  !isChatSelected ? '🐶 Requests' : 'Requests',
+                  !isChatSelected ? '✉️ Requests' : 'Requests',
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontWeight:
