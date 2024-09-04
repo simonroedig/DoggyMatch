@@ -134,30 +134,31 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
               // User's profile image with rounded corners and custom black stroke
               ClipRRect(
                 borderRadius: BorderRadius.circular(
-                    18.0), // Same radius for image and stroke
+                    21.0), // Same radius for image and stroke
                 child: Container(
                   decoration: BoxDecoration(
                     border: Border.all(color: AppColors.customBlack, width: 3),
                     borderRadius:
-                        BorderRadius.circular(18.0), // Same radius for stroke
+                        BorderRadius.circular(21.0), // Same radius for stroke
                   ),
                   child: ClipRRect(
                     borderRadius:
-                        BorderRadius.circular(15.0), // Same radius for image
+                        BorderRadius.circular(18.0), // Same radius for image
                     child: Image.network(
                       profileImage,
-                      height: 60,
-                      width: 60,
+                      height: 70,
+                      width: 70,
                       fit: BoxFit.cover,
                     ),
                   ),
                 ),
               ),
 
-              const SizedBox(width: 10),
-              // User and title section
+              const SizedBox(width: 8.0),
+              // User and title section with fixed height
               Expanded(
                 child: Container(
+                  height: 74, // Set the fixed height to match the profile image
                   padding: const EdgeInsets.all(8.0),
                   decoration: BoxDecoration(
                     color: AppColors.bg,
@@ -165,27 +166,60 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
                     border: Border.all(color: AppColors.customBlack, width: 3),
                   ),
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment
+                        .center, // Center the content vertically
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.person, size: 18),
+                          const Icon(Icons.person_rounded,
+                              size: 20, color: AppColors.customBlack),
                           const SizedBox(width: 4),
-                          Text(userName,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold)),
+                          Text(
+                            userName,
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: AppColors.customBlack,
+                            ),
+                          ),
                           if (isDogOwner) ...[
                             const SizedBox(width: 4),
-                            const Text(" • "),
-                            const Icon(Icons.pets, size: 18),
+                            const Text(
+                              " • ",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: AppColors.customBlack,
+                              ),
+                            ),
+                            const Icon(
+                              Icons.pets_rounded,
+                              size: 18,
+                              color: AppColors.customBlack,
+                            ),
                             const SizedBox(width: 4),
-                            Text(dogName),
+                            Text(
+                              dogName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: AppColors.customBlack,
+                              ),
+                            ),
                           ],
                         ],
                       ),
                       const SizedBox(height: 4),
-                      Text(announcementTitle,
-                          style: const TextStyle(fontWeight: FontWeight.bold)),
+                      Text(
+                        announcementTitle,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: AppColors.customBlack,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -206,6 +240,12 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
               child: Text(
                 announcementText,
                 textAlign: TextAlign.left, // Text itself left-aligned
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 12,
+                  fontWeight: FontWeight.w300,
+                  color: AppColors.customBlack,
+                ),
               ),
             ),
           ),
@@ -215,10 +255,11 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
             child: Text(
               '$timeAgo • 0.0 km', // Distance can be added here
               style: const TextStyle(
-                  color: AppColors.grey,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.bold,
-                  fontSize: 10),
+                color: AppColors.grey,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.bold,
+                fontSize: 10,
+              ),
             ),
           ),
         ],
