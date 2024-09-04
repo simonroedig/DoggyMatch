@@ -12,6 +12,7 @@ import 'package:doggymatch_flutter/pages/notifiers/filter_notifier.dart';
 import 'package:doggymatch_flutter/services/auth.dart';
 import 'package:doggymatch_flutter/widgets/search/profiles_announcement_toggle.dart';
 import 'package:doggymatch_flutter/pages/new_announcement_page.dart';
+import 'package:doggymatch_flutter/widgets/search/other_persons_announcements.dart'; // Import the new announcements widget
 
 class SearchPage extends StatefulWidget {
   final ProfileCloseNotifier profileCloseNotifier;
@@ -130,15 +131,8 @@ class SearchPageState extends State<SearchPage> {
                           )
                         : Stack(
                             children: [
-                              const Center(
-                                child: Text(
-                                  "No announcements available.",
-                                  style: TextStyle(
-                                    color: AppColors.customBlack,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                              ),
+                              // Display OtherPersonsAnnouncements when announcements are toggled
+                              OtherPersonsAnnouncements(),
                               Positioned(
                                 top: 0,
                                 left: 0,
