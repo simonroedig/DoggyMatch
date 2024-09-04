@@ -153,7 +153,6 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
                   ),
                 ),
               ),
-
               const SizedBox(width: 8.0),
               // User and title section with fixed height
               Expanded(
@@ -170,46 +169,10 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
                         .center, // Center the content vertically
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.person_rounded,
-                              size: 20, color: AppColors.customBlack),
-                          const SizedBox(width: 4),
-                          Text(
-                            userName,
-                            style: const TextStyle(
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                              color: AppColors.customBlack,
-                            ),
-                          ),
-                          if (isDogOwner) ...[
-                            const SizedBox(width: 4),
-                            const Text(
-                              " • ",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: AppColors.customBlack,
-                              ),
-                            ),
-                            const Icon(
-                              Icons.pets_rounded,
-                              size: 18,
-                              color: AppColors.customBlack,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              dogName,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: AppColors.customBlack,
-                              ),
-                            ),
-                          ],
-                        ],
+                      _AutoScrollingRow(
+                        userName: userName,
+                        isDogOwner: isDogOwner,
+                        dogName: dogName,
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -290,6 +253,123 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
         itemBuilder: (context, index) {
           return _buildAnnouncementCard(_announcements[index]);
         },
+      ),
+    );
+  }
+}
+
+class _AutoScrollingRow extends StatefulWidget {
+  final String userName;
+  final bool isDogOwner;
+  final String dogName;
+
+  const _AutoScrollingRow({
+    Key? key,
+    required this.userName,
+    required this.isDogOwner,
+    required this.dogName,
+  }) : super(key: key);
+
+  @override
+  __AutoScrollingRowState createState() => __AutoScrollingRowState();
+}
+
+class __AutoScrollingRowState extends State<_AutoScrollingRow>
+    with TickerProviderStateMixin {
+  late ScrollController _scrollController;
+  late AnimationController _animationController;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _scrollController = ScrollController();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 5),
+    );
+
+    _animation = Tween<double>(begin: 0.0, end: 1.0)
+        .animate(_animationController)
+      ..addListener(() {
+        if (_scrollController.hasClients) {
+          _scrollController.jumpTo(
+              _animation.value * _scrollController.position.maxScrollExtent);
+        }
+      })
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          Future.delayed(const Duration(seconds: 1), () {
+            if (_scrollController.hasClients) {
+              _scrollController.jumpTo(0);
+              _animationController.forward(from: 0.0);
+            }
+          });
+        }
+      });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startScrolling();
+    });
+  }
+
+  void _startScrolling() {
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      controller: _scrollController,
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          const Icon(Icons.person_rounded,
+              size: 20, color: AppColors.customBlack),
+          const SizedBox(width: 4),
+          Text(
+            widget.userName,
+            style: const TextStyle(
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: AppColors.customBlack,
+            ),
+          ),
+          if (widget.isDogOwner) ...[
+            const SizedBox(width: 4),
+            const Text(
+              " • ",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: AppColors.customBlack,
+              ),
+            ),
+            const Icon(
+              Icons.pets_rounded,
+              size: 18,
+              color: AppColors.customBlack,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              widget.dogName,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: AppColors.customBlack,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
