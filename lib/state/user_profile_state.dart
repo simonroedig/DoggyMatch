@@ -30,7 +30,10 @@ class UserProfileState extends ChangeNotifier {
       filterLookingForDogSitter: false,
       filterDistance: 0.0,
       lastOnline: DateTime.now(),
-      filterLastOnline: 3);
+      filterLastOnline: 3,
+      stateSaverSearchPageMainToggle: 1,
+      stateSaverAllShoutsOROwnShouts: 1,
+      stateSaverChatPageMainToggle: 1);
 
   int _currentIndex = 0;
   bool _isProfileOpen = false;
@@ -64,7 +67,10 @@ class UserProfileState extends ChangeNotifier {
         filterLookingForDogSitter: false,
         filterDistance: 0.0,
         lastOnline: DateTime.now(),
-        filterLastOnline: 3);
+        filterLastOnline: 3,
+        stateSaverSearchPageMainToggle: 1,
+        stateSaverAllShoutsOROwnShouts: 1,
+        stateSaverChatPageMainToggle: 1);
     _currentIndex = 0;
     _isProfileOpen = false;
     notifyListeners();
@@ -148,6 +154,15 @@ class UserProfileState extends ChangeNotifier {
       filterLookingForDogSitter: filterLookingForDogSitter,
       filterDistance: filterDistance,
       filterLastOnline: filterLastOnline,
+    );
+    notifyListeners();
+    await _auth.addUserProfileData(_userProfile);
+  }
+
+  Future<void> updateStateSaverAllShoutsOROwnShouts(
+      int stateSaverAllShoutsOROwnShouts) async {
+    _userProfile = _userProfile.copyWith(
+      stateSaverAllShoutsOROwnShouts: stateSaverAllShoutsOROwnShouts,
     );
     notifyListeners();
     await _auth.addUserProfileData(_userProfile);

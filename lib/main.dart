@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/services/auth_gate.dart';
 import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/state/user_profile_state.dart';
-import 'package:doggymatch_flutter/colors.dart'; // Import your custom colors
+import 'package:doggymatch_flutter/colors.dart';
+import 'package:doggymatch_flutter/pages/notifiers/filter_notifier.dart'; // Import FilterNotifier
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,13 +19,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => UserProfileState(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProfileState()),
+        ChangeNotifierProvider(
+            create: (_) => FilterNotifier()), // Add FilterNotifier
+      ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'DoggyMatch',
         theme: ThemeData(
-          // Set the global progress indicator theme with your custom color
           progressIndicatorTheme: const ProgressIndicatorThemeData(
             color: AppColors.customBlack,
           ),

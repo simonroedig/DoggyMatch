@@ -20,6 +20,9 @@ class UserProfile {
   final double filterDistance;
   final DateTime? lastOnline;
   final int filterLastOnline; // 1,2,3,4,5 for Any, 1d, 3d, 1w, 1m
+  final int stateSaverSearchPageMainToggle; // 1,2 for Profiles, Shouts
+  final int stateSaverAllShoutsOROwnShouts; // 1,2 for All Shouts, Own Shouts
+  final int stateSaverChatPageMainToggle; // 1,2 for Chats, Requests
 
   UserProfile({
     required this.uid,
@@ -41,6 +44,9 @@ class UserProfile {
     this.filterDistance = 10.0,
     this.lastOnline,
     this.filterLastOnline = 3,
+    this.stateSaverSearchPageMainToggle = 1,
+    this.stateSaverAllShoutsOROwnShouts = 1,
+    this.stateSaverChatPageMainToggle = 1,
   });
 
   int get userAge {
@@ -74,6 +80,9 @@ class UserProfile {
     double? filterDistance,
     DateTime? lastOnline,
     int? filterLastOnline,
+    int? stateSaverSearchPageMainToggle,
+    int? stateSaverAllShoutsOROwnShouts,
+    int? stateSaverChatPageMainToggle,
   }) {
     return UserProfile(
       uid: uid ?? this.uid,
@@ -97,6 +106,12 @@ class UserProfile {
       filterDistance: filterDistance ?? this.filterDistance,
       lastOnline: lastOnline ?? this.lastOnline,
       filterLastOnline: filterLastOnline ?? this.filterLastOnline,
+      stateSaverSearchPageMainToggle:
+          stateSaverSearchPageMainToggle ?? this.stateSaverSearchPageMainToggle,
+      stateSaverAllShoutsOROwnShouts:
+          stateSaverAllShoutsOROwnShouts ?? this.stateSaverAllShoutsOROwnShouts,
+      stateSaverChatPageMainToggle:
+          stateSaverChatPageMainToggle ?? this.stateSaverChatPageMainToggle,
     );
   }
 

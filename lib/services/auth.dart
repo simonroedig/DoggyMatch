@@ -323,6 +323,12 @@ class AuthService {
         'filterDistance': userProfile.filterDistance,
         'lastOnline': userProfile.lastOnline?.toIso8601String(),
         'filterLastOnline': userProfile.filterLastOnline,
+        'stateSaverSearchPageMainToggle':
+            userProfile.stateSaverSearchPageMainToggle,
+        'stateSaverAllShoutsOROwnShouts':
+            userProfile.stateSaverAllShoutsOROwnShouts,
+        'stateSaverChatPageMainToggle':
+            userProfile.stateSaverChatPageMainToggle,
       };
 
       await FirebaseFirestore.instance
@@ -379,6 +385,12 @@ class AuthService {
                 ? DateTime.parse(data['lastOnline'])
                 : null,
             filterLastOnline: data['filterLastOnline'] ?? 3,
+            stateSaverSearchPageMainToggle:
+                data['stateSaverSearchPageMainToggle'] ?? 1,
+            stateSaverAllShoutsOROwnShouts:
+                data['stateSaverAllShoutsOROwnShouts'] ?? 1,
+            stateSaverChatPageMainToggle:
+                data['stateSaverChatPageMainToggle'] ?? 1,
           );
         }
       }

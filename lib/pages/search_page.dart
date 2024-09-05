@@ -28,8 +28,6 @@ class SearchPage extends StatefulWidget {
 class SearchPageState extends State<SearchPage> {
   bool _isFilterOpen = false;
   bool _isProfilesSelected = true; // To track toggle state
-  bool _showOnlyCurrentUser =
-      false; // Track the toggle state for including/excluding current user
   UserProfile? _selectedProfile;
   String? _selectedDistance;
   String? _lastOnline;
@@ -104,9 +102,9 @@ class SearchPageState extends State<SearchPage> {
   }
 
   void _onOwnAllAnnouncementsToggle(bool isAllSelected) {
-    setState(() {
-      _showOnlyCurrentUser = isAllSelected;
-    });
+    Provider.of<UserProfileState>(context, listen: false)
+        .updateStateSaverAllShoutsOROwnShouts(isAllSelected ? 1 : 2);
+    Provider.of<FilterNotifier>(context, listen: false).notifyFilterChanged();
     // Trigger the announcement reload to reflect the changes immediately
     _loadFilteredUsersAnnouncements();
   }
@@ -159,7 +157,6 @@ class SearchPageState extends State<SearchPage> {
                   const SizedBox(height: 0),
                   Expanded(
                     child: OtherPersonsAnnouncements(
-                      showOnlyCurrentUser: _showOnlyCurrentUser,
                       onProfileSelected:
                           _openProfile, // Pass the same callback used in OtherPersons
                     ),

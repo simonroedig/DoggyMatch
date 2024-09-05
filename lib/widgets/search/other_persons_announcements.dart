@@ -12,14 +12,9 @@ import 'package:doggymatch_flutter/pages/notifiers/filter_notifier.dart';
 import 'package:doggymatch_flutter/profile/profile.dart';
 
 class OtherPersonsAnnouncements extends StatefulWidget {
-  final bool
-      showOnlyCurrentUser; // Add this parameter to determine inclusion of the current user
   final Function(UserProfile, String, String) onProfileSelected;
 
-  const OtherPersonsAnnouncements(
-      {super.key,
-      required this.showOnlyCurrentUser,
-      required this.onProfileSelected});
+  const OtherPersonsAnnouncements({super.key, required this.onProfileSelected});
 
   @override
   _OtherPersonsAnnouncementsState createState() =>
@@ -53,13 +48,17 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
 
     final userProfileState =
         Provider.of<UserProfileState>(context, listen: false);
+    final bool showOnlyCurrentUser =
+        userProfileState.userProfile.stateSaverAllShoutsOROwnShouts ==
+            1; // Check this state
+
     final String? currentUserId = _authService.getCurrentUserId();
 
     List<Map<String, dynamic>> users = [];
     List<Map<String, dynamic>> announcements = [];
 
     try {
-      if (!widget.showOnlyCurrentUser) {
+      if (!showOnlyCurrentUser) {
         users = [];
         announcements = [];
         // Fetch all users within the filter
@@ -177,7 +176,8 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
     }
   }
 
-  Widget _buildAnnouncementCard(Map<String, dynamic> announcementData) {
+  Widget _buildAnnouncementCard(
+      Map<String, dynamic> announcementData, bool showOnlyCurrentUser) {
     final user = announcementData['user'];
     final announcement = announcementData['announcement'];
     final DateTime createdAt = DateTime.parse(announcement['createdAt']);
@@ -206,7 +206,7 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
 
     return GestureDetector(
         onTap: () {
-          if (!widget.showOnlyCurrentUser) {
+          if (!showOnlyCurrentUser) {
             // Create a UserProfile instance from the announcement data and pass it to the onProfileSelected callback
             UserProfile selectedProfile = UserProfile(
               uid: user['uid'],
@@ -335,9 +335,7 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
               const SizedBox(height: 10),
               Center(
                 child: Text(
-                  widget.showOnlyCurrentUser
-                      ? timeAgo
-                      : '$timeAgo • $distance km',
+                  showOnlyCurrentUser ? timeAgo : '$timeAgo • $distance km',
                   style: const TextStyle(
                     color: AppColors.grey,
                     fontFamily: 'Poppins',
@@ -353,48 +351,62 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    final userProfileState = Provider.of<UserProfileState>(context);
+    final showOnlyCurrentUser =
+        userProfileState.userProfile.stateSaverAllShoutsOROwnShouts == 1;
+    return Consumer<FilterNotifier>(
+      builder: (context, filterNotifier, child) {
+        // This widget will rebuild whenever filterNotifier changes
+        if (_isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-    if (_announcements.isEmpty) {
-      return Center(
-        child: RichText(
-          textAlign: TextAlign.center,
-          text: const TextSpan(
-            text:
-                'No announcements found 😔\n\nAdjust your filter settings\nand spread the word about ',
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 10.0,
-              fontWeight: FontWeight.normal,
-              color: AppColors.customBlack,
-            ),
-            children: <TextSpan>[
-              TextSpan(
-                text: 'DoggyMatch',
+        if (_announcements.isEmpty) {
+          return Center(
+            child: RichText(
+              textAlign: TextAlign.center,
+              text: const TextSpan(
+                text:
+                    'No announcements found 😔\n\nAdjust your filter settings\nand spread the word about ',
                 style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Poppins',
+                  fontSize: 10.0,
+                  fontWeight: FontWeight.normal,
+                  color: AppColors.customBlack,
                 ),
+                children: <TextSpan>[
+                  TextSpan(
+                    text: 'DoggyMatch',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  TextSpan(
+                    text: ' 🐶❤️',
+                  ),
+                ],
               ),
-              TextSpan(
-                text: ' 🐶❤️',
-              ),
-            ],
-          ),
-        ),
-      );
-    }
+            ),
+          );
+        }
 
-    return RefreshIndicator(
-      onRefresh: _loadFilteredUsersAnnouncements,
-      child: ListView.builder(
-        padding: const EdgeInsets.only(top: 0, left: 20, right: 20),
-        itemCount: _announcements.length,
-        itemBuilder: (context, index) {
-          return _buildAnnouncementCard(_announcements[index]);
-        },
-      ),
+        return RefreshIndicator(
+          onRefresh: _loadFilteredUsersAnnouncements,
+          child: ListView.builder(
+            padding: const EdgeInsets.only(top: 0, left: 20, right: 20),
+            itemCount: _announcements.length,
+            itemBuilder: (context, index) {
+              // Wrap each card in a Consumer<FilterNotifier> for fine-grained updates
+              return Consumer<FilterNotifier>(
+                builder: (context, filterNotifier, child) {
+                  return _buildAnnouncementCard(
+                      _announcements[index], showOnlyCurrentUser);
+                },
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
