@@ -160,6 +160,8 @@ class SearchPageState extends State<SearchPage> {
                   Expanded(
                     child: OtherPersonsAnnouncements(
                       showOnlyCurrentUser: _showOnlyCurrentUser,
+                      onProfileSelected:
+                          _openProfile, // Pass the same callback used in OtherPersons
                     ),
                   ),
                 ] else
