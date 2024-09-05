@@ -262,6 +262,35 @@ class AuthService {
     }
   }
 
+  // fetch all saved user profiles
+  Future<List<Map<String, dynamic>>> fetchSavedUserProfiles() async {
+    final user = _auth.currentUser;
+    List<Map<String, dynamic>> savedUserProfiles = [];
+
+    if (user != null) {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      if (userDoc.exists) {
+        final savedProfiles =
+            List<String>.from(userDoc.data()?['savedProfiles'] ?? []);
+
+        for (String profileUid in savedProfiles) {
+          final userProfile = await fetchOtherUserProfile(profileUid);
+          if (userProfile != null) {
+            savedUserProfiles.add({
+              'uid': profileUid,
+              'userProfile': userProfile,
+            });
+          }
+        }
+      }
+    }
+
+    return savedUserProfiles;
+  }
+
 // Remove a user's profile UID from the current user's saved profiles
   Future<void> unsaveUserProfile(String profileUid) async {
     final user = _auth.currentUser;

@@ -12,6 +12,7 @@ import 'package:doggymatch_flutter/pages/chat_page.dart';
 import 'package:doggymatch_flutter/pages/profile_page.dart';
 import 'package:doggymatch_flutter/widgets/custom_bottom_navigation.dart';
 import 'package:provider/provider.dart';
+import 'package:doggymatch_flutter/pages/community_page.dart'; // Add this import
 
 class MainScreen extends StatelessWidget {
   final bool fromRegister;
@@ -48,6 +49,7 @@ class MainScreen extends StatelessWidget {
               SearchPage(profileCloseNotifier: profileCloseNotifier),
               ChatPage(profileCloseNotifier: profileCloseNotifier),
               ProfilePage(profile: profile),
+              const CommunityPage(), // Add CommunityPage here (index 3)
             ];
 
             return Stack(

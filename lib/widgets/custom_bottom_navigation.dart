@@ -52,6 +52,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
       children: [
         _buildIcon(0, Icons.search_rounded),
         _buildChatIconWithNotification(), // Chat icon with notification dot
+        _buildIcon(3, Icons.people_alt_rounded), // Community icon
         _buildIcon(2, Icons.person_rounded),
       ],
     );

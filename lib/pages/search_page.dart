@@ -10,7 +10,6 @@ import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/state/user_profile_state.dart';
 import 'package:doggymatch_flutter/pages/notifiers/profile_close_notifier.dart';
 import 'package:doggymatch_flutter/pages/notifiers/filter_notifier.dart';
-import 'package:doggymatch_flutter/services/auth.dart';
 import 'package:doggymatch_flutter/widgets/search/profiles_announcement_toggle.dart';
 import 'package:doggymatch_flutter/pages/new_announcement_page.dart';
 import 'package:doggymatch_flutter/widgets/search/other_persons_announcements.dart';
@@ -33,7 +32,6 @@ class SearchPageState extends State<SearchPage> {
   UserProfile? _selectedProfile;
   String? _selectedDistance;
   String? _lastOnline;
-  final AuthService _authService = AuthService();
 
   @override
   void initState() {

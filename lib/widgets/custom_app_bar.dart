@@ -93,7 +93,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                       IconButton(
                         icon: const Icon(Icons.search_rounded, size: 30.0),
                         onPressed: () {}, // Add action if needed
-                        color: AppColors.customBlack,
+                        color: const Color.fromARGB(0, 34, 34, 34),
                       )
                     else if (showFilterIcon)
                       IconButton(
