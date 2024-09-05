@@ -41,6 +41,15 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
   }
 
   @override
+  void didUpdateWidget(covariant OtherPersonsAnnouncements oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.showOnlyCurrentUser != oldWidget.showOnlyCurrentUser) {
+      // When the toggle changes, reload announcements
+      _loadFilteredUsersAnnouncements();
+    }
+  }
+
+  @override
   void dispose() {
     _filterNotifier.removeListener(_loadFilteredUsersAnnouncements);
     super.dispose();

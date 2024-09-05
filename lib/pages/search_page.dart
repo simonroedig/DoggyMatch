@@ -106,9 +106,10 @@ class SearchPageState extends State<SearchPage> {
   void _onOwnAllAnnouncementsToggle(bool isAllSelected) {
     setState(() {
       _showOnlyCurrentUser = isAllSelected;
+      _loadFilteredUsersAnnouncements();
     });
     // Trigger the announcement reload to reflect the changes immediately
-    _loadFilteredUsersAnnouncements();
+    Provider.of<UserProfileState>(context, listen: false).refreshUserProfile();
   }
 
   void _loadFilteredUsersAnnouncements() {
@@ -159,9 +160,10 @@ class SearchPageState extends State<SearchPage> {
                   const SizedBox(height: 0),
                   Expanded(
                     child: OtherPersonsAnnouncements(
+                      key: ValueKey(
+                          _showOnlyCurrentUser), // This forces a rebuild when toggling
                       showOnlyCurrentUser: _showOnlyCurrentUser,
-                      onProfileSelected:
-                          _openProfile, // Pass the same callback used in OtherPersons
+                      onProfileSelected: _openProfile,
                     ),
                   ),
                 ] else

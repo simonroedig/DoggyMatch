@@ -1,6 +1,8 @@
 // file: own_all_announcements_toggle.dart
+import 'package:doggymatch_flutter/pages/notifiers/filter_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
+import 'package:provider/provider.dart';
 
 class OwnAllAnnouncementsToggle extends StatefulWidget {
   final Function(bool) onToggle; // Callback for when the toggle is changed
@@ -19,6 +21,7 @@ class _OwnAllAnnouncementsToggleState extends State<OwnAllAnnouncementsToggle> {
   void toggleSwitch() {
     setState(() {
       isAllAnnouncSelected = !isAllAnnouncSelected;
+      Provider.of<FilterNotifier>(context, listen: false).notifyFilterChanged();
     });
     widget.onToggle(isAllAnnouncSelected);
   }
