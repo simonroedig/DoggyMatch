@@ -11,7 +11,11 @@ import 'package:doggymatch_flutter/services/auth.dart';
 import 'package:doggymatch_flutter/pages/notifiers/filter_notifier.dart';
 
 class OtherPersonsAnnouncements extends StatefulWidget {
-  const OtherPersonsAnnouncements({super.key});
+  final bool
+      showOnlyCurrentUser; // Add this parameter to determine inclusion of the current user
+
+  const OtherPersonsAnnouncements(
+      {super.key, required this.showOnlyCurrentUser});
 
   @override
   _OtherPersonsAnnouncementsState createState() =>
@@ -22,7 +26,7 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
   final AuthService _authService = AuthService();
   bool _isLoading = true;
   List<Map<String, dynamic>> _announcements = [];
-  late FilterNotifier _filterNotifier; // Add a state variable for the notifier
+  late FilterNotifier _filterNotifier;
 
   @override
   void initState() {
@@ -40,45 +44,64 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
 
   Future<void> _loadFilteredUsersAnnouncements() async {
     setState(() {
-      _isLoading = true; // Show progress indicator
+      _isLoading = true;
     });
 
     final userProfileState =
         Provider.of<UserProfileState>(context, listen: false);
-    final String? currentUserId =
-        _authService.getCurrentUserId(); // Get the current user's UID
+    final String? currentUserId = _authService.getCurrentUserId();
+
+    List<Map<String, dynamic>> users = [];
+    List<Map<String, dynamic>> announcements = [];
 
     try {
-      // Fetch all users within the filter
-      List<Map<String, dynamic>> users =
-          await _authService.fetchAllUsersWithinFilter(
-        userProfileState.userProfile.filterLookingForDogOwner,
-        userProfileState.userProfile.filterLookingForDogSitter,
-        userProfileState.userProfile.filterDistance,
-        userProfileState.userProfile.latitude,
-        userProfileState.userProfile.longitude,
-        userProfileState.userProfile.filterLastOnline,
-      );
+      if (!widget.showOnlyCurrentUser) {
+        users = [];
+        announcements = [];
+        // Fetch all users within the filter
+        users = await _authService.fetchAllUsersWithinFilter(
+          userProfileState.userProfile.filterLookingForDogOwner,
+          userProfileState.userProfile.filterLookingForDogSitter,
+          userProfileState.userProfile.filterDistance,
+          userProfileState.userProfile.latitude,
+          userProfileState.userProfile.longitude,
+          userProfileState.userProfile.filterLastOnline,
+        );
 
-      // Exclude the current user's profile from the list
-      users = users.where((user) => user['uid'] != currentUserId).toList();
+        // If showOnlyCurrentUser is false, exclude the current user's profile
 
-      List<Map<String, dynamic>> announcements = [];
-
-      // Iterate over filtered users and fetch their announcements
-      for (var user in users) {
-        final userAnnouncements = await _fetchUserAnnouncements(user['uid']);
-        if (userAnnouncements.isNotEmpty) {
-          for (var announcement in userAnnouncements) {
-            announcements.add({
-              'user': user['firestoreData'],
-              'announcement': announcement,
-            });
+        users = users.where((user) => user['uid'] != currentUserId).toList();
+        for (var user in users) {
+          final userAnnouncements = await _fetchUserAnnouncements(user['uid']);
+          if (userAnnouncements.isNotEmpty) {
+            for (var announcement in userAnnouncements) {
+              announcements.add({
+                'user': user['firestoreData'],
+                'announcement': announcement,
+              });
+            }
+          }
+        }
+      } else {
+        users = [];
+        announcements = [];
+        final currentUserProfile = await _authService.fetchUserProfile();
+        if (currentUserProfile != null) {
+          users = [currentUserProfile.toMap()];
+          final userAnnouncements =
+              await _fetchUserAnnouncements(users[0]['uid']);
+          if (userAnnouncements.isNotEmpty) {
+            developer.log("own user announce not empty");
+            for (var announcement in userAnnouncements) {
+              announcements.add({
+                'user': users[0],
+                'announcement': announcement,
+              });
+            }
           }
         }
       }
 
-      // Sort announcements by the createdAt field
       announcements.sort((a, b) {
         final dateA = DateTime.parse(a['announcement']['createdAt']);
         final dateB = DateTime.parse(b['announcement']['createdAt']);
@@ -165,13 +188,11 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
     final String announcementTitle = announcement['announcementTitle'] ?? '';
     final String announcementText = announcement['announcementText'] ?? '';
 
-    // Get the main user's latitude and longitude from UserProfileState
     final userProfileState =
         Provider.of<UserProfileState>(context, listen: false);
     final mainUserLatitude = userProfileState.userProfile.latitude;
     final mainUserLongitude = userProfileState.userProfile.longitude;
 
-    // Calculate the distance between the main user and the announcement user
     final distance = _calculateDistance(
       mainUserLatitude,
       mainUserLongitude,
@@ -193,19 +214,15 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
         children: [
           Row(
             children: [
-              // User's profile image with rounded corners and custom black stroke
               ClipRRect(
-                borderRadius: BorderRadius.circular(
-                    21.0), // Same radius for image and stroke
+                borderRadius: BorderRadius.circular(21.0),
                 child: Container(
                   decoration: BoxDecoration(
                     border: Border.all(color: AppColors.customBlack, width: 3),
-                    borderRadius:
-                        BorderRadius.circular(21.0), // Same radius for stroke
+                    borderRadius: BorderRadius.circular(21.0),
                   ),
                   child: ClipRRect(
-                    borderRadius:
-                        BorderRadius.circular(18.0), // Same radius for image
+                    borderRadius: BorderRadius.circular(18.0),
                     child: Image.network(
                       profileImage,
                       height: 70,
@@ -216,10 +233,9 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
                 ),
               ),
               const SizedBox(width: 8.0),
-              // User and title section with fixed height
               Expanded(
                 child: Container(
-                  height: 74, // Set the fixed height to match the profile image
+                  height: 74,
                   padding: const EdgeInsets.all(8.0),
                   decoration: BoxDecoration(
                     color: AppColors.bg,
@@ -227,8 +243,7 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
                     border: Border.all(color: AppColors.customBlack, width: 3),
                   ),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment
-                        .center, // Center the content vertically
+                    mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _AutoScrollingRow(
@@ -247,7 +262,6 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
             ],
           ),
           const SizedBox(height: 10),
-          // Centered Announcement text section
           Center(
             child: Container(
               width: MediaQuery.of(context).size.width * 0.9,
@@ -259,7 +273,7 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
               ),
               child: Text(
                 announcementText,
-                textAlign: TextAlign.left, // Text itself left-aligned
+                textAlign: TextAlign.left,
                 style: const TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 12,
@@ -270,7 +284,6 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
             ),
           ),
           const SizedBox(height: 10),
-          // Time ago and distance section, bold and centered with Poppins font
           Center(
             child: Text(
               '$timeAgo • $distance km',
@@ -325,8 +338,7 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
     return RefreshIndicator(
       onRefresh: _loadFilteredUsersAnnouncements,
       child: ListView.builder(
-        padding: const EdgeInsets.only(
-            top: 0, left: 20, right: 20), // Remove top padding
+        padding: const EdgeInsets.only(top: 0, left: 20, right: 20),
         itemCount: _announcements.length,
         itemBuilder: (context, index) {
           return _buildAnnouncementCard(_announcements[index]);

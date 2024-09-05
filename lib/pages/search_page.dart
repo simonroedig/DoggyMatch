@@ -1,3 +1,4 @@
+// search_page.dart
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
 import 'package:doggymatch_flutter/widgets/custom_app_bar.dart';
@@ -27,6 +28,8 @@ class SearchPage extends StatefulWidget {
 class SearchPageState extends State<SearchPage> {
   bool _isFilterOpen = false;
   bool _isProfilesSelected = true; // To track toggle state
+  bool _showOnlyCurrentUser =
+      false; // Track the toggle state for including/excluding current user
   UserProfile? _selectedProfile;
   String? _selectedDistance;
   String? _lastOnline;
@@ -83,7 +86,6 @@ class SearchPageState extends State<SearchPage> {
     setState(() {
       _isFilterOpen = false;
     });
-    // Optionally, refresh the profiles list or trigger a rebuild
     Provider.of<UserProfileState>(context, listen: false).refreshUserProfile();
   }
 
@@ -102,7 +104,16 @@ class SearchPageState extends State<SearchPage> {
   }
 
   void _onOwnAllAnnouncementsToggle(bool isAllSelected) {
-    // Handle the toggle action
+    setState(() {
+      _showOnlyCurrentUser = isAllSelected;
+    });
+    // Trigger the announcement reload to reflect the changes immediately
+    _loadFilteredUsersAnnouncements();
+  }
+
+  void _loadFilteredUsersAnnouncements() {
+    // This function will trigger a re-fetch of the announcements when called
+    Provider.of<UserProfileState>(context, listen: false).refreshUserProfile();
   }
 
   @override
@@ -128,22 +139,15 @@ class SearchPageState extends State<SearchPage> {
                 ),
                 SizedBox(height: _isProfilesSelected ? 15 : 5),
                 if (!_isProfilesSelected) ...[
-                  // Row for both buttons: toggle on the left, add icon on the right
                   Row(
-                    mainAxisAlignment:
-                        MainAxisAlignment.center, // Center the whole group
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Centered OwnAllAnnouncementsToggle
                       OwnAllAnnouncementsToggle(
                         onToggle: _onOwnAllAnnouncementsToggle,
                       ),
-                      // Add some spacing between the toggle and the icon
-                      const SizedBox(
-                          width:
-                              16), // Adjust this width for spacing between the two elements
-                      // Centered Add Circle Icon
+                      const SizedBox(width: 16),
                       IconButton(
-                        iconSize: 48, // Size of the icon
+                        iconSize: 48,
                         icon: const Icon(
                           Icons.add_circle_outline_rounded,
                           color: AppColors.customBlack,
@@ -152,14 +156,13 @@ class SearchPageState extends State<SearchPage> {
                       ),
                     ],
                   ),
-
-                  const SizedBox(height: 0), // Spacing below the buttons
-                  // Display OtherPersonsAnnouncements list
-                  const Expanded(
-                    child: OtherPersonsAnnouncements(),
+                  const SizedBox(height: 0),
+                  Expanded(
+                    child: OtherPersonsAnnouncements(
+                      showOnlyCurrentUser: _showOnlyCurrentUser,
+                    ),
                   ),
                 ] else
-                  // Display OtherPersons when profiles are selected
                   Expanded(
                     child: OtherPersons(
                       onProfileSelected: _openProfile,
@@ -169,8 +172,7 @@ class SearchPageState extends State<SearchPage> {
             ),
             if (_isFilterOpen)
               Positioned(
-                top:
-                    kToolbarHeight - 55, // Positioning it just below the AppBar
+                top: kToolbarHeight - 55,
                 left: 0,
                 right: 0,
                 bottom: 0,

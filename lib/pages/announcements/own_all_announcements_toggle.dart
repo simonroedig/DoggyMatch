@@ -14,7 +14,7 @@ class OwnAllAnnouncementsToggle extends StatefulWidget {
 }
 
 class _OwnAllAnnouncementsToggleState extends State<OwnAllAnnouncementsToggle> {
-  bool isAllAnnouncSelected = true;
+  bool isAllAnnouncSelected = false;
 
   void toggleSwitch() {
     setState(() {
@@ -39,7 +39,7 @@ class _OwnAllAnnouncementsToggleState extends State<OwnAllAnnouncementsToggle> {
         ),
         alignment: Alignment.center,
         child: Text(
-          isAllAnnouncSelected ? 'All Shouts' : 'Own Shouts',
+          isAllAnnouncSelected ? 'Own Shouts' : 'All Shouts',
           style: const TextStyle(
             fontFamily: 'Poppins',
             color: AppColors.customBlack,
