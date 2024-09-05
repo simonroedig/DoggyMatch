@@ -5,8 +5,10 @@ import 'package:doggymatch_flutter/colors.dart';
 
 class ProfilesAnnouncementToggle extends StatefulWidget {
   final Function(bool) onToggle; // Callback for when the toggle is changed
+  final bool isProfilesSelected;
 
-  const ProfilesAnnouncementToggle({super.key, required this.onToggle});
+  const ProfilesAnnouncementToggle(
+      {super.key, required this.onToggle, required this.isProfilesSelected});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -16,13 +18,30 @@ class ProfilesAnnouncementToggle extends StatefulWidget {
 
 class _ProfilesAnnouncementToggleState
     extends State<ProfilesAnnouncementToggle> {
-  bool isProfilesSelected = true;
+  late bool isProfilesSelected;
+
+  @override
+  void initState() {
+    super.initState();
+    isProfilesSelected = widget.isProfilesSelected;
+  }
+
+  @override
+  void didUpdateWidget(covariant ProfilesAnnouncementToggle oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Update the state if the new value for isProfilesSelected differs
+    if (oldWidget.isProfilesSelected != widget.isProfilesSelected) {
+      setState(() {
+        isProfilesSelected = widget.isProfilesSelected;
+      });
+    }
+  }
 
   void toggleSwitch() {
     setState(() {
       isProfilesSelected = !isProfilesSelected;
     });
-    widget.onToggle(isProfilesSelected);
+    widget.onToggle(isProfilesSelected); // Call the onToggle callback
   }
 
   @override

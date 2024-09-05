@@ -36,7 +36,27 @@ class SearchPageState extends State<SearchPage> {
   @override
   void initState() {
     super.initState();
+    // Fetch the saved toggle state from UserProfileState
+    final userProfileState =
+        Provider.of<UserProfileState>(context, listen: false);
+
+    // Fetch the toggle state for Profiles vs Shouts
+    _isProfilesSelected =
+        userProfileState.userProfile.stateSaverChatPageMainToggle == 1;
+
+    _loadUserProfileState(); // Fetch the state from Firebase
     widget.profileCloseNotifier.addListener(_onProfileClose);
+  }
+
+  Future<void> _loadUserProfileState() async {
+    final userProfileState =
+        Provider.of<UserProfileState>(context, listen: false);
+    await userProfileState
+        .refreshUserProfile(); // Ensure the state is fetched before building
+    setState(() {
+      _isProfilesSelected =
+          userProfileState.userProfile.stateSaverChatPageMainToggle == 1;
+    });
   }
 
   @override
@@ -91,6 +111,10 @@ class SearchPageState extends State<SearchPage> {
     setState(() {
       _isProfilesSelected = isProfilesSelected;
     });
+
+    Provider.of<UserProfileState>(context, listen: false)
+        .updateStateSaverChatPageMainToggle(isProfilesSelected ? 1 : 2);
+    Provider.of<FilterNotifier>(context, listen: false).notifyFilterChanged();
   }
 
   void _navigateToNewAnnouncement() {
@@ -134,6 +158,7 @@ class SearchPageState extends State<SearchPage> {
                 const SizedBox(height: 5),
                 ProfilesAnnouncementToggle(
                   onToggle: _onToggle,
+                  isProfilesSelected: _isProfilesSelected,
                 ),
                 SizedBox(height: _isProfilesSelected ? 15 : 5),
                 if (!_isProfilesSelected) ...[

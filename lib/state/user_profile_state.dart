@@ -5,7 +5,7 @@ import 'package:doggymatch_flutter/profile/profile.dart';
 import 'package:doggymatch_flutter/colors.dart';
 import 'package:doggymatch_flutter/services/auth.dart';
 
-class UserProfileState extends ChangeNotifier {
+class UserProfileState extends ChangeNotifier with WidgetsBindingObserver {
   final _auth = AuthService();
 
   static const String placeholderImageUrl =
@@ -163,6 +163,15 @@ class UserProfileState extends ChangeNotifier {
       int stateSaverAllShoutsOROwnShouts) async {
     _userProfile = _userProfile.copyWith(
       stateSaverAllShoutsOROwnShouts: stateSaverAllShoutsOROwnShouts,
+    );
+    notifyListeners();
+    await _auth.addUserProfileData(_userProfile);
+  }
+
+  Future<void> updateStateSaverChatPageMainToggle(
+      int stateSaverChatPageMainToggle) async {
+    _userProfile = _userProfile.copyWith(
+      stateSaverChatPageMainToggle: stateSaverChatPageMainToggle,
     );
     notifyListeners();
     await _auth.addUserProfileData(_userProfile);
