@@ -1,3 +1,4 @@
+import 'package:doggymatch_flutter/services/auth.dart';
 import 'package:doggymatch_flutter/widgets/profile/profile_edit_all.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/colors.dart';
@@ -29,11 +30,35 @@ class ProfileWidget extends StatefulWidget {
 
 class _ProfileWidgetState extends State<ProfileWidget> {
   bool _isInChat = false;
+  bool _isProfileSaved = false; // Track if profile is saved
 
   @override
   void initState() {
     super.initState();
-    _isInChat = widget.startInChat; // Initialize with the provided parameter
+    _isInChat = widget.startInChat;
+
+    // Check if the profile is already saved
+    _checkIfProfileIsSaved();
+  }
+
+  Future<void> _checkIfProfileIsSaved() async {
+    bool isSaved = await AuthService().isProfileSaved(widget.profile.uid);
+    setState(() {
+      _isProfileSaved = isSaved;
+    });
+  }
+
+  Future<void> _toggleSavedStatus() async {
+    if (_isProfileSaved) {
+      // Unsave the profile
+      await AuthService().unsaveUserProfile(widget.profile.uid);
+    } else {
+      // Save the profile
+      await AuthService().saveUserProfile(widget.profile.uid);
+    }
+    setState(() {
+      _isProfileSaved = !_isProfileSaved;
+    });
   }
 
   @override
@@ -141,18 +166,22 @@ class _ProfileWidgetState extends State<ProfileWidget> {
           children: [
             if (widget.clickedOnOtherUser) ...[
               IconButton(
-                icon: const Icon(Icons.person_add_alt_1_rounded,
-                    color: AppColors.customBlack),
+                icon: const Icon(
+                  Icons.person_add_alt_1_rounded,
+                  color: AppColors.customBlack,
+                ),
                 onPressed: () {
                   // Handle add friend action here
                 },
               ),
               IconButton(
-                icon: const Icon(Icons.bookmark_rounded,
-                    color: AppColors.customBlack),
-                onPressed: () {
-                  // Handle save action here
-                },
+                icon: Icon(
+                  _isProfileSaved
+                      ? Icons.bookmark_rounded
+                      : Icons.bookmark_border_rounded,
+                  color: AppColors.customBlack,
+                ),
+                onPressed: _toggleSavedStatus, // Toggle saved status on press
               ),
             ],
             IconButton(
@@ -172,8 +201,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                     if (widget.clickedOnOtherUser) {
                       _isInChat = true; // Switch to chat view
                     } else {
-                      _openEditProfileDialog(
-                          context); // Open edit profile if not on another user's profile
+                      _openEditProfileDialog(context); // Open edit profile
                     }
                   }
                 });

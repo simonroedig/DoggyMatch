@@ -152,87 +152,111 @@ class _OtherPersonsState extends State<OtherPersons>
 
   Widget _buildUserCard(Map<String, dynamic> data, bool isDogOwner,
       Color profileColor, String filterDistance) {
-    return GestureDetector(
-      onTap: () async {
-        // Show progress indicator while fetching profile data
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) {
-            return const Center(
-              child: CircularProgressIndicator(),
+    return FutureBuilder<bool>(
+      future: AuthService().isProfileSaved(data['uid']),
+      builder: (context, snapshot) {
+        bool isSaved = snapshot.data ?? false;
+
+        return GestureDetector(
+          onTap: () async {
+            // Show progress indicator while fetching profile data
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              },
             );
+
+            try {
+              // Create a UserProfile instance from the data map
+              UserProfile selectedProfile = UserProfile(
+                uid: data['uid'],
+                email: data['email'],
+                userName: data['userName'],
+                dogName: data['dogName'],
+                dogBreed: data['dogBreed'],
+                dogAge: data['dogAge'],
+                isDogOwner: data['isDogOwner'],
+                images: List<String>.from(data['images']),
+                profileColor: Color(data['profileColor']),
+                aboutText: data['aboutText'],
+                location: data['location'],
+                latitude: data['latitude'].toDouble(),
+                longitude: data['longitude'].toDouble(),
+                filterDistance: data['filterDistance'],
+                birthday: data['birthday'] != null
+                    ? DateTime.parse(data['birthday'])
+                    : null,
+                lastOnline: data['lastOnline'] != null
+                    ? DateTime.parse(data['lastOnline'])
+                    : null,
+                filterLastOnline: data['filterLastOnline'] ?? 3,
+              );
+
+              // Calculate the distance
+              final userProfileState =
+                  Provider.of<UserProfileState>(context, listen: false);
+              final mainUserLatitude = userProfileState.userProfile.latitude;
+              final mainUserLongitude = userProfileState.userProfile.longitude;
+              final distance = _calculateDistance(
+                mainUserLatitude,
+                mainUserLongitude,
+                selectedProfile.latitude,
+                selectedProfile.longitude,
+              ).toStringAsFixed(1);
+
+              final lastOnline =
+                  calculateLastOnline(selectedProfile.lastOnline);
+
+              // Call the callback to notify SearchPage
+              widget.onProfileSelected(selectedProfile, distance, lastOnline);
+            } finally {
+              Navigator.pop(context); // Hide the progress indicator
+            }
           },
-        );
-
-        try {
-          // Create a UserProfile instance from the data map
-          UserProfile selectedProfile = UserProfile(
-            uid: data['uid'],
-            email: data['email'],
-            userName: data['userName'],
-            dogName: data['dogName'],
-            dogBreed: data['dogBreed'],
-            dogAge: data['dogAge'],
-            isDogOwner: data['isDogOwner'],
-            images: List<String>.from(data['images']),
-            profileColor: Color(data['profileColor']),
-            aboutText: data['aboutText'],
-            location: data['location'],
-            latitude: data['latitude'].toDouble(),
-            longitude: data['longitude'].toDouble(),
-            filterDistance: data['filterDistance'],
-            birthday: data['birthday'] != null
-                ? DateTime.parse(data['birthday'])
-                : null,
-            lastOnline: data['lastOnline'] != null
-                ? DateTime.parse(data['lastOnline'])
-                : null,
-            filterLastOnline: data['filterLastOnline'] ?? 3,
-          );
-
-          // Calculate the distance
-          final userProfileState =
-              Provider.of<UserProfileState>(context, listen: false);
-          final mainUserLatitude = userProfileState.userProfile.latitude;
-          final mainUserLongitude = userProfileState.userProfile.longitude;
-          final distance = _calculateDistance(
-            mainUserLatitude,
-            mainUserLongitude,
-            selectedProfile.latitude,
-            selectedProfile.longitude,
-          ).toStringAsFixed(1);
-
-          final lastOnline = calculateLastOnline(selectedProfile.lastOnline);
-
-          // Call the callback to notify SearchPage
-          widget.onProfileSelected(selectedProfile, distance, lastOnline);
-        } finally {
-          Navigator.pop(context); // Hide the progress indicator
-        }
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: profileColor,
-          borderRadius: BorderRadius.circular(24.0),
-          border: Border.all(color: AppColors.customBlack, width: 3),
-        ),
-        child: Column(
-          children: [
-            if (isDogOwner) _buildDogOwnerHeader(data['dogName']),
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(isDogOwner ? 0 : 21.0),
+          child: Stack(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: profileColor,
+                  borderRadius: BorderRadius.circular(24.0),
+                  border: Border.all(color: AppColors.customBlack, width: 3),
                 ),
-                child: _buildUserImage(data['images'], isDogOwner),
+                child: Column(
+                  children: [
+                    if (isDogOwner) _buildDogOwnerHeader(data['dogName']),
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(isDogOwner ? 0 : 21.0),
+                        ),
+                        child: _buildUserImage(data['images'], isDogOwner),
+                      ),
+                    ),
+                    _buildUserFooter(
+                        data['userName'],
+                        data['latitude'].toDouble(),
+                        data['longitude'].toDouble()),
+                  ],
+                ),
               ),
-            ),
-            _buildUserFooter(data['userName'], data['latitude'].toDouble(),
-                data['longitude'].toDouble()),
-          ],
-        ),
-      ),
+              if (isSaved)
+                const Positioned(
+                  bottom: 20,
+                  right: 3,
+                  child: Icon(
+                    Icons.bookmark_rounded,
+                    color: AppColors.customBlack,
+                    size: 14,
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 

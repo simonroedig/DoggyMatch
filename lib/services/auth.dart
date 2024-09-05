@@ -250,6 +250,47 @@ class AuthService {
     return user?.email;
   }
 
+  // Add a user's profile UID to the current user's saved profiles
+  Future<void> saveUserProfile(String profileUid) async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      final userDocRef =
+          FirebaseFirestore.instance.collection('users').doc(user.uid);
+      await userDocRef.update({
+        'savedProfiles': FieldValue.arrayUnion([profileUid])
+      });
+    }
+  }
+
+// Remove a user's profile UID from the current user's saved profiles
+  Future<void> unsaveUserProfile(String profileUid) async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      final userDocRef =
+          FirebaseFirestore.instance.collection('users').doc(user.uid);
+      await userDocRef.update({
+        'savedProfiles': FieldValue.arrayRemove([profileUid])
+      });
+    }
+  }
+
+  // Check if a profile is already saved in the current user's saved profiles
+  Future<bool> isProfileSaved(String profileUid) async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      if (userDoc.exists) {
+        final savedProfiles =
+            List<String>.from(userDoc.data()?['savedProfiles'] ?? []);
+        return savedProfiles.contains(profileUid);
+      }
+    }
+    return false;
+  }
+
   // Upload image to Firebase Storage
   Future<String?> uploadProfileImage(String filePath, String userId) async {
     try {
