@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:doggymatch_flutter/pages/notifiers/profile_close_notifier.dart';
 import 'package:doggymatch_flutter/widgets/profile/profile_widget.dart';
 import 'package:flutter/material.dart';
