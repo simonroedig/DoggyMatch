@@ -92,6 +92,14 @@ class SearchPageState extends State<SearchPage> {
   void _onToggle(bool isProfilesSelected) {
     setState(() {
       _isProfilesSelected = isProfilesSelected;
+
+      // Reset to show all announcements when switching back to Shouts
+      if (!_isProfilesSelected) {
+        _showOnlyCurrentUser =
+            false; // Reset to show all announcements by default
+        // Ensure that announcements are reloaded with the correct filter
+        _loadFilteredUsersAnnouncements();
+      }
     });
   }
 

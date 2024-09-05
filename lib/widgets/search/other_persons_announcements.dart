@@ -44,7 +44,7 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
   void didUpdateWidget(covariant OtherPersonsAnnouncements oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.showOnlyCurrentUser != oldWidget.showOnlyCurrentUser) {
-      // When the toggle changes, reload announcements
+      // Reload announcements when the toggle state changes
       _loadFilteredUsersAnnouncements();
     }
   }
