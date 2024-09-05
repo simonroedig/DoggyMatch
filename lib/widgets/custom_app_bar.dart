@@ -18,7 +18,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.showFilterIcon = true,
     this.onSettingsPressed,
     this.isProfileOpen = false,
-    this.showSearchIcon = false, // Default to false
+    this.showSearchIcon = false,
   });
 
   @override

@@ -12,8 +12,14 @@ import 'package:doggymatch_flutter/pages/notifiers/filter_notifier.dart';
 class OtherPersons extends StatefulWidget {
   final Function(UserProfile, String, String)
       onProfileSelected; // Callback to notify profile selection
+  final bool showAllProfiles;
+  final bool showSavedProfiles;
 
-  const OtherPersons({super.key, required this.onProfileSelected});
+  const OtherPersons(
+      {super.key,
+      required this.onProfileSelected,
+      this.showAllProfiles = true,
+      this.showSavedProfiles = false});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -30,17 +36,23 @@ class _OtherPersonsState extends State<OtherPersons>
   @override
   void initState() {
     super.initState();
-    _filterNotifier = Provider.of<FilterNotifier>(context,
-        listen: false); // Initialize in initState
-    _filterNotifier
-        .addListener(_loadFilteredUsers); // Add listener in initState
-    _loadFilteredUsers();
+    if (widget.showAllProfiles) {
+      _filterNotifier = Provider.of<FilterNotifier>(context,
+          listen: false); // Initialize in initState
+      _filterNotifier
+          .addListener(_loadFilteredUsers); // Add listener in initState
+      _loadFilteredUsers();
+    } else if (widget.showSavedProfiles) {
+      _loadSavedUsers();
+    }
   }
 
   @override
   void dispose() {
-    _filterNotifier.removeListener(
-        _loadFilteredUsers); // Remove listener safely in dispose
+    if (widget.showAllProfiles) {
+      _filterNotifier.removeListener(
+          _loadFilteredUsers); // Remove listener safely in dispose
+    }
     super.dispose();
   }
 
@@ -81,8 +93,44 @@ class _OtherPersonsState extends State<OtherPersons>
     }
   }
 
+  // load saved users
+  Future<void> _loadSavedUsers() async {
+    setState(() {
+      _isLoading = true; // Show progress indicator
+    });
+
+    try {
+      List<Map<String, dynamic>> users =
+          await _authService.fetchSavedUserProfiles();
+
+      if (mounted) {
+        setState(() {
+          _users = users;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      developer.log('Error fetching saved users: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final onRefreshCallback = widget.showAllProfiles
+        ? _loadFilteredUsers
+        : widget.showSavedProfiles
+            ? _loadSavedUsers
+            : null; // Fallback if none of the conditions are true
+
+    final noUsersTextCallback = widget.showAllProfiles
+        ? 'No users found 😔\n\nAdjust your filter settings\nand spread the word about DoggyMatch 🐶❤️'
+        : widget.showSavedProfiles
+            ? 'No saved profiles found 😔\n\nSave profiles to view them here'
+            : ''; // Fallback if none of the conditions are true
+
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(),
@@ -93,16 +141,15 @@ class _OtherPersonsState extends State<OtherPersons>
       return Center(
         child: RichText(
           textAlign: TextAlign.center,
-          text: const TextSpan(
-            text:
-                'No users found 😔\n\nAdjust your filter settings\nand spread the word about ',
-            style: TextStyle(
+          text: TextSpan(
+            text: noUsersTextCallback,
+            style: const TextStyle(
               fontFamily: 'Poppins',
               fontSize: 10.0,
               fontWeight: FontWeight.normal,
               color: AppColors.customBlack,
             ),
-            children: <TextSpan>[
+            children: const <TextSpan>[
               TextSpan(
                 text: 'DoggyMatch',
                 style: TextStyle(
@@ -120,7 +167,7 @@ class _OtherPersonsState extends State<OtherPersons>
 
     // GRID of the OTHERPERSONS
     return RefreshIndicator(
-      onRefresh: _loadFilteredUsers,
+      onRefresh: onRefreshCallback ?? () async {},
       color: AppColors.customBlack,
       child: GridView.builder(
         padding: const EdgeInsets.symmetric(

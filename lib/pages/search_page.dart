@@ -176,6 +176,8 @@ class SearchPageState extends State<SearchPage> {
                   Expanded(
                     child: OtherPersons(
                       onProfileSelected: _openProfile,
+                      showAllProfiles: true,
+                      showSavedProfiles: false,
                     ),
                   ),
               ],

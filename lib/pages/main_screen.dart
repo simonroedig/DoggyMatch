@@ -49,7 +49,9 @@ class MainScreen extends StatelessWidget {
               SearchPage(profileCloseNotifier: profileCloseNotifier),
               ChatPage(profileCloseNotifier: profileCloseNotifier),
               ProfilePage(profile: profile),
-              const CommunityPage(), // Add CommunityPage here (index 3)
+              CommunityPage(
+                  profileCloseNotifier:
+                      profileCloseNotifier), // Add CommunityPage here (index 3)
             ];
 
             return Stack(

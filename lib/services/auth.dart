@@ -264,31 +264,50 @@ class AuthService {
 
   // fetch all saved user profiles
   Future<List<Map<String, dynamic>>> fetchSavedUserProfiles() async {
-    final user = _auth.currentUser;
+    final user = _auth.currentUser; // Get current user
     List<Map<String, dynamic>> savedUserProfiles = [];
 
     if (user != null) {
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-      if (userDoc.exists) {
-        final savedProfiles =
-            List<String>.from(userDoc.data()?['savedProfiles'] ?? []);
+      try {
+        // Get current user's document from Firestore
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
 
-        for (String profileUid in savedProfiles) {
-          final userProfile = await fetchOtherUserProfile(profileUid);
-          if (userProfile != null) {
-            savedUserProfiles.add({
-              'uid': profileUid,
-              'userProfile': userProfile,
-            });
+        // Check if user document exists and contains saved profiles
+        if (userDoc.exists) {
+          final savedProfiles =
+              List<String>.from(userDoc.data()?['savedProfiles'] ?? []);
+
+          // Fetch the profiles for each saved UID
+          for (String profileUid in savedProfiles) {
+            final userProfile = await FirebaseFirestore.instance
+                .collection('users')
+                .doc(profileUid)
+                .get();
+
+            // Ensure the profile exists and add it to the savedUserProfiles list
+            if (userProfile.exists) {
+              savedUserProfiles.add({
+                'uid': profileUid,
+                'firestoreData': userProfile.data(),
+              });
+            }
+          }
+
+          // Optionally log the names of all saved profiles
+          for (var profile in savedUserProfiles) {
+            dev.log(
+                'Saved profile name: ${profile['firestoreData']['userName']}');
           }
         }
+      } catch (e) {
+        dev.log('Error fetching saved profiles: $e');
       }
     }
 
-    return savedUserProfiles;
+    return savedUserProfiles; // Return the list of saved user profiles
   }
 
 // Remove a user's profile UID from the current user's saved profiles
