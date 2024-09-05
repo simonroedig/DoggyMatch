@@ -21,7 +21,7 @@ class UserProfile {
   final DateTime? lastOnline;
   final int filterLastOnline; // 1,2,3,4,5 for Any, 1d, 3d, 1w, 1m
   final int stateSaverSearchPageMainToggle; // 1,2 for Profiles, Shouts
-  final int stateSaverAllShoutsOROwnShouts; // 1,2 for All Shouts, Own Shouts
+  final int stateSaverAllShoutsOROwnShouts; // 1,2 for Own Shouts, All Shouts
   final int stateSaverChatPageMainToggle; // 1,2 for Chats, Requests
 
   UserProfile({
