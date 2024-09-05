@@ -19,7 +19,7 @@ class UserProfile {
   final bool filterLookingForDogSitter;
   final double filterDistance;
   final DateTime? lastOnline;
-  final int filterLastOnline;
+  final int filterLastOnline; // 1,2,3,4,5 for Any, 1d, 3d, 1w, 1m
 
   UserProfile({
     required this.uid,

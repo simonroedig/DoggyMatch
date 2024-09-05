@@ -116,7 +116,7 @@ class AnnouncementDialogs {
           ),
           title: const Center(
             child: Text(
-              'Create Announcement?',
+              'Create Shout?',
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontWeight: FontWeight.bold,
@@ -130,7 +130,7 @@ class AnnouncementDialogs {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const Text(
-                'Please review your announcement details below. You can delete the announcement later anytime.',
+                'Please review your shout details below. You can delete the shout later anytime.',
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 14,
@@ -140,7 +140,7 @@ class AnnouncementDialogs {
               ),
               const SizedBox(height: 16),
               const Text(
-                'Announcement Title:',
+                'Shout Title:',
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontWeight: FontWeight.bold,
@@ -166,7 +166,7 @@ class AnnouncementDialogs {
               ),
               const SizedBox(height: 16),
               const Text(
-                'Announcement Text:',
+                'Shout Text:',
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontWeight: FontWeight.bold,
@@ -313,7 +313,7 @@ class AnnouncementDialogs {
               ),
               SizedBox(height: 16),
               Text(
-                'Announcement successfully created!',
+                'Shout successfully created!',
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontWeight: FontWeight.bold,

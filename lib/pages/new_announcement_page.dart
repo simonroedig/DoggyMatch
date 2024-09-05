@@ -122,7 +122,7 @@ class _NewAnnouncementPageState extends State<NewAnnouncementPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          "Create Announcement",
+          "Create Shout",
           style: TextStyle(
             fontFamily: 'Poppins',
             fontWeight: FontWeight.bold,
@@ -259,7 +259,7 @@ class _NewAnnouncementPageState extends State<NewAnnouncementPage> {
                     ),
                   ),
                   child: Text(
-                    'Create Announcement',
+                    'Create Shout',
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontWeight:
