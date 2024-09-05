@@ -44,7 +44,7 @@ class SearchPageState extends State<SearchPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _authService.updateLastOnline(); // Call your function here
+    //_authService.updateLastOnline(); // Call your function here
   }
 
   @override
