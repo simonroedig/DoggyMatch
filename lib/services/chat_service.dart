@@ -2,7 +2,7 @@ import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-import 'package:doggymatch_flutter/message/message.dart';
+import 'package:doggymatch_flutter/classes/message.dart';
 
 // https://www.youtube.com/watch?v=mBBycL0EtBQ
 // watched until minute 32:00
