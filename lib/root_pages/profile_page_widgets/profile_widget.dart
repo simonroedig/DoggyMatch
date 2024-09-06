@@ -31,6 +31,8 @@ class ProfileWidget extends StatefulWidget {
 class _ProfileWidgetState extends State<ProfileWidget> {
   bool _isInChat = false;
   bool _isProfileSaved = false; // Track if profile is saved
+  bool _isProfileSendFriendRequest = false; // Track if friend request is sent
+  bool _isProfileFriend = false; // Track if profile is a friend
 
   @override
   void initState() {
@@ -46,6 +48,49 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     setState(() {
       _isProfileSaved = isSaved;
     });
+  }
+
+  Future<void> _checkIfISentFriendRequest() async {
+    bool isFriendRequestSent =
+        await AuthService().isFriendRequestSent(widget.profile.uid);
+    setState(() {
+      _isProfileSendFriendRequest = isFriendRequestSent;
+    });
+  }
+
+  Future<void> _checkIfProfileFriend() async {
+    bool isFriend = await AuthService().areFriends(widget.profile.uid);
+    setState(() {
+      _isProfileFriend = isFriend;
+    });
+  }
+
+  Future<void> toggleFriendStatus() async {
+    if (!_isProfileFriend && !_isProfileSendFriendRequest) {
+      // Send friend request
+      await AuthService().sendFriendRequest(widget.profile.uid);
+      setState(() {
+        _isProfileFriend = false;
+        _isProfileSendFriendRequest = true;
+      });
+      return;
+    } else if (!_isProfileFriend && _isProfileSendFriendRequest) {
+      // Cancel friend request
+      await AuthService().cancelFriendRequest(widget.profile.uid);
+      setState(() {
+        _isProfileFriend = false;
+        _isProfileSendFriendRequest = false;
+      });
+      return;
+    } else if (_isProfileFriend && !_isProfileSendFriendRequest) {
+      // Unfriend
+      await AuthService().removeFriend(widget.profile.uid);
+      setState(() {
+        _isProfileFriend = false;
+        _isProfileSendFriendRequest = false;
+      });
+      return;
+    }
   }
 
   Future<void> _toggleSavedStatus() async {
@@ -165,23 +210,47 @@ class _ProfileWidgetState extends State<ProfileWidget> {
         Row(
           children: [
             if (widget.clickedOnOtherUser) ...[
-              IconButton(
-                icon: const Icon(
-                  Icons.person_add_alt_1_rounded,
-                  color: AppColors.customBlack,
+              Transform.translate(
+                offset:
+                    const Offset(7, 0), // Move the first button to the right
+                child: IconButton(
+                  padding: EdgeInsets.zero, // Remove default padding
+                  onPressed: () {
+                    // Handle add friend action here
+                    toggleFriendStatus();
+                  },
+                  icon: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.person_outline_outlined,
+                        color: AppColors.customBlack,
+                      ),
+                      Transform.translate(
+                        offset: const Offset(
+                            -6, -3), // Adjust icon position as needed
+                        child: const Icon(
+                          Icons.add_rounded,
+                          color: AppColors.customBlack,
+                          size: 16.0, // Adjust size if needed
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                onPressed: () {
-                  // Handle add friend action here
-                },
               ),
-              IconButton(
-                icon: Icon(
-                  _isProfileSaved
-                      ? Icons.bookmark_rounded
-                      : Icons.bookmark_border_rounded,
-                  color: AppColors.customBlack,
+              Transform.translate(
+                offset: const Offset(
+                    0, 0), // Move the bookmark icon (adjust 5 as needed)
+                child: IconButton(
+                  icon: Icon(
+                    _isProfileSaved
+                        ? Icons.bookmark_rounded
+                        : Icons.bookmark_border_rounded,
+                    color: AppColors.customBlack,
+                  ),
+                  onPressed: _toggleSavedStatus, // Toggle saved status on press
                 ),
-                onPressed: _toggleSavedStatus, // Toggle saved status on press
               ),
             ],
             IconButton(
@@ -208,7 +277,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
               },
             ),
           ],
-        ),
+        )
       ],
     );
   }

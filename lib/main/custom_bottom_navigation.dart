@@ -133,7 +133,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    Icons.chat_rounded,
+                    Icons.message_rounded,
                     size: 30.0,
                     color: activeIndex == 1
                         ? _getHighlightColor(1)
