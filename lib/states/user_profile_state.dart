@@ -43,6 +43,7 @@ class UserProfileState extends ChangeNotifier {
     _initializeUserProfile();
   }
 
+  /*
   // Reset state method
   void resetState() {
     _userProfile = UserProfile(
@@ -69,6 +70,7 @@ class UserProfileState extends ChangeNotifier {
     _isProfileOpen = false;
     notifyListeners();
   }
+  */
 
   List<String> get userImages {
     return _userProfile.images

@@ -13,6 +13,7 @@ class ProfileWidget extends StatefulWidget {
   final double distance;
   final String lastOnline;
   final bool startInChat;
+  final bool isProfileSaved;
 
   const ProfileWidget({
     super.key,
@@ -20,6 +21,7 @@ class ProfileWidget extends StatefulWidget {
     required this.clickedOnOtherUser,
     required this.distance,
     required this.lastOnline,
+    required this.isProfileSaved,
     this.startInChat = false,
   });
 
@@ -38,9 +40,10 @@ class _ProfileWidgetState extends State<ProfileWidget> {
   void initState() {
     super.initState();
     _isInChat = widget.startInChat;
+    _isProfileSaved = widget.isProfileSaved;
 
     // Check if the profile is already saved
-    _checkIfProfileIsSaved();
+    //_checkIfProfileIsSaved();
   }
 
   Future<void> _checkIfProfileIsSaved() async {

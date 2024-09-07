@@ -24,6 +24,7 @@ class _CommunityPageState extends State<CommunityPage> {
   UserProfile? _selectedProfile;
   String? _selectedDistance;
   String? _lastOnline;
+  bool? _isSaved;
 
   @override
   void initState() {
@@ -34,7 +35,6 @@ class _CommunityPageState extends State<CommunityPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    //_authService.updateLastOnline(); // Call your function here
   }
 
   @override
@@ -56,11 +56,13 @@ class _CommunityPageState extends State<CommunityPage> {
     });
   }
 
-  void _openProfile(UserProfile profile, String distance, String lastOnline) {
+  void _openProfile(
+      UserProfile profile, String distance, String lastOnline, bool isSaved) {
     setState(() {
       _selectedProfile = profile;
       _selectedDistance = distance;
       _lastOnline = lastOnline;
+      _isSaved = isSaved;
     });
     Provider.of<UserProfileState>(context, listen: false).openProfile();
   }
@@ -130,6 +132,7 @@ class _CommunityPageState extends State<CommunityPage> {
                           clickedOnOtherUser: true,
                           distance: double.parse(_selectedDistance ?? '?'),
                           lastOnline: _lastOnline ?? '',
+                          isProfileSaved: _isSaved ?? false,
                         ),
                       ),
                     ),

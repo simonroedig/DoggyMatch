@@ -611,8 +611,8 @@ class AuthService {
   // sign out
   Future signOut() async {
     try {
-      await FirebaseFirestore.instance.terminate(); // Clear Firestore cache
-      await FirebaseFirestore.instance.clearPersistence();
+      //await FirebaseFirestore.instance.terminate(); // Clear Firestore cache
+      //await FirebaseFirestore.instance.clearPersistence();
 
       return await _auth.signOut();
     } catch (e) {

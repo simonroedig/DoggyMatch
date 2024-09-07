@@ -38,6 +38,7 @@ class ProfilePage extends StatelessWidget {
               clickedOnOtherUser: false,
               distance: 0.0,
               lastOnline: '',
+              isProfileSaved: false,
             ),
           ),
         ],

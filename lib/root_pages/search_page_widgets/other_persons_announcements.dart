@@ -14,7 +14,7 @@ import 'package:doggymatch_flutter/classes/profile.dart';
 class OtherPersonsAnnouncements extends StatefulWidget {
   final bool
       showOnlyCurrentUser; // Add this parameter to determine inclusion of the current user
-  final Function(UserProfile, String, String) onProfileSelected;
+  final Function(UserProfile, String, String, bool) onProfileSelected;
 
   const OtherPersonsAnnouncements(
       {super.key,
@@ -82,8 +82,8 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
         );
 
         // If showOnlyCurrentUser is false, exclude the current user's profile
-
         users = users.where((user) => user['uid'] != currentUserId).toList();
+
         for (var user in users) {
           final userAnnouncements = await _fetchUserAnnouncements(user['uid']);
           if (userAnnouncements.isNotEmpty) {
@@ -186,6 +186,10 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
     }
   }
 
+  Future<bool> _isProfileSaved(String userId) async {
+    return await _authService.isProfileSaved(userId);
+  }
+
   Widget _buildAnnouncementCard(Map<String, dynamic> announcementData) {
     final user = announcementData['user'];
     final announcement = announcementData['announcement'];
@@ -213,151 +217,188 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
       user['longitude'].toDouble(),
     ).toStringAsFixed(1);
 
-    return GestureDetector(
-        onTap: () {
-          if (!widget.showOnlyCurrentUser) {
-            // Create a UserProfile instance from the announcement data and pass it to the onProfileSelected callback
-            UserProfile selectedProfile = UserProfile(
-              uid: user['uid'],
-              email: user['email'],
-              userName: user['userName'],
-              dogName: user['dogName'],
-              dogBreed: user['dogBreed'],
-              dogAge: user['dogAge'],
-              isDogOwner: user['isDogOwner'],
-              images: List<String>.from(user['images']),
-              profileColor: profileColor,
-              aboutText: user['aboutText'],
-              location: user['location'],
-              latitude: user['latitude'].toDouble(),
-              longitude: user['longitude'].toDouble(),
-              filterDistance: user['filterDistance'],
-              birthday: user['birthday'] != null
-                  ? DateTime.parse(user['birthday'])
-                  : null,
-              lastOnline: user['lastOnline'] != null
-                  ? DateTime.parse(user['lastOnline'])
-                  : null,
-              filterLastOnline: user['filterLastOnline'] ?? 3,
-            );
+    return FutureBuilder<bool>(
+      future: _isProfileSaved(user['uid']),
+      builder: (context, snapshot) {
+        bool isSaved = snapshot.data ?? false;
 
-            // Calculate distance and lastOnline for the profile widget
-            final calculatedDistance = _calculateDistance(
-              mainUserLatitude,
-              mainUserLongitude,
-              selectedProfile.latitude,
-              selectedProfile.longitude,
-            ).toStringAsFixed(1);
+        return GestureDetector(
+          onTap: () {
+            if (!widget.showOnlyCurrentUser) {
+              UserProfile selectedProfile = UserProfile(
+                uid: user['uid'],
+                email: user['email'],
+                userName: user['userName'],
+                dogName: user['dogName'],
+                dogBreed: user['dogBreed'],
+                dogAge: user['dogAge'],
+                isDogOwner: user['isDogOwner'],
+                images: List<String>.from(user['images']),
+                profileColor: profileColor,
+                aboutText: user['aboutText'],
+                location: user['location'],
+                latitude: user['latitude'].toDouble(),
+                longitude: user['longitude'].toDouble(),
+                filterDistance: user['filterDistance'],
+                birthday: user['birthday'] != null
+                    ? DateTime.parse(user['birthday'])
+                    : null,
+                lastOnline: user['lastOnline'] != null
+                    ? DateTime.parse(user['lastOnline'])
+                    : null,
+                filterLastOnline: user['filterLastOnline'] ?? 3,
+              );
 
-            final lastOnline = calculateLastOnline(selectedProfile.lastOnline);
+              // Calculate distance and lastOnline for the profile widget
+              final calculatedDistance = _calculateDistance(
+                mainUserLatitude,
+                mainUserLongitude,
+                selectedProfile.latitude,
+                selectedProfile.longitude,
+              ).toStringAsFixed(1);
 
-            // Call the onProfileSelected callback to open the profile
-            widget.onProfileSelected(
-                selectedProfile, calculatedDistance, lastOnline);
-          }
-        },
-        child: Container(
-          margin: const EdgeInsets.symmetric(vertical: 8.0),
-          padding: const EdgeInsets.all(10.0),
-          width: MediaQuery.of(context).size.width * 0.9,
-          decoration: BoxDecoration(
-            color: profileColor,
-            borderRadius: BorderRadius.circular(24.0),
-            border: Border.all(color: AppColors.customBlack, width: 3),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(21.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border:
-                            Border.all(color: AppColors.customBlack, width: 3),
-                        borderRadius: BorderRadius.circular(21.0),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(18.0),
-                        child: Image.network(
-                          profileImage,
-                          height: 70,
-                          width: 70,
-                          fit: BoxFit.cover,
+              final lastOnline =
+                  calculateLastOnline(selectedProfile.lastOnline);
+
+              widget.onProfileSelected(
+                  selectedProfile, calculatedDistance, lastOnline, isSaved);
+            }
+          },
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 8.0),
+            padding: const EdgeInsets.all(10.0),
+            width: MediaQuery.of(context).size.width * 0.9,
+            decoration: BoxDecoration(
+              color: profileColor,
+              borderRadius: BorderRadius.circular(24.0),
+              border: Border.all(color: AppColors.customBlack, width: 3),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Stack(
+                  children: [
+                    Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(18.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                  color: AppColors.customBlack, width: 3),
+                              borderRadius: BorderRadius.circular(18.0),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(15.0),
+                              child: Image.network(
+                                profileImage,
+                                height: 70,
+                                width: 70,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8.0),
+                        Expanded(
+                          child: Container(
+                            height: 74,
+                            padding: const EdgeInsets.all(8.0),
+                            decoration: BoxDecoration(
+                              color: AppColors.bg,
+                              borderRadius: BorderRadius.circular(18.0),
+                              border: Border.all(
+                                  color: AppColors.customBlack, width: 3),
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _AutoScrollingRow(
+                                  userName: userName,
+                                  isDogOwner: isDogOwner,
+                                  dogName: dogName,
+                                ),
+                                const SizedBox(height: 4),
+                                _AutoScrollingTitleRow(
+                                  title: announcementTitle,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (isSaved)
+                      Positioned(
+                        top: 3,
+                        left: 4,
+                        child: Transform.scale(
+                          scale: 0.85, // Slightly smaller for the profile image
+                          child: const Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              // Outer icon for the stroke
+                              Icon(
+                                Icons.bookmark_border_rounded,
+                                color: Colors.black, // Stroke color
+                                size: 20, // Smaller size
+                              ),
+                              // Inner filled icon
+                              Icon(
+                                Icons.bookmark_rounded,
+                                color: AppColors.bg, // Your original color
+                                size: 16, // Smaller size
+                              ),
+                            ],
+                          ),
                         ),
                       ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Center(
+                  child: Container(
+                    width: MediaQuery.of(context).size.width * 0.9,
+                    padding: const EdgeInsets.all(8.0),
+                    decoration: BoxDecoration(
+                      color: AppColors.bg,
+                      borderRadius: BorderRadius.circular(18.0),
+                      border:
+                          Border.all(color: AppColors.customBlack, width: 3),
                     ),
-                  ),
-                  const SizedBox(width: 8.0),
-                  Expanded(
-                    child: Container(
-                      height: 74,
-                      padding: const EdgeInsets.all(8.0),
-                      decoration: BoxDecoration(
-                        color: AppColors.bg,
-                        borderRadius: BorderRadius.circular(18.0),
-                        border:
-                            Border.all(color: AppColors.customBlack, width: 3),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _AutoScrollingRow(
-                            userName: userName,
-                            isDogOwner: isDogOwner,
-                            dogName: dogName,
-                          ),
-                          const SizedBox(height: 4),
-                          _AutoScrollingTitleRow(
-                            title: announcementTitle,
-                          ),
-                        ],
+                    child: Text(
+                      announcementText,
+                      textAlign: TextAlign.left,
+                      style: const TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w300,
+                        color: AppColors.customBlack,
                       ),
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Center(
-                child: Container(
-                  width: MediaQuery.of(context).size.width * 0.9,
-                  padding: const EdgeInsets.all(8.0),
-                  decoration: BoxDecoration(
-                    color: AppColors.bg,
-                    borderRadius: BorderRadius.circular(18.0),
-                    border: Border.all(color: AppColors.customBlack, width: 3),
-                  ),
+                ),
+                const SizedBox(height: 10),
+                Center(
                   child: Text(
-                    announcementText,
-                    textAlign: TextAlign.left,
+                    widget.showOnlyCurrentUser
+                        ? timeAgo
+                        : '$timeAgo • $distance km',
                     style: const TextStyle(
+                      color: AppColors.grey,
                       fontFamily: 'Poppins',
-                      fontSize: 12,
-                      fontWeight: FontWeight.w300,
-                      color: AppColors.customBlack,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 10,
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 10),
-              Center(
-                child: Text(
-                  widget.showOnlyCurrentUser
-                      ? timeAgo
-                      : '$timeAgo • $distance km',
-                  style: const TextStyle(
-                    color: AppColors.grey,
-                    fontFamily: 'Poppins',
-                    fontWeight: FontWeight.bold,
-                    fontSize: 10,
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ));
+        );
+      },
+    );
   }
 
   @override

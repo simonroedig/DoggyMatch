@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -119,160 +121,173 @@ class _NewAnnouncementPageState extends State<NewAnnouncementPage> {
     final bool isButtonEnabled =
         isAnnouncementTextValid && isTitleTextValid && isDateValid;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          "Create Shout",
-          style: TextStyle(
-            fontFamily: 'Poppins',
-            fontWeight: FontWeight.bold,
+    return WillPopScope(
+      onWillPop: () async {
+        if (_announcementController.text.isNotEmpty ||
+            _titleController.text.isNotEmpty) {
+          // Show the dismiss confirmation dialog if there are unsaved changes
+          AnnouncementDialogs.showDismissConfirmationDialog(context);
+          return false; // Prevent popping the page automatically
+        }
+        return true; // Allow popping the page
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            "Create Shout",
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          backgroundColor: AppColors.greyLightest,
+          elevation: 0.0,
+          scrolledUnderElevation: 0.0,
+          surfaceTintColor: Colors.transparent,
+          leading: IconButton(
+            icon: const Icon(
+              Icons.arrow_circle_left_rounded,
+              size: 30.0,
+              color: AppColors.customBlack,
+            ),
+            onPressed: () {
+              if (_announcementController.text.isNotEmpty ||
+                  _titleController.text.isNotEmpty) {
+                AnnouncementDialogs.showDismissConfirmationDialog(context);
+              } else {
+                Navigator.of(context).pop();
+              }
+            },
           ),
         ),
         backgroundColor: AppColors.greyLightest,
-        elevation: 0.0,
-        scrolledUnderElevation: 0.0,
-        surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_circle_left_rounded,
-            size: 30.0,
-            color: AppColors.customBlack,
-          ),
-          onPressed: () {
-            if (_announcementController.text.isNotEmpty ||
-                _titleController.text.isNotEmpty) {
-              AnnouncementDialogs.showDismissConfirmationDialog(context);
-            } else {
-              Navigator.of(context).pop();
-            }
-          },
-        ),
-      ),
-      backgroundColor: AppColors.greyLightest,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildTextFieldWithCounter(
-              controller: _titleController,
-              maxLength: 50,
-              minLength: _minTitleLength,
-              labelText: 'Title',
-              icon: Icons.title_rounded,
-              keyboardType: TextInputType.text,
-            ),
-            const SizedBox(height: 16),
-            _buildTextFieldWithCounter(
-              controller: _announcementController,
-              maxLength: 1000,
-              minLength: _minAnnouncementLength,
-              labelText: 'Text',
-              icon: Icons.announcement_rounded,
-              keyboardType: TextInputType.multiline,
-              minLines: 3,
-              maxLines: null,
-            ),
-            const SizedBox(height: 16),
-            _buildHeadlineWithIcon(
-              Icons.date_range_rounded,
-              'Show Until',
-            ),
-            GestureDetector(
-              onTap: () => _selectDate(context),
-              child: AbsorbPointer(
-                child: TextField(
-                  controller: TextEditingController(
-                    text: _showForever
-                        ? 'Show Forever'
-                        : (_selectedDate != null
-                            ? DateFormat.yMd().format(_selectedDate!)
-                            : ''),
-                  ),
-                  decoration: InputDecoration(
-                    suffixIcon: Icon(
-                      Icons.calendar_today,
-                      color: isDateValid
-                          ? AppColors.customBlack
-                          : AppColors.customRed,
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildTextFieldWithCounter(
+                controller: _titleController,
+                maxLength: 50,
+                minLength: _minTitleLength,
+                labelText: 'Title',
+                icon: Icons.title_rounded,
+                keyboardType: TextInputType.text,
+              ),
+              const SizedBox(height: 16),
+              _buildTextFieldWithCounter(
+                controller: _announcementController,
+                maxLength: 1000,
+                minLength: _minAnnouncementLength,
+                labelText: 'Text',
+                icon: Icons.announcement_rounded,
+                keyboardType: TextInputType.multiline,
+                minLines: 3,
+                maxLines: null,
+              ),
+              const SizedBox(height: 16),
+              _buildHeadlineWithIcon(
+                Icons.date_range_rounded,
+                'Show Until',
+              ),
+              GestureDetector(
+                onTap: () => _selectDate(context),
+                child: AbsorbPointer(
+                  child: TextField(
+                    controller: TextEditingController(
+                      text: _showForever
+                          ? 'Show Forever'
+                          : (_selectedDate != null
+                              ? DateFormat.yMd().format(_selectedDate!)
+                              : ''),
                     ),
+                    decoration: InputDecoration(
+                      suffixIcon: Icon(
+                        Icons.calendar_today,
+                        color: isDateValid
+                            ? AppColors.customBlack
+                            : AppColors.customRed,
+                      ),
+                    ),
+                    style: const TextStyle(color: AppColors.customBlack),
                   ),
-                  style: const TextStyle(color: AppColors.customBlack),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Show Forever',
-                  style: TextStyle(
-                    color: AppColors.customBlack,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                CupertinoSwitch(
-                  value: _showForever,
-                  onChanged: (bool value) {
-                    setState(() {
-                      _showForever = value;
-                      if (_showForever) {
-                        _selectedDate = null;
-                      }
-                    });
-                  },
-                  trackColor: _showForever ? AppColors.brownLight : null,
-                  activeColor: AppColors.brownLight,
-                  thumbColor: AppColors.bg,
-                ),
-              ],
-            ),
-            const SizedBox(height: 32),
-            Center(
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width * 0.9,
-                child: ElevatedButton(
-                  onPressed: isButtonEnabled
-                      ? () {
-                          AnnouncementDialogs.showCreateConfirmationDialog(
-                              context,
-                              _titleController,
-                              _announcementController,
-                              _selectedDate,
-                              _showForever);
-                        }
-                      : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isButtonEnabled
-                        ? AppColors.customBlack
-                        : Colors.transparent,
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 12.0, // Increase the vertical padding
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Show Forever',
+                    style: TextStyle(
+                      color: AppColors.customBlack,
+                      fontWeight: FontWeight.bold,
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0), // Curved edges
-                      side: const BorderSide(
-                        color: AppColors.customBlack, // Border color
-                        width: 3.0, // Border width
+                  ),
+                  CupertinoSwitch(
+                    value: _showForever,
+                    onChanged: (bool value) {
+                      setState(() {
+                        _showForever = value;
+                        if (_showForever) {
+                          _selectedDate = null;
+                        }
+                      });
+                    },
+                    trackColor: _showForever ? AppColors.brownLight : null,
+                    activeColor: AppColors.brownLight,
+                    thumbColor: AppColors.bg,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 32),
+              Center(
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.9,
+                  child: ElevatedButton(
+                    onPressed: isButtonEnabled
+                        ? () {
+                            AnnouncementDialogs.showCreateConfirmationDialog(
+                                context,
+                                _titleController,
+                                _announcementController,
+                                _selectedDate,
+                                _showForever);
+                          }
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isButtonEnabled
+                          ? AppColors.customBlack
+                          : Colors.transparent,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 12.0, // Increase the vertical padding
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(8.0), // Curved edges
+                        side: const BorderSide(
+                          color: AppColors.customBlack, // Border color
+                          width: 3.0, // Border width
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      'Create Shout',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontWeight: isButtonEnabled
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: isButtonEnabled
+                            ? AppColors.bg
+                            : AppColors.customBlack,
                       ),
                     ),
                   ),
-                  child: Text(
-                    'Create Shout',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontWeight:
-                          isButtonEnabled ? FontWeight.bold : FontWeight.normal,
-                      color: isButtonEnabled
-                          ? AppColors.bg
-                          : AppColors.customBlack,
-                    ),
-                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

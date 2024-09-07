@@ -35,6 +35,7 @@ class _ChatPageState extends State<ChatPage> {
   bool _isProfileOpen = false;
   double? _selectedDistance;
   String? _lastOnline;
+  bool? _isSaved;
 
   StreamSubscription<QuerySnapshot>? _chatRoomsSubscription;
   List<Map<String, dynamic>> _chatRooms = [];
@@ -68,12 +69,14 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
-  void _openProfile(UserProfile profile, String distance, String lastOnline) {
+  void _openProfile(
+      UserProfile profile, String distance, String lastOnline, bool isSaved) {
     setState(() {
       _selectedProfile = profile;
       _isProfileOpen = true;
       _selectedDistance = double.parse(distance);
       _lastOnline = lastOnline;
+      _isSaved = isSaved;
       Provider.of<UserProfileState>(context, listen: false).openProfile();
     });
   }
@@ -166,12 +169,15 @@ class _ChatPageState extends State<ChatPage> {
             chatRoomState = "NO MESSAGES";
           }
 
+          final bool isSaved = await _authService.isProfileSaved(otherUserId);
+
           chatRooms.add({
             'profile': otherUserProfile,
             'lastMessageNotifier': lastMessageNotifier,
             'distance': distance.toStringAsFixed(1),
             'lastOnline': lastOnline,
             'chatRoomState': chatRoomState,
+            'isSaved': isSaved,
           });
 
           developer.log('ChatRoomState: $chatRoomState');
@@ -236,7 +242,9 @@ class _ChatPageState extends State<ChatPage> {
                                         _openProfile(
                                             chatRoom['profile'] as UserProfile,
                                             chatRoom['distance'] as String,
-                                            chatRoom['lastOnline'] as String);
+                                            chatRoom['lastOnline'] as String,
+                                            chatRoom['isSaved'] as bool? ??
+                                                false);
                                       },
                                     ),
                                   );
@@ -283,7 +291,9 @@ class _ChatPageState extends State<ChatPage> {
                                               chatRoom['profile']
                                                   as UserProfile,
                                               chatRoom['distance'] as String,
-                                              chatRoom['lastOnline'] as String);
+                                              chatRoom['lastOnline'] as String,
+                                              chatRoom['isSaved'] as bool? ??
+                                                  false);
                                         },
                                       ),
                                     )),
@@ -327,7 +337,9 @@ class _ChatPageState extends State<ChatPage> {
                                               chatRoom['profile']
                                                   as UserProfile,
                                               chatRoom['distance'] as String,
-                                              chatRoom['lastOnline'] as String);
+                                              chatRoom['lastOnline'] as String,
+                                              chatRoom['isSaved'] as bool? ??
+                                                  false);
                                         },
                                       ),
                                     )),
@@ -357,6 +369,7 @@ class _ChatPageState extends State<ChatPage> {
                           clickedOnOtherUser: true,
                           distance: _selectedDistance ?? 0.0,
                           lastOnline: _lastOnline ?? '',
+                          isProfileSaved: _isSaved ?? false,
                           startInChat: true,
                         ),
                       ),

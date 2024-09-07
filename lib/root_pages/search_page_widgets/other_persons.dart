@@ -10,7 +10,7 @@ import 'package:doggymatch_flutter/classes/profile.dart';
 import 'package:doggymatch_flutter/notifiers/filter_notifier.dart';
 
 class OtherPersons extends StatefulWidget {
-  final Function(UserProfile, String, String)
+  final Function(UserProfile, String, String, bool)
       onProfileSelected; // Callback to notify profile selection
   final bool showAllProfiles;
   final bool showSavedProfiles;
@@ -126,7 +126,7 @@ class _OtherPersonsState extends State<OtherPersons>
             : null; // Fallback if none of the conditions are true
 
     final noUsersTextCallback = widget.showAllProfiles
-        ? 'No users found 😔\n\nAdjust your filter settings\nand spread the word about DoggyMatch 🐶❤️'
+        ? 'No users found 😔\n\nAdjust your filter settings\nand spread the word about '
         : widget.showSavedProfiles
             ? 'No saved profiles found 😔\n\nSave profiles to view them here'
             : ''; // Fallback if none of the conditions are true
@@ -259,7 +259,8 @@ class _OtherPersonsState extends State<OtherPersons>
                   calculateLastOnline(selectedProfile.lastOnline);
 
               // Call the callback to notify SearchPage
-              widget.onProfileSelected(selectedProfile, distance, lastOnline);
+              widget.onProfileSelected(
+                  selectedProfile, distance, lastOnline, isSaved);
             } finally {
               Navigator.pop(context); // Hide the progress indicator
             }
@@ -291,13 +292,28 @@ class _OtherPersonsState extends State<OtherPersons>
                 ),
               ),
               if (isSaved)
-                const Positioned(
-                  bottom: 20,
-                  right: 3,
-                  child: Icon(
-                    Icons.bookmark_rounded,
-                    color: AppColors.customBlack,
-                    size: 14,
+                Positioned(
+                  top: !isDogOwner ? -1 : 30.2,
+                  left: 20,
+                  child: Transform.scale(
+                    scale: 1.27, // Adjust scale for precise stroke size
+                    child: const Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Outer icon for the stroke
+                        Icon(
+                          Icons.bookmark_border_rounded,
+                          color: Colors.black, // Stroke color
+                          size: 26, // Same size as the filled icon
+                        ),
+                        // Inner filled icon
+                        Icon(
+                          Icons.bookmark_rounded,
+                          color: AppColors.bg, // Your original color
+                          size: 20, // Original size
+                        ),
+                      ],
+                    ),
                   ),
                 ),
             ],
