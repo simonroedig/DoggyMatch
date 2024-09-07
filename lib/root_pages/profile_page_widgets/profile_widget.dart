@@ -7,6 +7,7 @@ import 'package:doggymatch_flutter/root_pages/profile_page_widgets/profile_info_
 import 'package:doggymatch_flutter/root_pages/chat_page_widgets/profile_chat.dart';
 import 'package:doggymatch_flutter/classes/profile.dart';
 import 'package:doggymatch_flutter/services/friends_service.dart';
+import 'package:doggymatch_flutter/root_pages/community_page_widgets/friends_dialogs.dart';
 
 class ProfileWidget extends StatefulWidget {
   final UserProfile profile;
@@ -40,6 +41,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
       false; // Track if friend request is received from other person
   bool _isProfileFriend = false; // Track if profile is a friend
 
+  // ignore: unused_element
   Future<void> _checkIfProfileIsSaved() async {
     bool isSaved = await AuthService().isProfileSaved(widget.profile.uid);
     setState(() {
@@ -85,74 +87,53 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     if (!_isProfileFriend &&
         !_isProfileFriendRequestSent &&
         !_isProfileFriendRequestReceived) {
-      // Send own friend request, Other did not send a request
-      // path 1
-      // PopUp
-      // Text: Do you want to send a friend request to $userName?
-      // Buttons: No, Yes
-      // if yes, call sendFriendRequest and set state like here
-      await FriendsService().sendFriendRequest(widget.profile.uid);
-      setState(() {
-        _isProfileFriend = false;
-        _isProfileFriendRequestSent = true;
-        _isProfileFriendRequestReceived = false;
-      });
-      return;
+      bool? confirmed = await FriendsDialogs.showSendFriendRequestDialog(
+          context, widget.profile.userName);
+      if (confirmed == true) {
+        await FriendsService().sendFriendRequest(widget.profile.uid);
+        setState(() {
+          _isProfileFriendRequestSent = true;
+        });
+      }
     } else if (!_isProfileFriend &&
         _isProfileFriendRequestSent &&
         !_isProfileFriendRequestReceived) {
-      // Cancel own friend request, Other did not send a request
-      // path 2
-      // PopUp
-      // Text: Do you want to cancel the friend request to $userName?
-      // Buttons: No, Yes
-      // if yes, call cancelFriendRequest and set state like here
-      await FriendsService().cancelFriendRequest(widget.profile.uid);
-      setState(() {
-        _isProfileFriend = false;
-        _isProfileFriendRequestSent = false;
-        _isProfileFriendRequestReceived = false;
-      });
-      return;
+      bool? confirmed = await FriendsDialogs.showCancelFriendRequestDialog(
+          context, widget.profile.userName);
+      if (confirmed == true) {
+        await FriendsService().cancelFriendRequest(widget.profile.uid);
+        setState(() {
+          _isProfileFriendRequestSent = false;
+        });
+      }
     } else if (_isProfileFriend &&
         !_isProfileFriendRequestSent &&
         !_isProfileFriendRequestReceived) {
-      // Unfriend BOTH
-      // path 3
-      // PopUp
-      // Text: Do you want to unfriend $userName?
-      // Buttons: No, Yes
-      // if yes, call removeFriend, set state like here
-      await FriendsService().removeFriend(widget.profile.uid);
-      setState(() {
-        _isProfileFriend = false;
-        _isProfileFriendRequestSent = false;
-        _isProfileFriendRequestReceived = false;
-      });
-      return;
+      bool? confirmed = await FriendsDialogs.showUnfriendDialog(
+          context, widget.profile.userName);
+      if (confirmed == true) {
+        await FriendsService().removeFriend(widget.profile.uid);
+        setState(() {
+          _isProfileFriend = false;
+        });
+      }
     } else if (!_isProfileFriend &&
         !_isProfileFriendRequestSent &&
         _isProfileFriendRequestReceived) {
-      // Accept friend request
-      // toggle path 4 (and 5)
-      // PopUp
-      // Text: Do you want to accept the friend request from $userName?
-      // Buttons: Cancel, No, Yes
-      // if yes, call function makeFriends, set state like here
-      await FriendsService().makeFriends(widget.profile.uid);
-      setState(() {
-        _isProfileFriend = true;
-        _isProfileFriendRequestSent = false;
-        _isProfileFriendRequestReceived = false;
-      });
-      // if no, call removeReceivedFriendRequest, set state like here
-      await FriendsService().removeReceivedFriendRequest(widget.profile.uid);
-      setState(() {
-        _isProfileFriend = false;
-        _isProfileFriendRequestSent = false;
-        _isProfileFriendRequestReceived = false;
-      });
-      // if cancel, do nothing
+      bool? confirmed = await FriendsDialogs.showAcceptFriendRequestDialog(
+          context, widget.profile.userName);
+      if (confirmed == true) {
+        await FriendsService().makeFriends(widget.profile.uid);
+        setState(() {
+          _isProfileFriend = true;
+          _isProfileFriendRequestReceived = false;
+        });
+      } else if (confirmed == false) {
+        await FriendsService().removeReceivedFriendRequest(widget.profile.uid);
+        setState(() {
+          _isProfileFriendRequestReceived = false;
+        });
+      }
     }
   }
 
