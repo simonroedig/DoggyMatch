@@ -1,4 +1,3 @@
-// search_page.dart
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:doggymatch_flutter/main/custom_app_bar.dart';
@@ -38,12 +37,6 @@ class SearchPageState extends State<SearchPage> {
   void initState() {
     super.initState();
     widget.profileCloseNotifier.addListener(_onProfileClose);
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    //_authService.updateLastOnline(); // Call your function here
   }
 
   @override
@@ -98,7 +91,6 @@ class SearchPageState extends State<SearchPage> {
       if (!_isProfilesSelected) {
         _showOnlyCurrentUser =
             false; // Reset to show all announcements by default
-        // Ensure that announcements are reloaded with the correct filter
         _loadFilteredUsersAnnouncements();
       }
     });
@@ -126,105 +118,118 @@ class SearchPageState extends State<SearchPage> {
     Provider.of<UserProfileState>(context, listen: false).refreshUserProfile();
   }
 
+  Future<bool> _onWillPop() async {
+    if (_isFilterOpen) {
+      setState(() {
+        _isFilterOpen = false; // Close the filter menu
+      });
+      return false; // Prevent default back button behavior
+    }
+    return true; // Allow the back button to close the page if filter is not open
+  }
+
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => FilterNotifier(),
-      child: Scaffold(
-        backgroundColor: AppColors.bg,
-        appBar: CustomAppBar(
-          isFilterOpen: _isFilterOpen,
-          toggleFilter: _toggleFilter,
-          showFilterIcon: true,
-          onSettingsPressed: null,
-          isProfileOpen: Provider.of<UserProfileState>(context).isProfileOpen,
-        ),
-        body: Stack(
-          children: [
-            Column(
-              children: [
-                const SizedBox(height: 5),
-                ProfilesAnnouncementToggle(
-                  onToggle: _onToggle,
-                ),
-                SizedBox(height: _isProfilesSelected ? 15 : 5),
-                if (!_isProfilesSelected) ...[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      OwnAllAnnouncementsToggle(
-                        onToggle: _onOwnAllAnnouncementsToggle,
-                      ),
-                      const SizedBox(width: 16),
-                      IconButton(
-                        iconSize: 48,
-                        icon: const Icon(
-                          Icons.add_circle_outline_rounded,
-                          color: AppColors.customBlack,
+    return WillPopScope(
+      onWillPop: _onWillPop, // Handle back button
+      child: ChangeNotifierProvider(
+        create: (context) => FilterNotifier(),
+        child: Scaffold(
+          backgroundColor: AppColors.bg,
+          appBar: CustomAppBar(
+            isFilterOpen: _isFilterOpen,
+            toggleFilter: _toggleFilter,
+            showFilterIcon: true,
+            onSettingsPressed: null,
+            isProfileOpen: Provider.of<UserProfileState>(context).isProfileOpen,
+          ),
+          body: Stack(
+            children: [
+              Column(
+                children: [
+                  const SizedBox(height: 5),
+                  ProfilesAnnouncementToggle(
+                    onToggle: _onToggle,
+                  ),
+                  SizedBox(height: _isProfilesSelected ? 15 : 5),
+                  if (!_isProfilesSelected) ...[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        OwnAllAnnouncementsToggle(
+                          onToggle: _onOwnAllAnnouncementsToggle,
                         ),
-                        onPressed: _navigateToNewAnnouncement,
+                        const SizedBox(width: 16),
+                        IconButton(
+                          iconSize: 48,
+                          icon: const Icon(
+                            Icons.add_circle_outline_rounded,
+                            color: AppColors.customBlack,
+                          ),
+                          onPressed: _navigateToNewAnnouncement,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 0),
+                    Expanded(
+                      child: OtherPersonsAnnouncements(
+                        key: ValueKey(
+                            _showOnlyCurrentUser), // This forces a rebuild when toggling
+                        showOnlyCurrentUser: _showOnlyCurrentUser,
+                        onProfileSelected: _openProfile,
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 0),
-                  Expanded(
-                    child: OtherPersonsAnnouncements(
-                      key: ValueKey(
-                          _showOnlyCurrentUser), // This forces a rebuild when toggling
-                      showOnlyCurrentUser: _showOnlyCurrentUser,
-                      onProfileSelected: _openProfile,
                     ),
-                  ),
-                ] else
-                  Expanded(
-                    child: OtherPersons(
-                      onProfileSelected: _openProfile,
-                      showAllProfiles: true,
-                      showSavedProfiles: false,
+                  ] else
+                    Expanded(
+                      child: OtherPersons(
+                        onProfileSelected: _openProfile,
+                        showAllProfiles: true,
+                        showSavedProfiles: false,
+                      ),
                     ),
-                  ),
-              ],
-            ),
-            if (_isFilterOpen)
-              Positioned(
-                top: kToolbarHeight - 55,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: FilterMenu(
-                  onClose: _applyFilterChanges,
-                ),
+                ],
               ),
-            if (_selectedProfile != null)
-              Positioned.fill(
-                child: Stack(
-                  children: [
-                    GestureDetector(
-                      onTap: () {},
-                      child: Container(
-                        color: Colors.black.withOpacity(0),
+              if (_isFilterOpen)
+                Positioned(
+                  top: kToolbarHeight - 55,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: FilterMenu(
+                    onClose: _applyFilterChanges,
+                  ),
+                ),
+              if (_selectedProfile != null)
+                Positioned.fill(
+                  child: Stack(
+                    children: [
+                      GestureDetector(
+                        onTap: () {},
+                        child: Container(
+                          color: Colors.black.withOpacity(0),
+                        ),
                       ),
-                    ),
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(0.0),
-                        child: Material(
-                          borderRadius: BorderRadius.circular(16.0),
-                          color: Colors.transparent,
-                          child: ProfileWidget(
-                            profile: _selectedProfile!,
-                            clickedOnOtherUser: true,
-                            distance: double.parse(_selectedDistance ?? '?'),
-                            lastOnline: _lastOnline ?? '',
-                            isProfileSaved: _isSaved ?? false,
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(0.0),
+                          child: Material(
+                            borderRadius: BorderRadius.circular(16.0),
+                            color: Colors.transparent,
+                            child: ProfileWidget(
+                              profile: _selectedProfile!,
+                              clickedOnOtherUser: true,
+                              distance: double.parse(_selectedDistance ?? '?'),
+                              lastOnline: _lastOnline ?? '',
+                              isProfileSaved: _isSaved ?? false,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
