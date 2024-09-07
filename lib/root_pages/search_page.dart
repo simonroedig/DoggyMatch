@@ -63,6 +63,13 @@ class SearchPageState extends State<SearchPage> {
     setState(() {
       _isFilterOpen = !_isFilterOpen;
     });
+    final userProfileState =
+        Provider.of<UserProfileState>(context, listen: false);
+    if (userProfileState.isFilterMenuOpen) {
+      userProfileState.closeFilterMenu(); // Close filter menu in state
+    } else {
+      userProfileState.openFilterMenu(); // Open filter menu in state
+    }
   }
 
   void closeProfile() {

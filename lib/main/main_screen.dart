@@ -1,7 +1,5 @@
-// ignore_for_file: deprecated_member_use
-
 import 'dart:developer';
-
+import 'package:doggymatch_flutter/notifiers/filter_close_notifier.dart';
 import 'package:doggymatch_flutter/notifiers/profile_close_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
@@ -12,7 +10,7 @@ import 'package:doggymatch_flutter/root_pages/chat_page.dart';
 import 'package:doggymatch_flutter/root_pages/profile_page.dart';
 import 'package:doggymatch_flutter/main/custom_bottom_navigation.dart';
 import 'package:provider/provider.dart';
-import 'package:doggymatch_flutter/root_pages/community_page.dart'; // Add this import
+import 'package:doggymatch_flutter/root_pages/community_page.dart';
 
 class MainScreen extends StatelessWidget {
   final bool fromRegister;
@@ -20,6 +18,8 @@ class MainScreen extends StatelessWidget {
   MainScreen({super.key, this.fromRegister = false});
 
   final ProfileCloseNotifier profileCloseNotifier = ProfileCloseNotifier();
+  final FilterMenuNotifier filterMenuNotifier =
+      FilterMenuNotifier(); // Add FilterMenuNotifier
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +30,13 @@ class MainScreen extends StatelessWidget {
         if (userProfileState.isProfileOpen) {
           userProfileState.closeProfile();
           profileCloseNotifier.triggerCloseProfile(); // Signal to close profile
+          return false; // Prevent the default back button action
+        }
+
+        if (userProfileState.isFilterMenuOpen) {
+          userProfileState.closeFilterMenu();
+          filterMenuNotifier
+              .triggerCloseFilterMenu(); // Signal to close filter menu
           return false; // Prevent the default back button action
         }
 
@@ -49,9 +56,7 @@ class MainScreen extends StatelessWidget {
               SearchPage(profileCloseNotifier: profileCloseNotifier),
               ChatPage(profileCloseNotifier: profileCloseNotifier),
               ProfilePage(profile: profile),
-              CommunityPage(
-                  profileCloseNotifier:
-                      profileCloseNotifier), // Add CommunityPage here (index 3)
+              CommunityPage(profileCloseNotifier: profileCloseNotifier),
             ];
 
             return Stack(
@@ -79,12 +84,19 @@ class MainScreen extends StatelessWidget {
                         userProfileState.updateCurrentIndex(index);
                       }
                     },
-                    showCloseButton: userProfileState.isProfileOpen,
+                    showCloseButton: userProfileState
+                        .isCloseButtonVisible, // Show close button when either profile or filter menu is open
                     onCloseButtonTapped: () {
                       log("Close button callback triggered in MainScreen");
-                      userProfileState.closeProfile();
-                      profileCloseNotifier
-                          .triggerCloseProfile(); // Signal to close profile
+                      if (userProfileState.isProfileOpen) {
+                        userProfileState.closeProfile();
+                        profileCloseNotifier
+                            .triggerCloseProfile(); // Signal to close profile
+                      } else if (userProfileState.isFilterMenuOpen) {
+                        userProfileState.closeFilterMenu();
+                        filterMenuNotifier
+                            .triggerCloseFilterMenu(); // Signal to close filter menu
+                      }
                     },
                   );
                 },

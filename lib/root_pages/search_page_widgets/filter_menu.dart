@@ -1,3 +1,4 @@
+import 'package:doggymatch_flutter/notifiers/filter_close_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/states/user_profile_state.dart';
@@ -41,11 +42,33 @@ class FilterMenuState extends State<FilterMenu> {
     _currentLastOnlineIndex =
         (userProfileState.userProfile.filterLastOnline - 1)
             .clamp(0, _lastOnlineOptions.length - 1);
+
+    // Listen for close events from FilterMenuNotifier
+    Provider.of<FilterMenuNotifier>(context, listen: false).addListener(() {
+      if (Provider.of<FilterMenuNotifier>(context, listen: false)
+          .shouldCloseFilterMenu) {
+        widget.onClose(); // Close the menu
+        Provider.of<FilterMenuNotifier>(context, listen: false).reset();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    Provider.of<FilterMenuNotifier>(context, listen: false)
+        .removeListener(() {});
   }
 
   void _applyChanges() {
     final userProfileState =
         Provider.of<UserProfileState>(context, listen: false);
+
+    if (userProfileState.isFilterMenuOpen) {
+      userProfileState.closeFilterMenu(); // Close filter menu in state
+    } else {
+      userProfileState.openFilterMenu(); // Open filter menu in state
+    }
 
     // Save the selected index + 1 as the integer value
     userProfileState.updateFilterSettings(
@@ -235,7 +258,6 @@ class FilterMenuState extends State<FilterMenu> {
                               width: 3.0, // Border width
                             ),
                           ),
-                          //elevation: 0, // No shadow
                         ),
                         child: const Text(
                           'Apply',

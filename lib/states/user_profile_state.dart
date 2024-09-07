@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/classes/profile.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
@@ -34,44 +33,36 @@ class UserProfileState extends ChangeNotifier {
 
   int _currentIndex = 0;
   bool _isProfileOpen = false;
+  bool _isFilterMenuOpen =
+      false; // New variable to track if filter menu is open
 
   UserProfile get userProfile => _userProfile;
   int get currentIndex => _currentIndex;
   bool get isProfileOpen => _isProfileOpen;
+  bool get isFilterMenuOpen =>
+      _isFilterMenuOpen; // Getter for filter menu state
+
+  // Combined method to determine if the close button should be visible
+  bool get isCloseButtonVisible => _isProfileOpen || _isFilterMenuOpen;
 
   UserProfileState() {
     _initializeUserProfile();
   }
 
-  /*
-  // Reset state method
-  void resetState() {
-    _userProfile = UserProfile(
-        uid: '',
-        email: '',
-        userName: '',
-        birthday: DateTime(2000, 1, 1),
-        aboutText: '',
-        profileColor: AppColors.accent1,
-        images: [placeholderImageUrl],
-        location: '',
-        latitude: 0.0,
-        longitude: 0.0,
-        isDogOwner: false,
-        dogName: '',
-        dogBreed: '',
-        dogAge: '',
-        filterLookingForDogOwner: false,
-        filterLookingForDogSitter: false,
-        filterDistance: 0.0,
-        lastOnline: DateTime.now(),
-        filterLastOnline: 3);
-    _currentIndex = 0;
-    _isProfileOpen = false;
+  // Methods for managing the filter menu state
+  void openFilterMenu() {
+    _isFilterMenuOpen = true;
+    log('Filter menu opened via profile state');
     notifyListeners();
   }
-  */
 
+  void closeFilterMenu() {
+    _isFilterMenuOpen = false;
+    log('Filter menu closed via profile state');
+    notifyListeners();
+  }
+
+  // Existing methods
   List<String> get userImages {
     return _userProfile.images
         .where((image) => image != placeholderImageUrl)
@@ -160,6 +151,7 @@ class UserProfileState extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Methods to handle profile open/close
   void openProfile() {
     log('Open profile via profile state');
     _isProfileOpen = true;

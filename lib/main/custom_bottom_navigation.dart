@@ -1,9 +1,11 @@
 import 'dart:developer';
 
+import 'package:doggymatch_flutter/notifiers/filter_close_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final int activeIndex;
@@ -38,8 +40,9 @@ class CustomBottomNavigationBar extends StatelessWidget {
                 width: 3.0,
               ),
             ),
-            child:
-                showCloseButton ? _buildCloseButton() : _buildNavigationIcons(),
+            child: showCloseButton
+                ? _buildCloseButton(context)
+                : _buildNavigationIcons(),
           ),
         ),
       ),
@@ -90,13 +93,16 @@ class CustomBottomNavigationBar extends StatelessWidget {
     );
   }
 
-  Widget _buildCloseButton() {
+  Widget _buildCloseButton(BuildContext context) {
     return GestureDetector(
       onTap: () {
         log("Close button tapped in nav bar");
         if (onCloseButtonTapped != null) {
           onCloseButtonTapped!();
         }
+
+        Provider.of<FilterMenuNotifier>(context, listen: false)
+            .triggerCloseFilterMenu();
       },
       child: Center(
         child: Container(

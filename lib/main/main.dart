@@ -1,5 +1,6 @@
 // ignore_for_file: library_private_types_in_public_api
 
+import 'package:doggymatch_flutter/notifiers/filter_close_notifier.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/services/auth_gate.dart';
@@ -51,8 +52,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => UserProfileState(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProfileState()),
+        ChangeNotifierProvider(
+            create: (_) => FilterMenuNotifier()), // Provide FilterMenuNotifier
+      ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'DoggyMatch',
