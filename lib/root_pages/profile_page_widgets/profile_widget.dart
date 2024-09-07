@@ -6,6 +6,7 @@ import 'package:doggymatch_flutter/root_pages/profile_page_widgets/profile_image
 import 'package:doggymatch_flutter/root_pages/profile_page_widgets/profile_info_sections.dart';
 import 'package:doggymatch_flutter/root_pages/chat_page_widgets/profile_chat.dart';
 import 'package:doggymatch_flutter/classes/profile.dart';
+import 'package:doggymatch_flutter/services/friends_service.dart';
 
 class ProfileWidget extends StatefulWidget {
   final UserProfile profile;
@@ -33,18 +34,11 @@ class ProfileWidget extends StatefulWidget {
 class _ProfileWidgetState extends State<ProfileWidget> {
   bool _isInChat = false;
   bool _isProfileSaved = false; // Track if profile is saved
-  bool _isProfileSendFriendRequest = false; // Track if friend request is sent
+  bool _isProfileFriendRequestSent =
+      false; // Track if friend request is sent to other person
+  bool _isProfileFriendRequestReceived =
+      false; // Track if friend request is received from other person
   bool _isProfileFriend = false; // Track if profile is a friend
-
-  @override
-  void initState() {
-    super.initState();
-    _isInChat = widget.startInChat;
-    _isProfileSaved = widget.isProfileSaved;
-
-    // Check if the profile is already saved
-    //_checkIfProfileIsSaved();
-  }
 
   Future<void> _checkIfProfileIsSaved() async {
     bool isSaved = await AuthService().isProfileSaved(widget.profile.uid);
@@ -55,44 +49,187 @@ class _ProfileWidgetState extends State<ProfileWidget> {
 
   Future<void> _checkIfISentFriendRequest() async {
     bool isFriendRequestSent =
-        await AuthService().isFriendRequestSent(widget.profile.uid);
+        await FriendsService().isFriendRequestSent(widget.profile.uid);
     setState(() {
-      _isProfileSendFriendRequest = isFriendRequestSent;
+      _isProfileFriendRequestSent = isFriendRequestSent;
+    });
+  }
+
+  Future<void> _checkIfIReceivedFriendRequest() async {
+    bool isFriendRequestReceived =
+        await FriendsService().isFriendRequestReceived(widget.profile.uid);
+    setState(() {
+      _isProfileFriendRequestReceived = isFriendRequestReceived;
     });
   }
 
   Future<void> _checkIfProfileFriend() async {
-    bool isFriend = await AuthService().areFriends(widget.profile.uid);
+    bool isFriend = await FriendsService().areFriends(widget.profile.uid);
     setState(() {
       _isProfileFriend = isFriend;
     });
   }
 
+  @override
+  void initState() {
+    super.initState();
+    _isInChat = widget.startInChat;
+    _isProfileSaved = widget.isProfileSaved;
+
+    _checkIfISentFriendRequest();
+    _checkIfIReceivedFriendRequest();
+    _checkIfProfileFriend();
+  }
+
   Future<void> toggleFriendStatus() async {
-    if (!_isProfileFriend && !_isProfileSendFriendRequest) {
-      // Send friend request
-      await AuthService().sendFriendRequest(widget.profile.uid);
+    if (!_isProfileFriend &&
+        !_isProfileFriendRequestSent &&
+        !_isProfileFriendRequestReceived) {
+      // Send own friend request, Other did not send a request
+      // path 1
+      // PopUp
+      // Text: Do you want to send a friend request to $userName?
+      // Buttons: No, Yes
+      // if yes, call sendFriendRequest and set state like here
+      await FriendsService().sendFriendRequest(widget.profile.uid);
       setState(() {
         _isProfileFriend = false;
-        _isProfileSendFriendRequest = true;
+        _isProfileFriendRequestSent = true;
+        _isProfileFriendRequestReceived = false;
       });
       return;
-    } else if (!_isProfileFriend && _isProfileSendFriendRequest) {
-      // Cancel friend request
-      await AuthService().cancelFriendRequest(widget.profile.uid);
+    } else if (!_isProfileFriend &&
+        _isProfileFriendRequestSent &&
+        !_isProfileFriendRequestReceived) {
+      // Cancel own friend request, Other did not send a request
+      // path 2
+      // PopUp
+      // Text: Do you want to cancel the friend request to $userName?
+      // Buttons: No, Yes
+      // if yes, call cancelFriendRequest and set state like here
+      await FriendsService().cancelFriendRequest(widget.profile.uid);
       setState(() {
         _isProfileFriend = false;
-        _isProfileSendFriendRequest = false;
+        _isProfileFriendRequestSent = false;
+        _isProfileFriendRequestReceived = false;
       });
       return;
-    } else if (_isProfileFriend && !_isProfileSendFriendRequest) {
-      // Unfriend
-      await AuthService().removeFriend(widget.profile.uid);
+    } else if (_isProfileFriend &&
+        !_isProfileFriendRequestSent &&
+        !_isProfileFriendRequestReceived) {
+      // Unfriend BOTH
+      // path 3
+      // PopUp
+      // Text: Do you want to unfriend $userName?
+      // Buttons: No, Yes
+      // if yes, call removeFriend, set state like here
+      await FriendsService().removeFriend(widget.profile.uid);
       setState(() {
         _isProfileFriend = false;
-        _isProfileSendFriendRequest = false;
+        _isProfileFriendRequestSent = false;
+        _isProfileFriendRequestReceived = false;
       });
       return;
+    } else if (!_isProfileFriend &&
+        !_isProfileFriendRequestSent &&
+        _isProfileFriendRequestReceived) {
+      // Accept friend request
+      // toggle path 4 (and 5)
+      // PopUp
+      // Text: Do you want to accept the friend request from $userName?
+      // Buttons: Cancel, No, Yes
+      // if yes, call function makeFriends, set state like here
+      await FriendsService().makeFriends(widget.profile.uid);
+      setState(() {
+        _isProfileFriend = true;
+        _isProfileFriendRequestSent = false;
+        _isProfileFriendRequestReceived = false;
+      });
+      // if no, call removeReceivedFriendRequest, set state like here
+      await FriendsService().removeReceivedFriendRequest(widget.profile.uid);
+      setState(() {
+        _isProfileFriend = false;
+        _isProfileFriendRequestSent = false;
+        _isProfileFriendRequestReceived = false;
+      });
+      // if cancel, do nothing
+    }
+  }
+
+  Icon? getIcon1BasedOnState() {
+    Color color = AppColors.customBlack;
+
+    if (!_isProfileFriend &&
+        !_isProfileFriendRequestSent &&
+        !_isProfileFriendRequestReceived) {
+      return Icon(
+        Icons.person_outline_rounded,
+        color: color,
+      );
+    } else if (!_isProfileFriend &&
+        !_isProfileFriendRequestSent &&
+        _isProfileFriendRequestReceived) {
+      return Icon(
+        Icons.person_rounded,
+        color: color,
+      );
+    } else if (!_isProfileFriend &&
+        _isProfileFriendRequestSent &&
+        !_isProfileFriendRequestReceived) {
+      return Icon(
+        Icons.person_rounded,
+        color: color,
+      );
+    } else if (_isProfileFriend &&
+        !_isProfileFriendRequestSent &&
+        !_isProfileFriendRequestReceived) {
+      return Icon(
+        Icons.person_rounded,
+        color: color,
+      );
+    } else {
+      return null;
+    }
+  }
+
+  Icon? getIcon2BasedOnState() {
+    double size = 16.0;
+    Color color = AppColors.customBlack;
+
+    if (!_isProfileFriend &&
+        !_isProfileFriendRequestSent &&
+        !_isProfileFriendRequestReceived) {
+      return Icon(
+        Icons.add_rounded,
+        color: color,
+        size: size,
+      );
+    } else if (!_isProfileFriend &&
+        !_isProfileFriendRequestSent &&
+        _isProfileFriendRequestReceived) {
+      return Icon(
+        Icons.call_received_rounded,
+        color: color,
+        size: size,
+      );
+    } else if (!_isProfileFriend &&
+        _isProfileFriendRequestSent &&
+        !_isProfileFriendRequestReceived) {
+      return Icon(
+        Icons.call_made_rounded,
+        color: color,
+        size: size,
+      );
+    } else if (_isProfileFriend &&
+        !_isProfileFriendRequestSent &&
+        !_isProfileFriendRequestReceived) {
+      return Icon(
+        Icons.check_rounded,
+        color: color,
+        size: size,
+      );
+    } else {
+      return null;
     }
   }
 
@@ -225,18 +362,11 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                   icon: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
-                        Icons.person_outline_outlined,
-                        color: AppColors.customBlack,
-                      ),
+                      Container(child: getIcon1BasedOnState()),
                       Transform.translate(
                         offset: const Offset(
                             -6, -3), // Adjust icon position as needed
-                        child: const Icon(
-                          Icons.add_rounded,
-                          color: AppColors.customBlack,
-                          size: 16.0, // Adjust size if needed
-                        ),
+                        child: getIcon2BasedOnState(),
                       ),
                     ],
                   ),
