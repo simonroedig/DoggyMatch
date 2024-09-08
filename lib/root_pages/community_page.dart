@@ -5,6 +5,7 @@ import 'package:doggymatch_flutter/root_pages/profile_page_widgets/profile_widge
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/custom_app_bar.dart';
 import 'package:doggymatch_flutter/toggles/friends_saved_toggle.dart';
+import 'package:doggymatch_flutter/toggles/friends_receivedreq_sentreq_toggle.dart'; // Import the new toggle
 import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/other_persons.dart';
 import 'package:doggymatch_flutter/classes/profile.dart';
@@ -21,6 +22,8 @@ class CommunityPage extends StatefulWidget {
 
 class _CommunityPageState extends State<CommunityPage> {
   bool isFriendsSelected = true;
+  int selectedFriendsOption =
+      0; // To track the state of FriendsReceivedSentToggle
   UserProfile? _selectedProfile;
   String? _selectedDistance;
   String? _lastOnline;
@@ -53,6 +56,12 @@ class _CommunityPageState extends State<CommunityPage> {
   void handleToggle(bool isFriends) {
     setState(() {
       isFriendsSelected = isFriends;
+    });
+  }
+
+  void handleFriendsOptionToggle(int option) {
+    setState(() {
+      selectedFriendsOption = option;
     });
   }
 
@@ -89,20 +98,49 @@ class _CommunityPageState extends State<CommunityPage> {
             children: [
               const SizedBox(height: 5),
               FriendsSavedToggle(onToggle: handleToggle),
+              if (isFriendsSelected) ...[
+                const SizedBox(height: 15),
+                FriendsReceivedReqSentReqToggle(
+                    onToggle: handleFriendsOptionToggle),
+              ],
               const SizedBox(height: 15),
               Expanded(
                 child: isFriendsSelected
-                    ? const Center(
-                        child: Text(
-                          'No friends available',
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.customBlack,
-                          ),
-                        ),
-                      )
+                    ? selectedFriendsOption == 0
+                        ? const Center(
+                            child: Text(
+                              'No friends available',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.customBlack,
+                              ),
+                            ),
+                          )
+                        : selectedFriendsOption == 1
+                            ? const Center(
+                                child: Text(
+                                  'No received requests',
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.customBlack,
+                                  ),
+                                ),
+                              )
+                            : const Center(
+                                child: Text(
+                                  'No sent requests',
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.customBlack,
+                                  ),
+                                ),
+                              )
                     : OtherPersons(
                         onProfileSelected: _openProfile,
                         showAllProfiles: false,
