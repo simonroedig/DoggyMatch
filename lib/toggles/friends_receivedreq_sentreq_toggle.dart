@@ -7,6 +7,7 @@ class FriendsReceivedReqSentReqToggle extends StatefulWidget {
   const FriendsReceivedReqSentReqToggle({super.key, required this.onToggle});
 
   @override
+  // ignore: library_private_types_in_public_api
   _FriendsReceivedReqSentReqToggleState createState() =>
       _FriendsReceivedReqSentReqToggleState();
 }

@@ -8,6 +8,7 @@ import 'package:doggymatch_flutter/root_pages/chat_page_widgets/profile_chat.dar
 import 'package:doggymatch_flutter/classes/profile.dart';
 import 'package:doggymatch_flutter/services/friends_service.dart';
 import 'package:doggymatch_flutter/root_pages/community_page_widgets/friends_dialogs.dart';
+import 'dart:developer';
 
 class ProfileWidget extends StatefulWidget {
   final UserProfile profile;
@@ -77,6 +78,10 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     super.initState();
     _isInChat = widget.startInChat;
     _isProfileSaved = widget.isProfileSaved;
+    // log the uid of the profile
+    log('Profile uid: ${widget.profile.uid}');
+    // log the uid of the own user
+    log('Own uid: ${AuthService().getCurrentUserId()}');
 
     _checkIfISentFriendRequest();
     _checkIfIReceivedFriendRequest();

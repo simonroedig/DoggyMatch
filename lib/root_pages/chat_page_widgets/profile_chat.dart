@@ -370,40 +370,73 @@ class _ProfileChatState extends State<ProfileChat> with WidgetsBindingObserver {
   Widget _buildChatBubble(BuildContext context, String message, bool isSender) {
     return Align(
       alignment: isSender ? Alignment.centerRight : Alignment.centerLeft,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width *
-              0.6, // Limit max width to 60% of screen width
-        ),
-        child: Container(
-          margin: const EdgeInsets.symmetric(vertical: 4.0),
-          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-          decoration: BoxDecoration(
-            color: isSender ? AppColors.brownLight : AppColors.greyLightest,
-            borderRadius: BorderRadius.only(
-              topLeft: const Radius.circular(24.0),
-              topRight: const Radius.circular(24.0),
-              bottomLeft: isSender
-                  ? const Radius.circular(24.0)
-                  : const Radius.circular(10.0),
-              bottomRight: isSender
-                  ? const Radius.circular(10.0)
-                  : const Radius.circular(24.0),
+      child: Row(
+        mainAxisAlignment:
+            isSender ? MainAxisAlignment.end : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          // Show the profile image with a stroke for the other user on the left of their chat bubble
+          if (!isSender)
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0, bottom: 4.0),
+              child: Container(
+                width: 35, // Adjust container size if needed
+                height: 35, // Adjust container size if needed
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.customBlack, // Stroke color
+                    width: 3.0, // Stroke width
+                  ),
+                ),
+                child: CircleAvatar(
+                  radius: 18.0, // Adjust the size of the profile image
+                  backgroundColor: AppColors.customBlack,
+                  backgroundImage:
+                      widget.otherUserProfile.images.first.startsWith('http')
+                          ? NetworkImage(widget.otherUserProfile.images.first)
+                          : AssetImage(widget.otherUserProfile.images.first)
+                              as ImageProvider,
+                ),
+              ),
             ),
-            border: Border.all(
-              color: AppColors.customBlack,
-              width: 3.0,
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width *
+                  0.6, // Limit max width to 60% of screen width
+            ),
+            child: Container(
+              margin: const EdgeInsets.symmetric(vertical: 4.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+              decoration: BoxDecoration(
+                color: isSender ? AppColors.brownLight : AppColors.greyLightest,
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(24.0),
+                  topRight: const Radius.circular(24.0),
+                  bottomLeft: isSender
+                      ? const Radius.circular(24.0)
+                      : const Radius.circular(10.0),
+                  bottomRight: isSender
+                      ? const Radius.circular(10.0)
+                      : const Radius.circular(24.0),
+                ),
+                border: Border.all(
+                  color: AppColors.customBlack,
+                  width: 3.0,
+                ),
+              ),
+              child: Text(
+                message,
+                style: const TextStyle(
+                  color: AppColors.customBlack,
+                  fontFamily: 'Poppins',
+                  fontSize: 14,
+                ),
+              ),
             ),
           ),
-          child: Text(
-            message,
-            style: const TextStyle(
-              color: AppColors.customBlack,
-              fontFamily: 'Poppins',
-              fontSize: 14,
-            ),
-          ),
-        ),
+        ],
       ),
     );
   }

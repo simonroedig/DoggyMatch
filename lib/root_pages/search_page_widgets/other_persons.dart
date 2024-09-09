@@ -304,6 +304,8 @@ class _OtherPersonsState extends State<OtherPersons>
 
         return GestureDetector(
           onTap: () async {
+            developer.log('PERSONS Selected Profile UID: ${data['uid']}');
+            developer.log('PERSONS Selected Profile Data: $data');
             // Show progress indicator while fetching profile data
             showDialog(
               context: context,

@@ -208,7 +208,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     height: 50.0,
                     child: ElevatedButton(
                       onPressed: () async {
-                        await _auth.signOut();
+                        await _auth.signOut(context);
                         Navigator.of(context).pushAndRemoveUntil(
                           MaterialPageRoute(
                               builder: (context) => const MyApp()),
@@ -292,7 +292,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
                     if (secondConfirmation == true) {
                       // Call the new method to delete account and user data
-                      final success = await _auth.deleteAccountAndData();
+                      final success = await _auth.deleteAccountAndData(context);
                       if (!mounted) {
                         return; // Ensure the widget is still mounted before continuing
                       }

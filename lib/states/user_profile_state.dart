@@ -43,34 +43,37 @@ class UserProfileState extends ChangeNotifier {
     _initializeUserProfile();
   }
 
-  /*
-  // Reset state method
-  void resetState() {
+  void clearProfile() {
+    // Reset user profile to default values
     _userProfile = UserProfile(
-        uid: '',
-        email: '',
-        userName: '',
-        birthday: DateTime(2000, 1, 1),
-        aboutText: '',
-        profileColor: AppColors.accent1,
-        images: [placeholderImageUrl],
-        location: '',
-        latitude: 0.0,
-        longitude: 0.0,
-        isDogOwner: false,
-        dogName: '',
-        dogBreed: '',
-        dogAge: '',
-        filterLookingForDogOwner: false,
-        filterLookingForDogSitter: false,
-        filterDistance: 0.0,
-        lastOnline: DateTime.now(),
-        filterLastOnline: 3);
+      uid: '',
+      email: '',
+      userName: '',
+      birthday: DateTime(2000, 1, 1),
+      aboutText: '',
+      profileColor: AppColors.accent1,
+      images: [UserProfileState.placeholderImageUrl],
+      location: '',
+      latitude: 0.0,
+      longitude: 0.0,
+      isDogOwner: false,
+      dogName: '',
+      dogBreed: '',
+      dogAge: '',
+      filterLookingForDogOwner: false,
+      filterLookingForDogSitter: false,
+      filterDistance: 0.0,
+      lastOnline: DateTime.now(),
+      filterLastOnline: 3,
+    );
+
+    // Reset other state variables
     _currentIndex = 0;
     _isProfileOpen = false;
+
+    // Notify listeners to rebuild UI
     notifyListeners();
   }
-  */
 
   List<String> get userImages {
     return _userProfile.images

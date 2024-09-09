@@ -165,7 +165,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
                 if (hasUnseenMessages)
                   Positioned(
                     top: 0,
-                    right: 0,
+                    right: 24,
                     child: Container(
                       width: 10.0,
                       height: 10.0,

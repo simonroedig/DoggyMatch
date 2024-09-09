@@ -4,8 +4,10 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:doggymatch_flutter/classes/profile.dart';
+import 'package:doggymatch_flutter/states/user_profile_state.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:provider/provider.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -206,7 +208,7 @@ class AuthService {
   }
 
   // Delete user account, associated Firestore document, and all user images in Firebase Storage
-  Future<bool> deleteAccountAndData() async {
+  Future<bool> deleteAccountAndData(context) async {
     try {
       final user = _auth.currentUser;
       if (user != null) {
@@ -230,6 +232,10 @@ class AuthService {
 
         // Delete the user's Firebase account
         await user.delete();
+        // added the next 4 lines recentyl without testing
+        await FirebaseFirestore.instance.terminate(); // Clear Firestore cache
+        await FirebaseFirestore.instance.clearPersistence();
+        Provider.of<UserProfileState>(context, listen: false).clearProfile();
         return true;
       }
     } catch (e) {
@@ -487,24 +493,14 @@ class AuthService {
   }
 
   // sign out
-  Future signOut() async {
+  Future signOut(context) async {
     try {
-      //await FirebaseFirestore.instance.terminate(); // Clear Firestore cache
-      //await FirebaseFirestore.instance.clearPersistence();
-
+      await FirebaseFirestore.instance.terminate(); // Clear Firestore cache
+      await FirebaseFirestore.instance.clearPersistence();
+      Provider.of<UserProfileState>(context, listen: false).clearProfile();
       return await _auth.signOut();
     } catch (e) {
       return null;
-    }
-  }
-
-  // Delete user account
-  Future deleteAccount() async {
-    try {
-      await _auth.currentUser?.delete();
-      return true;
-    } catch (e) {
-      return false;
     }
   }
 
