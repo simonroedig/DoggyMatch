@@ -350,6 +350,7 @@ class _SettingsPageState extends State<SettingsPage> {
     required VoidCallback onTap,
   }) {
     return GestureDetector(
+      behavior: HitTestBehavior.translucent,
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
@@ -396,6 +397,7 @@ class _SettingsPageState extends State<SettingsPage> {
     required double diameter,
   }) {
     return GestureDetector(
+      behavior: HitTestBehavior.translucent,
       onTap: onTap,
       child: Container(
         width: diameter,

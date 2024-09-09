@@ -50,10 +50,12 @@ class CustomBottomNavigationBar extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        _buildIcon(0, Icons.search_rounded),
-        _buildChatIconWithNotification(), // Chat icon with notification dot
-        _buildIcon(3, Icons.people_alt_rounded), // Community icon
-        _buildIcon(2, Icons.person_rounded),
+        Expanded(child: _buildIcon(0, Icons.search_rounded)), // Search Icon
+
+        _buildChatIconWithNotification(), // Chat Icon with notification
+        Expanded(
+            child: _buildIcon(3, Icons.people_alt_rounded)), // Community Icon
+        Expanded(child: _buildIcon(2, Icons.person_rounded)), // Profile Icon
       ],
     );
   }
@@ -63,6 +65,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
     Color highlightColor = _getHighlightColor(index);
 
     return GestureDetector(
+      behavior: HitTestBehavior.translucent,
       onTap: () => onTabTapped(index),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -92,6 +95,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
 
   Widget _buildCloseButton() {
     return GestureDetector(
+      behavior: HitTestBehavior.translucent,
       onTap: () {
         log("Close button tapped in nav bar");
         if (onCloseButtonTapped != null) {
@@ -101,7 +105,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
       child: Center(
         child: Container(
           color: Colors.transparent,
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 3.0),
           child: Container(
             width: double.infinity,
             height: 60.0,
@@ -120,62 +124,66 @@ class CustomBottomNavigationBar extends StatelessWidget {
   }
 
   Widget _buildChatIconWithNotification() {
-    return StreamBuilder<bool>(
-      stream: _hasUnseenMessagesStream(),
-      builder: (context, snapshot) {
-        bool hasUnseenMessages = snapshot.data ?? false;
+    return Expanded(
+      child: StreamBuilder<bool>(
+        stream: _hasUnseenMessagesStream(),
+        builder: (context, snapshot) {
+          bool hasUnseenMessages = snapshot.data ?? false;
 
-        return Stack(
-          children: [
-            GestureDetector(
-              onTap: () => onTabTapped(1), // Index 1 for the chat page
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.message_rounded,
-                    size: 30.0,
-                    color: activeIndex == 1
-                        ? _getHighlightColor(1)
-                        : AppColors.customBlack,
-                  ),
-                  if (activeIndex == 1)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2.0),
-                      child: Container(
-                        width: 30.0,
-                        height: 3.0,
-                        decoration: BoxDecoration(
-                          color: _getHighlightColor(1),
-                          shape: BoxShape.rectangle,
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(40.0)),
+          return GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: () => onTabTapped(1), // Index 1 for the chat page
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.message_rounded,
+                      size: 30.0,
+                      color: activeIndex == 1
+                          ? _getHighlightColor(1)
+                          : AppColors.customBlack,
+                    ),
+                    if (activeIndex == 1)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2.0),
+                        child: Container(
+                          width: 30.0,
+                          height: 3.0,
+                          decoration: BoxDecoration(
+                            color: _getHighlightColor(1),
+                            shape: BoxShape.rectangle,
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(40.0)),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                if (hasUnseenMessages)
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: Container(
+                      width: 10.0,
+                      height: 10.0,
+                      decoration: BoxDecoration(
+                        color: AppColors.customGreen,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.customBlack,
+                          width: 2.0,
                         ),
                       ),
                     ),
-                ],
-              ),
-            ),
-            if (hasUnseenMessages)
-              Positioned(
-                top: 0,
-                right: 0,
-                child: Container(
-                  width: 10.0,
-                  height: 10.0,
-                  decoration: BoxDecoration(
-                    color: AppColors.customGreen,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: AppColors.customBlack,
-                      width: 2.0,
-                    ),
                   ),
-                ),
-              ),
-          ],
-        );
-      },
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 
