@@ -1,6 +1,7 @@
 import 'dart:developer' as developer;
 import 'dart:math';
 
+import 'package:doggymatch_flutter/services/friends_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/services/auth.dart';
@@ -14,12 +15,18 @@ class OtherPersons extends StatefulWidget {
       onProfileSelected; // Callback to notify profile selection
   final bool showAllProfiles;
   final bool showSavedProfiles;
+  final bool showFriendProfiles;
+  final bool showReceivedFriendRequestProfiles;
+  final bool showSentFriendRequestProfiles;
 
   const OtherPersons(
       {super.key,
       required this.onProfileSelected,
       this.showAllProfiles = true,
-      this.showSavedProfiles = false});
+      this.showSavedProfiles = false,
+      this.showFriendProfiles = false,
+      this.showReceivedFriendRequestProfiles = false,
+      this.showSentFriendRequestProfiles = false});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -29,6 +36,7 @@ class OtherPersons extends StatefulWidget {
 class _OtherPersonsState extends State<OtherPersons>
     with TickerProviderStateMixin {
   final AuthService _authService = AuthService();
+  final FriendsService _friendsService = FriendsService();
   List<Map<String, dynamic>> _users = [];
   bool _isLoading = true;
   late FilterNotifier _filterNotifier; // Add a state variable for the notifier
@@ -44,6 +52,12 @@ class _OtherPersonsState extends State<OtherPersons>
       _loadFilteredUsers();
     } else if (widget.showSavedProfiles) {
       _loadSavedUsers();
+    } else if (widget.showFriendProfiles) {
+      _loadFriendProfiles();
+    } else if (widget.showReceivedFriendRequestProfiles) {
+      _loadReceivedFriendRequestProfiles();
+    } else if (widget.showSentFriendRequestProfiles) {
+      _loadSentFriendRequestProfiles();
     }
   }
 
@@ -117,19 +131,103 @@ class _OtherPersonsState extends State<OtherPersons>
     }
   }
 
+  // load friend profiles
+  Future<void> _loadFriendProfiles() async {
+    setState(() {
+      _isLoading = true; // Show progress indicator
+    });
+
+    try {
+      List<Map<String, dynamic>> users =
+          await _friendsService.fetchAllFriends();
+
+      if (mounted) {
+        setState(() {
+          _users = users;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      developer.log('Error fetching friend profiles: $e');
+    }
+  }
+
+  // load received friend request profiles
+  Future<void> _loadReceivedFriendRequestProfiles() async {
+    setState(() {
+      _isLoading = true; // Show progress indicator
+    });
+
+    try {
+      List<Map<String, dynamic>> users =
+          await _friendsService.fetchAllFriendRequestReceived();
+
+      if (mounted) {
+        setState(() {
+          _users = users;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      developer.log('Error fetching received friend request profiles: $e');
+    }
+  }
+
+  // load sent friend request profiles
+  Future<void> _loadSentFriendRequestProfiles() async {
+    setState(() {
+      _isLoading = true; // Show progress indicator
+    });
+
+    try {
+      List<Map<String, dynamic>> users =
+          await _friendsService.fetchAllFriendRequestSent();
+
+      if (mounted) {
+        setState(() {
+          _users = users;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      developer.log('Error fetching sent friend request profiles: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final onRefreshCallback = widget.showAllProfiles
         ? _loadFilteredUsers
         : widget.showSavedProfiles
             ? _loadSavedUsers
-            : null; // Fallback if none of the conditions are true
+            : widget.showFriendProfiles
+                ? _loadFriendProfiles
+                : widget.showReceivedFriendRequestProfiles
+                    ? _loadReceivedFriendRequestProfiles
+                    : widget.showSentFriendRequestProfiles
+                        ? _loadSentFriendRequestProfiles
+                        : null; // Fallback if none of the conditions are true
 
     final noUsersTextCallback = widget.showAllProfiles
         ? 'No users found 😔\n\nAdjust your filter settings\nand spread the word about '
         : widget.showSavedProfiles
             ? 'No saved profiles found 😔\n\nSave profiles to view them here'
-            : ''; // Fallback if none of the conditions are true
+            : widget.showFriendProfiles
+                ? 'No friends found 😔\n\nAdd friends to view them here'
+                : widget.showReceivedFriendRequestProfiles
+                    ? 'No received friend requests found 😔\n\nCheck back later for requests'
+                    : widget.showSentFriendRequestProfiles
+                        ? 'No sent friend requests found 😔\n\nSend requests to view them here'
+                        : ''; // Fallback if none of the conditions are true
 
     if (_isLoading) {
       return const Center(

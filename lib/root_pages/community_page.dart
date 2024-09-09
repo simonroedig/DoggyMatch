@@ -107,41 +107,27 @@ class _CommunityPageState extends State<CommunityPage> {
               Expanded(
                 child: isFriendsSelected
                     ? selectedFriendsOption == 0
-                        ? const Center(
-                            child: Text(
-                              'No friends available',
-                              style: TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.customBlack,
-                              ),
-                            ),
+                        ? OtherPersons(
+                            key: UniqueKey(), // Force rebuild
+                            onProfileSelected: _openProfile,
+                            showAllProfiles: false,
+                            showFriendProfiles: true,
                           )
                         : selectedFriendsOption == 1
-                            ? const Center(
-                                child: Text(
-                                  'No received requests',
-                                  style: TextStyle(
-                                    fontFamily: 'Poppins',
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.customBlack,
-                                  ),
-                                ),
+                            ? OtherPersons(
+                                key: UniqueKey(), // Force rebuild
+                                onProfileSelected: _openProfile,
+                                showAllProfiles: false,
+                                showReceivedFriendRequestProfiles: true,
                               )
-                            : const Center(
-                                child: Text(
-                                  'No sent requests',
-                                  style: TextStyle(
-                                    fontFamily: 'Poppins',
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.customBlack,
-                                  ),
-                                ),
+                            : OtherPersons(
+                                key: UniqueKey(), // Force rebuild
+                                onProfileSelected: _openProfile,
+                                showAllProfiles: false,
+                                showSentFriendRequestProfiles: true,
                               )
                     : OtherPersons(
+                        key: UniqueKey(), // Force rebuild
                         onProfileSelected: _openProfile,
                         showAllProfiles: false,
                         showSavedProfiles: true,
