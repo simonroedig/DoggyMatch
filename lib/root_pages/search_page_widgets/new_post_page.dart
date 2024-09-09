@@ -1,41 +1,41 @@
-// ignore_for_file: deprecated_member_use
+// ignore_for_file: use_build_context_synchronously
 
-import 'package:flutter/cupertino.dart';
+import 'dart:io';
+import 'package:doggymatch_flutter/root_pages/search_page_widgets/posts_dialogs.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:reorderable_grid_view/reorderable_grid_view.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
-import 'package:doggymatch_flutter/root_pages/search_page_widgets/announcement_dialogs.dart';
+import 'package:doggymatch_flutter/services/post_service.dart';
 
 class NewPostPage extends StatefulWidget {
   const NewPostPage({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _NewPostPageState createState() => _NewPostPageState();
 }
 
 class _NewPostPageState extends State<NewPostPage> {
-  final TextEditingController _announcementController = TextEditingController();
-  final TextEditingController _titleController = TextEditingController();
-  DateTime? _selectedDate;
-  bool _showForever = false;
+  final TextEditingController _descriptionController = TextEditingController();
+  List<File> _images = [];
+  final ImagePicker _picker = ImagePicker();
+  bool _isUploading = false;
 
-  final int _minAnnouncementLength = 10;
-  final int _minTitleLength = 3;
+  final int _minDescriptionLength = 1;
+  final int _maxDescriptionLength = 250;
+  final int _minImagesRequired = 1;
+  final int _maxImagesAllowed = 9;
 
   @override
   void initState() {
     super.initState();
-    _announcementController.addListener(_updateButtonState);
-    _titleController.addListener(_updateButtonState);
+    _descriptionController.addListener(_updateButtonState);
   }
 
   @override
   void dispose() {
-    _announcementController.removeListener(_updateButtonState);
-    _announcementController.dispose();
-    _titleController.removeListener(_updateButtonState);
-    _titleController.dispose();
+    _descriptionController.removeListener(_updateButtonState);
+    _descriptionController.dispose();
     super.dispose();
   }
 
@@ -43,18 +43,92 @@ class _NewPostPageState extends State<NewPostPage> {
     setState(() {});
   }
 
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate ?? DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2100),
-    );
-    if (picked != null && picked != _selectedDate) {
+  Future<void> _pickImage() async {
+    if (_images.length >= _maxImagesAllowed) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("You can only upload up to 9 images")),
+      );
+      return;
+    }
+
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
       setState(() {
-        _selectedDate = picked;
-        _showForever = false;
+        _images.add(File(pickedFile.path));
       });
+    }
+  }
+
+  Future<void> _removeImage(int index) async {
+    setState(() {
+      _images.removeAt(index);
+    });
+  }
+
+  void _reorderImages(int oldIndex, int newIndex) {
+    setState(() {
+      final image = _images.removeAt(oldIndex);
+      _images.insert(newIndex, image);
+    });
+  }
+
+  Future<void> _createPost() async {
+    if (_descriptionController.text.isEmpty ||
+        _descriptionController.text.length < _minDescriptionLength ||
+        _images.length < _minImagesRequired) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+                'Please provide a valid description and at least one image')),
+      );
+      return;
+    }
+
+    // Show confirmation dialog
+    final bool confirmed = await PostsDialogs.showCreateConfirmationDialog(
+      context,
+      _images,
+      _descriptionController,
+    );
+
+    if (!confirmed) return;
+
+    setState(() {
+      _isUploading = true;
+    });
+
+    try {
+      await PostService().createPost(
+        postDescription: _descriptionController.text,
+        images: _images,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Post created successfully')),
+      );
+
+      Navigator.of(context).pop();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error creating post')),
+      );
+    } finally {
+      setState(() {
+        _isUploading = false;
+      });
+    }
+  }
+
+  Future<void> _onBackPressed() async {
+    if (_images.isNotEmpty || _descriptionController.text.isNotEmpty) {
+      final bool confirmed = await PostsDialogs.showDismissConfirmationDialog(
+        context,
+      );
+      if (confirmed) {
+        Navigator.of(context).pop();
+      }
+    } else {
+      Navigator.of(context).pop();
     }
   }
 
@@ -68,8 +142,6 @@ class _NewPostPageState extends State<NewPostPage> {
     int minLines = 1,
     int? maxLines,
   }) {
-    final bool isTextValid = controller.text.length >= minLength;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -84,9 +156,9 @@ class _NewPostPageState extends State<NewPostPage> {
           decoration: InputDecoration(
             counterText: '${controller.text.length} / $maxLength',
             counterStyle: TextStyle(
-              color: isTextValid
-                  ? AppColors.customBlack.withOpacity(0.5)
-                  : AppColors.customRed,
+              color: controller.text.length < minLength
+                  ? AppColors.customRed
+                  : AppColors.customBlack.withOpacity(0.5),
             ),
           ),
         ),
@@ -113,33 +185,18 @@ class _NewPostPageState extends State<NewPostPage> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isAnnouncementTextValid =
-        _announcementController.text.length >= _minAnnouncementLength;
-    final bool isTitleTextValid =
-        _titleController.text.length >= _minTitleLength;
-    final bool isDateValid = _selectedDate != null || _showForever;
+    final bool isDescriptionValid =
+        _descriptionController.text.length >= _minDescriptionLength;
     final bool isButtonEnabled =
-        isAnnouncementTextValid && isTitleTextValid && isDateValid;
+        isDescriptionValid && _images.length >= _minImagesRequired;
 
     return WillPopScope(
       onWillPop: () async {
-        if (_announcementController.text.isNotEmpty ||
-            _titleController.text.isNotEmpty) {
-          // Show the dismiss confirmation dialog if there are unsaved changes
-          AnnouncementDialogs.showDismissConfirmationDialog(context);
-          return false; // Prevent popping the page automatically
-        }
-        return true; // Allow popping the page
+        await _onBackPressed();
+        return false;
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text(
-            "Create Post",
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontWeight: FontWeight.bold,
-            ),
-          ),
           backgroundColor: AppColors.greyLightest,
           elevation: 0.0,
           scrolledUnderElevation: 0.0,
@@ -150,139 +207,168 @@ class _NewPostPageState extends State<NewPostPage> {
               size: 30.0,
               color: AppColors.customBlack,
             ),
-            onPressed: () {
-              if (_announcementController.text.isNotEmpty ||
-                  _titleController.text.isNotEmpty) {
-                AnnouncementDialogs.showDismissConfirmationDialog(context);
-              } else {
-                Navigator.of(context).pop();
-              }
-            },
+            onPressed: _onBackPressed,
+          ),
+          title: const Text(
+            "Create Post",
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.bold,
+              color: AppColors.customBlack,
+            ),
           ),
         ),
         backgroundColor: AppColors.greyLightest,
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              _buildTextFieldWithCounter(
-                controller: _titleController,
-                maxLength: 50,
-                minLength: _minTitleLength,
-                labelText: 'Title',
-                icon: Icons.title_rounded,
-                keyboardType: TextInputType.text,
-              ),
-              const SizedBox(height: 16),
-              _buildTextFieldWithCounter(
-                controller: _announcementController,
-                maxLength: 1000,
-                minLength: _minAnnouncementLength,
-                labelText: 'Text',
-                icon: Icons.announcement_rounded,
-                keyboardType: TextInputType.multiline,
-                minLines: 3,
-                maxLines: null,
-              ),
-              const SizedBox(height: 16),
-              _buildHeadlineWithIcon(
-                Icons.date_range_rounded,
-                'Show Until',
-              ),
-              GestureDetector(
-                onTap: () => _selectDate(context),
-                child: AbsorbPointer(
-                  child: TextField(
-                    controller: TextEditingController(
-                      text: _showForever
-                          ? 'Show Forever'
-                          : (_selectedDate != null
-                              ? DateFormat.yMd().format(_selectedDate!)
-                              : ''),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Center(
+                  child: RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '${_images.length}',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 16.0,
+                            color: _images.length < _minImagesRequired
+                                ? AppColors.customRed
+                                : AppColors.customBlack,
+                          ),
+                        ),
+                        const TextSpan(
+                          text: '/9 Images Uploaded',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 16.0,
+                            color: AppColors.customBlack,
+                          ),
+                        ),
+                      ],
                     ),
-                    decoration: InputDecoration(
-                      suffixIcon: Icon(
-                        Icons.calendar_today,
-                        color: isDateValid
-                            ? AppColors.customBlack
-                            : AppColors.customRed,
-                      ),
-                    ),
-                    style: const TextStyle(color: AppColors.customBlack),
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Show Forever',
-                    style: TextStyle(
-                      color: AppColors.customBlack,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  CupertinoSwitch(
-                    value: _showForever,
-                    onChanged: (bool value) {
-                      setState(() {
-                        _showForever = value;
-                        if (_showForever) {
-                          _selectedDate = null;
-                        }
-                      });
-                    },
-                    trackColor: _showForever ? AppColors.brownLight : null,
-                    activeColor: AppColors.brownLight,
-                    thumbColor: AppColors.bg,
-                  ),
-                ],
+              const SizedBox(height: 8),
+              ReorderableGridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  mainAxisSpacing: 8.0,
+                  crossAxisSpacing: 8.0,
+                ),
+                itemCount: _images.length < _maxImagesAllowed
+                    ? _images.length + 1
+                    : _images.length, // Show "Add Image" only if less than 9
+                onReorder: _reorderImages,
+                itemBuilder: (context, index) {
+                  if (index == _images.length &&
+                      _images.length < _maxImagesAllowed) {
+                    return GestureDetector(
+                      key: const ValueKey('add_image'),
+                      onTap: _pickImage,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.customBlack.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(14.0),
+                          border: Border.all(
+                            color: AppColors.customBlack,
+                            width: 3.0,
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.add_photo_alternate_rounded,
+                          size: 40.0,
+                          color: AppColors.customBlack,
+                        ),
+                      ),
+                    );
+                  }
+
+                  return Stack(
+                    key: ValueKey(_images[index].path),
+                    children: [
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(14.0),
+                            border: Border.all(
+                              color: AppColors.customBlack,
+                              width: 3.0,
+                            ),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(11.0),
+                            child:
+                                Image.file(_images[index], fit: BoxFit.cover),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.close_rounded,
+                            color: AppColors.customBlack,
+                          ),
+                          onPressed: () => _removeImage(index),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+              ),
+              const SizedBox(height: 26),
+              _buildTextFieldWithCounter(
+                controller: _descriptionController,
+                maxLength: _maxDescriptionLength,
+                minLength: _minDescriptionLength,
+                labelText: 'Description',
+                icon: Icons.description_rounded,
+                keyboardType: TextInputType.multiline,
+                minLines: 1,
+                maxLines: null,
               ),
               const SizedBox(height: 32),
               Center(
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width * 0.9,
                   child: ElevatedButton(
-                    onPressed: isButtonEnabled
-                        ? () {
-                            AnnouncementDialogs.showCreateConfirmationDialog(
-                                context,
-                                _titleController,
-                                _announcementController,
-                                _selectedDate,
-                                _showForever);
-                          }
-                        : null,
+                    onPressed:
+                        isButtonEnabled && !_isUploading ? _createPost : null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: isButtonEnabled
+                      backgroundColor: isButtonEnabled && !_isUploading
                           ? AppColors.customBlack
                           : Colors.transparent,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 12.0, // Increase the vertical padding
-                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12.0),
                       shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(8.0), // Curved edges
+                        borderRadius: BorderRadius.circular(8.0),
                         side: const BorderSide(
-                          color: AppColors.customBlack, // Border color
-                          width: 3.0, // Border width
+                          color: AppColors.customBlack,
+                          width: 3.0,
                         ),
                       ),
                     ),
-                    child: Text(
-                      'Create Shout',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontWeight: isButtonEnabled
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                        color: isButtonEnabled
-                            ? AppColors.bg
-                            : AppColors.customBlack,
-                      ),
-                    ),
+                    child: _isUploading
+                        ? const CircularProgressIndicator(
+                            color: AppColors.bg,
+                          )
+                        : Text(
+                            'Create Post',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.bold,
+                              color: isButtonEnabled
+                                  ? AppColors.bg
+                                  : AppColors.customBlack,
+                            ),
+                          ),
                   ),
                 ),
               ),

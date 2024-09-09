@@ -1,13 +1,71 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
-import 'package:intl/intl.dart';
-import 'package:doggymatch_flutter/services/announcement_service.dart';
 
-class PostDialogs {
-  static void showDismissConfirmationDialog(BuildContext context) {
-    showDialog(
+class PostsDialogs {
+  static Future<bool> showCreateConfirmationDialog(
+    BuildContext context,
+    List images,
+    TextEditingController descriptionController,
+  ) async {
+    return await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text(
+            'Create Post',
+            style:
+                TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Images:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8.0,
+                runSpacing: 8.0,
+                children: images.map<Widget>((image) {
+                  return Image.file(image, width: 60, height: 60);
+                }).toList(),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Description:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(descriptionController.text),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: AppColors.customRed),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+            ),
+            TextButton(
+              child: const Text('Create Post'),
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  static Future<bool> showDismissConfirmationDialog(
+      BuildContext context) async {
+    return await showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
@@ -21,7 +79,7 @@ class PostDialogs {
           ),
           title: const Center(
             child: Text(
-              'Dismiss Post?',
+              'Discard Post?',
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontWeight: FontWeight.bold,
@@ -31,7 +89,7 @@ class PostDialogs {
             ),
           ),
           content: const Text(
-            'You have unsaved changes in your post. Do you want to dismiss it?',
+            'You have unsaved changes in your post. Do you want to discard them?',
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 14,
@@ -46,8 +104,7 @@ class PostDialogs {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.of(context).pop();
-                      Navigator.of(context).pop();
+                      Navigator.of(context).pop(true);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.customBlack,
@@ -66,7 +123,7 @@ class PostDialogs {
                   ),
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.of(context).pop();
+                      Navigator.of(context).pop(false);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.bg,
@@ -94,245 +151,5 @@ class PostDialogs {
         );
       },
     );
-  }
-
-  static void showCreateConfirmationDialog(
-      BuildContext context,
-      TextEditingController titleController, // Added titleController
-      TextEditingController announcementController,
-      DateTime? selectedDate,
-      bool showForever) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: AppColors.bg,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0),
-            side: const BorderSide(
-              color: AppColors.customBlack,
-              width: 3.0,
-            ),
-          ),
-          title: const Center(
-            child: Text(
-              'Create Post?',
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-                color: AppColors.customBlack,
-              ),
-            ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Text(
-                'Please review your post details below. You can delete the post later anytime.',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 14,
-                  color: AppColors.customBlack,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Post Title:',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  color: AppColors.customBlack,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(8.0),
-                decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.customBlack),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: Text(
-                  titleController.text, // Display the announcement title
-                  style: const TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 14,
-                    color: AppColors.customBlack,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Shout Text:',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  color: AppColors.customBlack,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                height: 100,
-                padding: const EdgeInsets.all(8.0),
-                decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.customBlack),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: SingleChildScrollView(
-                  child: Text(
-                    announcementController.text,
-                    style: const TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 14,
-                      color: AppColors.customBlack,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Show Until:',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  color: AppColors.customBlack,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                showForever
-                    ? 'Show Forever'
-                    : (selectedDate != null
-                        ? DateFormat.yMd().format(selectedDate)
-                        : 'No date selected'),
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 14,
-                  color: AppColors.customBlack,
-                ),
-              ),
-            ],
-          ),
-          actions: <Widget>[
-            Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.bg,
-                      side: const BorderSide(
-                        color: AppColors.customBlack,
-                        width: 2.0,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                    ),
-                    child: const Text(
-                      'No, Edit',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.customBlack,
-                      ),
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      AnnouncementService announcementService =
-                          AnnouncementService();
-                      await announcementService.createAnnouncement(
-                        announcementTitle: titleController.text, // Pass title
-                        announcementText: announcementController.text,
-                        showUntilDate: selectedDate,
-                        showForever: showForever,
-                      );
-                      Navigator.of(context).pop();
-                      Navigator.of(context)
-                          .pop(); // Close the page after creation
-                      showSuccessDialog(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.customBlack,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                    ),
-                    child: const Text(
-                      'Yes',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.bg,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  static void showSuccessDialog(BuildContext context) {
-    // Declare dialogContext as nullable
-    BuildContext? dialogContext;
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        dialogContext = context; // Assign the dialog's context
-        return AlertDialog(
-          backgroundColor: AppColors.bg,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0),
-            side: const BorderSide(
-              color: AppColors.customBlack,
-              width: 3.0,
-            ),
-          ),
-          content: const Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.check_circle_outline_rounded,
-                color: AppColors.customGreen,
-                size: 50,
-              ),
-              SizedBox(height: 16),
-              Text(
-                'Shout successfully created!',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: AppColors.customBlack,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        );
-      },
-    );
-
-    Future.delayed(const Duration(seconds: 3), () {
-      // Ensure dialogContext is not null before using it
-      if (dialogContext != null && Navigator.of(dialogContext!).mounted) {
-        Navigator.of(dialogContext!).pop();
-      }
-    });
   }
 }

@@ -1,23 +1,17 @@
 import 'dart:developer';
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class PostService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  // add images to here
-  // they must be upload to firestore storage somehow, maybe like this
-  /*
-  final ref = _storage.ref().child(
-          'profile_images/$userId/${DateTime.now().millisecondsSinceEpoch}');
-      final uploadTask = await ref.putFile(File(filePath));
-      return await uploadTask.ref.getDownloadURL();
-  */
-  // and they must then be added to the post data
+  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   Future<void> createPost({
     required String postDescription,
+    required List<File> images,
   }) async {
     final user = _auth.currentUser;
     if (user == null) {
@@ -27,19 +21,30 @@ class PostService {
 
     final String uid = user.uid;
     final DateTime timestamp = DateTime.now();
-    // add also fields for like (liked by uid), and comments (by uid, and content)
-    // (should empty at creation)
+    List<String> imageUrls = [];
 
     try {
-      final docRef = _firestore.collection('users').doc(uid);
+      // Upload each image to Firebase Storage
+      for (var image in images) {
+        final ref = _storage
+            .ref()
+            .child('posts/$uid/${DateTime.now().millisecondsSinceEpoch}.jpg');
+        final uploadTask = await ref.putFile(image);
+        final imageUrl = await uploadTask.ref.getDownloadURL();
+        imageUrls.add(imageUrl);
+      }
 
       final postData = {
         'postDescription': postDescription,
         'createdAt': timestamp.toIso8601String(),
-        // add images reference/data too
+        'images': imageUrls,
+        'likes': [],
+        'comments': [],
       };
 
-      // Add announcement as a sub-collection entry within the user's document
+      // Store post in Firestore
+      final docRef = _firestore.collection('users').doc(uid);
+
       await docRef
           .collection('user_posts')
           .doc(timestamp.toIso8601String())
