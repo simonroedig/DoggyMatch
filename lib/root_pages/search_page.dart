@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/states/user_profile_state.dart';
 import 'package:doggymatch_flutter/notifiers/profile_close_notifier.dart';
 import 'package:doggymatch_flutter/notifiers/filter_notifier.dart';
-import 'package:doggymatch_flutter/toggles/profiles_announcement_toggle.dart';
+import 'package:doggymatch_flutter/toggles/profile_announcement_posts_toggle.dart'; // Updated import for the new toggle
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/new_announcement_page.dart';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/other_persons_announcements.dart';
 import 'package:doggymatch_flutter/toggles/own_all_announcements_toggle.dart'; // Import the custom toggle
@@ -25,7 +25,8 @@ class SearchPage extends StatefulWidget {
 
 class SearchPageState extends State<SearchPage> {
   bool _isFilterOpen = false;
-  bool _isProfilesSelected = true; // To track toggle state
+  int _selectedToggleIndex =
+      0; // To track the toggle state: 0 - Profiles, 1 - Announcements, 2 - Posts
   bool _showOnlyCurrentUser =
       false; // Track the toggle state for including/excluding current user
   UserProfile? _selectedProfile;
@@ -83,12 +84,12 @@ class SearchPageState extends State<SearchPage> {
     Provider.of<UserProfileState>(context, listen: false).refreshUserProfile();
   }
 
-  void _onToggle(bool isProfilesSelected) {
+  void _onToggle(int selectedIndex) {
     setState(() {
-      _isProfilesSelected = isProfilesSelected;
+      _selectedToggleIndex = selectedIndex;
 
-      // Reset to show all announcements when switching back to Shouts
-      if (!_isProfilesSelected) {
+      // Reset to show all announcements when switching back to Shouts or Posts
+      if (_selectedToggleIndex == 1 || _selectedToggleIndex == 2) {
         _showOnlyCurrentUser =
             false; // Reset to show all announcements by default
         _loadFilteredUsersAnnouncements();
@@ -109,29 +110,27 @@ class SearchPageState extends State<SearchPage> {
       _showOnlyCurrentUser = isAllSelected;
       _loadFilteredUsersAnnouncements();
     });
-    // Trigger the announcement reload to reflect the changes immediately
     Provider.of<UserProfileState>(context, listen: false).refreshUserProfile();
   }
 
   void _loadFilteredUsersAnnouncements() {
-    // This function will trigger a re-fetch of the announcements when called
     Provider.of<UserProfileState>(context, listen: false).refreshUserProfile();
   }
 
   Future<bool> _onWillPop() async {
     if (_isFilterOpen) {
       setState(() {
-        _isFilterOpen = false; // Close the filter menu
+        _isFilterOpen = false;
       });
-      return false; // Prevent default back button behavior
+      return false;
     }
-    return true; // Allow the back button to close the page if filter is not open
+    return true;
   }
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: _onWillPop, // Handle back button
+      onWillPop: _onWillPop,
       child: ChangeNotifierProvider(
         create: (context) => FilterNotifier(),
         child: Scaffold(
@@ -148,11 +147,12 @@ class SearchPageState extends State<SearchPage> {
               Column(
                 children: [
                   const SizedBox(height: 5),
-                  ProfilesAnnouncementToggle(
+                  ProfileAnnouncementPostsToggle(
                     onToggle: _onToggle,
                   ),
-                  SizedBox(height: _isProfilesSelected ? 15 : 5),
-                  if (!_isProfilesSelected) ...[
+                  SizedBox(height: _selectedToggleIndex == 0 ? 15 : 5),
+                  if (_selectedToggleIndex == 1 ||
+                      _selectedToggleIndex == 2) ...[
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -173,8 +173,7 @@ class SearchPageState extends State<SearchPage> {
                     const SizedBox(height: 0),
                     Expanded(
                       child: OtherPersonsAnnouncements(
-                        key: ValueKey(
-                            _showOnlyCurrentUser), // This forces a rebuild when toggling
+                        key: ValueKey(_showOnlyCurrentUser),
                         showOnlyCurrentUser: _showOnlyCurrentUser,
                         onProfileSelected: _openProfile,
                       ),
