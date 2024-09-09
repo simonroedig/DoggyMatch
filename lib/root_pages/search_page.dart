@@ -9,10 +9,13 @@ import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/states/user_profile_state.dart';
 import 'package:doggymatch_flutter/notifiers/profile_close_notifier.dart';
 import 'package:doggymatch_flutter/notifiers/filter_notifier.dart';
-import 'package:doggymatch_flutter/toggles/profile_announcement_posts_toggle.dart'; // Updated import for the new toggle
+import 'package:doggymatch_flutter/toggles/profile_announcement_posts_toggle.dart';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/new_announcement_page.dart';
+import 'package:doggymatch_flutter/root_pages/search_page_widgets/new_post_page.dart'; // Import the new post page
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/other_persons_announcements.dart';
-import 'package:doggymatch_flutter/toggles/own_all_announcements_toggle.dart'; // Import the custom toggle
+import 'package:doggymatch_flutter/root_pages/search_page_widgets/other_persons_posts.dart'; // Import the posts widget
+import 'package:doggymatch_flutter/toggles/own_all_announcements_toggle.dart';
+import 'package:doggymatch_flutter/toggles/own_all_posts_toggle.dart'; // Import the custom posts toggle
 
 class SearchPage extends StatefulWidget {
   final ProfileCloseNotifier profileCloseNotifier;
@@ -88,11 +91,11 @@ class SearchPageState extends State<SearchPage> {
     setState(() {
       _selectedToggleIndex = selectedIndex;
 
-      // Reset to show all announcements when switching back to Shouts or Posts
+      // Reset to show all announcements or posts when switching back
       if (_selectedToggleIndex == 1 || _selectedToggleIndex == 2) {
         _showOnlyCurrentUser =
-            false; // Reset to show all announcements by default
-        _loadFilteredUsersAnnouncements();
+            false; // Reset to show all announcements/posts by default
+        _loadFilteredUsersContent();
       }
     });
   }
@@ -105,15 +108,23 @@ class SearchPageState extends State<SearchPage> {
     );
   }
 
-  void _onOwnAllAnnouncementsToggle(bool isAllSelected) {
+  void _navigateToNewPost() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const NewPostPage(),
+      ),
+    );
+  }
+
+  void _onOwnAllToggle(bool isAllSelected) {
     setState(() {
       _showOnlyCurrentUser = isAllSelected;
-      _loadFilteredUsersAnnouncements();
+      _loadFilteredUsersContent();
     });
     Provider.of<UserProfileState>(context, listen: false).refreshUserProfile();
   }
 
-  void _loadFilteredUsersAnnouncements() {
+  void _loadFilteredUsersContent() {
     Provider.of<UserProfileState>(context, listen: false).refreshUserProfile();
   }
 
@@ -151,13 +162,13 @@ class SearchPageState extends State<SearchPage> {
                     onToggle: _onToggle,
                   ),
                   SizedBox(height: _selectedToggleIndex == 0 ? 15 : 5),
-                  if (_selectedToggleIndex == 1 ||
-                      _selectedToggleIndex == 2) ...[
+                  if (_selectedToggleIndex == 1) ...[
+                    // Announcements State
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         OwnAllAnnouncementsToggle(
-                          onToggle: _onOwnAllAnnouncementsToggle,
+                          onToggle: _onOwnAllToggle,
                         ),
                         const SizedBox(width: 16),
                         IconButton(
@@ -173,6 +184,34 @@ class SearchPageState extends State<SearchPage> {
                     const SizedBox(height: 0),
                     Expanded(
                       child: OtherPersonsAnnouncements(
+                        key: ValueKey(_showOnlyCurrentUser),
+                        showOnlyCurrentUser: _showOnlyCurrentUser,
+                        onProfileSelected: _openProfile,
+                      ),
+                    ),
+                  ] else if (_selectedToggleIndex == 2) ...[
+                    // Posts State
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        OwnAllPostsToggle(
+                          onToggle: _onOwnAllToggle,
+                        ),
+                        const SizedBox(width: 16),
+                        IconButton(
+                          iconSize: 48,
+                          icon: const Icon(
+                            Icons.add_circle_outline_rounded,
+                            color: AppColors.customBlack,
+                          ),
+                          onPressed:
+                              _navigateToNewPost, // Navigate to the new post page
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 0),
+                    Expanded(
+                      child: OtherPersonsPosts(
                         key: ValueKey(_showOnlyCurrentUser),
                         showOnlyCurrentUser: _showOnlyCurrentUser,
                         onProfileSelected: _openProfile,
