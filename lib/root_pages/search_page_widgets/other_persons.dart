@@ -297,6 +297,18 @@ class _OtherPersonsState extends State<OtherPersons>
 
   Widget _buildUserCard(Map<String, dynamic> data, bool isDogOwner,
       Color profileColor, String filterDistance) {
+    // Calculate the distance
+    final userProfileState =
+        Provider.of<UserProfileState>(context, listen: false);
+    final mainUserLatitude = userProfileState.userProfile.latitude;
+    final mainUserLongitude = userProfileState.userProfile.longitude;
+    final distance = _calculateDistance(
+      mainUserLatitude,
+      mainUserLongitude,
+      data['latitude'].toDouble(),
+      data['longitude'].toDouble(),
+    ).toStringAsFixed(1);
+
     return FutureBuilder<bool>(
       future: AuthService().isProfileSaved(data['uid']),
       builder: (context, snapshot) {
@@ -343,17 +355,9 @@ class _OtherPersonsState extends State<OtherPersons>
                 filterLastOnline: data['filterLastOnline'] ?? 3,
               );
 
-              // Calculate the distance
-              final userProfileState =
-                  Provider.of<UserProfileState>(context, listen: false);
-              final mainUserLatitude = userProfileState.userProfile.latitude;
-              final mainUserLongitude = userProfileState.userProfile.longitude;
-              final distance = _calculateDistance(
-                mainUserLatitude,
-                mainUserLongitude,
-                selectedProfile.latitude,
-                selectedProfile.longitude,
-              ).toStringAsFixed(1);
+              // log the selected profiles userName
+              developer.log(
+                  'PERSONS Selected Profile UserName: ${selectedProfile.userName}');
 
               final lastOnline =
                   calculateLastOnline(selectedProfile.lastOnline);

@@ -249,19 +249,11 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
                 filterLastOnline: user['filterLastOnline'] ?? 3,
               );
 
-              // Calculate distance and lastOnline for the profile widget
-              final calculatedDistance = _calculateDistance(
-                mainUserLatitude,
-                mainUserLongitude,
-                selectedProfile.latitude,
-                selectedProfile.longitude,
-              ).toStringAsFixed(1);
-
               final lastOnline =
                   calculateLastOnline(selectedProfile.lastOnline);
 
               widget.onProfileSelected(
-                  selectedProfile, calculatedDistance, lastOnline, isSaved);
+                  selectedProfile, distance, lastOnline, isSaved);
             }
           },
           child: Container(
