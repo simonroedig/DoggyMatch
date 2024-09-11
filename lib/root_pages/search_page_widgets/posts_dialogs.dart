@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
-import 'dart:developer';
 
 class PostsDialogs {
   static Future<bool> showCreateConfirmationDialog(
@@ -67,7 +66,6 @@ class PostsDialogs {
                         width: 60,
                         height: 60,
                         fit: BoxFit.cover,
-                        // add a stroke
                       ),
                     );
                   }).toList(),
@@ -157,102 +155,168 @@ class PostsDialogs {
     );
   }
 
-  static Future<bool> showDismissConfirmationDialog(
-      BuildContext context) async {
-    try {
-      // Ensure that null is not returned
-      return await showDialog<bool>(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            backgroundColor: AppColors.bg,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16.0),
-              side: const BorderSide(
+  static void showProgressDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColors.bg,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+            side: const BorderSide(
+              color: AppColors.customBlack,
+              width: 3.0,
+            ),
+          ),
+          content: const SizedBox(
+            height: 50,
+            width: 50,
+            child: Center(
+              child: CircularProgressIndicator(
                 color: AppColors.customBlack,
-                width: 3.0,
               ),
             ),
-            title: const Center(
-              child: Text(
-                'Discard Post?',
+          ),
+        );
+      },
+    );
+  }
+
+  static void showSuccessDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColors.bg,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+            side: const BorderSide(
+              color: AppColors.customBlack,
+              width: 3.0,
+            ),
+          ),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.check_circle_outline_rounded,
+                color: AppColors.customGreen,
+                size: 50,
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Post successfully created!',
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontWeight: FontWeight.bold,
-                  fontSize: 18,
+                  fontSize: 16,
                   color: AppColors.customBlack,
                 ),
-              ),
-            ),
-            content: const Text(
-              'You have unsaved changes in your post. Do you want to discard them?',
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 14,
-                color: AppColors.customBlack,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            actions: <Widget>[
-              Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context)
-                            .pop(true); // Returns true when 'Yes' is pressed
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.customBlack,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                      ),
-                      child: const Text(
-                        'Yes',
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.bg,
-                        ),
-                      ),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop(
-                            false); // Returns false when 'No, Stay' is pressed
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.bg,
-                        side: const BorderSide(
-                          color: AppColors.customBlack,
-                          width: 2.0,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                      ),
-                      child: const Text(
-                        'No, Stay',
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.customBlack,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                textAlign: TextAlign.center,
               ),
             ],
-          );
-        },
-      ).then((value) =>
-          value ?? false); // If the result is null, return false as fallback
-    } catch (e) {
-      log('Error showing dialog: $e');
-      return false; // Return a default value in case of an error
-    }
+          ),
+        );
+      },
+    );
+
+    // Auto-close the dialog after 3 seconds
+    Future.delayed(const Duration(seconds: 3), () {
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+    });
+  }
+
+  static Future<bool> showDismissConfirmationDialog(
+      BuildContext context) async {
+    return await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColors.bg,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+            side: const BorderSide(
+              color: AppColors.customBlack,
+              width: 3.0,
+            ),
+          ),
+          title: const Center(
+            child: Text(
+              'Discard Post?',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: AppColors.customBlack,
+              ),
+            ),
+          ),
+          content: const Text(
+            'You have unsaved changes in your post. Do you want to discard them?',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 14,
+              color: AppColors.customBlack,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          actions: <Widget>[
+            Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(true);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.customBlack,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                    ),
+                    child: const Text(
+                      'Yes',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.bg,
+                      ),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(false);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.bg,
+                      side: const BorderSide(
+                        color: AppColors.customBlack,
+                        width: 2.0,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                    ),
+                    child: const Text(
+                      'No, Stay',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.customBlack,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

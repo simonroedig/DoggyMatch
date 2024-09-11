@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'dart:io';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/posts_dialogs.dart';
 import 'package:flutter/material.dart';
@@ -97,18 +95,26 @@ class _NewPostPageState extends State<NewPostPage> {
       _isUploading = true;
     });
 
+    // Show progress dialog
+    PostsDialogs.showProgressDialog(context);
+
     try {
       await PostService().createPost(
         postDescription: _descriptionController.text,
         images: _images,
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Post created successfully')),
-      );
+      Navigator.of(context).pop(); // Close progress dialog
 
-      Navigator.of(context).pop();
+      // Show success dialog and delay auto-navigation
+      PostsDialogs.showSuccessDialog(context);
+
+      // Delay 3 seconds, then navigate back to the search page
+      Future.delayed(const Duration(seconds: 3), () {
+        Navigator.of(context).pop(); // Go back to the search page
+      });
     } catch (e) {
+      Navigator.of(context).pop(); // Close progress dialog
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Error creating post')),
       );
@@ -355,20 +361,16 @@ class _NewPostPageState extends State<NewPostPage> {
                         ),
                       ),
                     ),
-                    child: _isUploading
-                        ? const CircularProgressIndicator(
-                            color: AppColors.bg,
-                          )
-                        : Text(
-                            'Create Post',
-                            style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.bold,
-                              color: isButtonEnabled
-                                  ? AppColors.bg
-                                  : AppColors.customBlack,
-                            ),
-                          ),
+                    child: Text(
+                      'Create Post',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.bold,
+                        color: isButtonEnabled
+                            ? AppColors.bg
+                            : AppColors.customBlack,
+                      ),
+                    ),
                   ),
                 ),
               ),
