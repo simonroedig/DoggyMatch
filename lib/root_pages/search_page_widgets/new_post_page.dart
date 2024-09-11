@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:io';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/posts_dialogs.dart';
 import 'package:flutter/material.dart';
@@ -10,12 +12,13 @@ class NewPostPage extends StatefulWidget {
   const NewPostPage({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _NewPostPageState createState() => _NewPostPageState();
 }
 
 class _NewPostPageState extends State<NewPostPage> {
   final TextEditingController _descriptionController = TextEditingController();
-  List<File> _images = [];
+  final List<File> _images = [];
   final ImagePicker _picker = ImagePicker();
   bool _isUploading = false;
 

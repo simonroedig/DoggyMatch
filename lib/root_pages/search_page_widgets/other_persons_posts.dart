@@ -1,22 +1,23 @@
 import 'dart:developer' as developer;
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:doggymatch_flutter/root_pages/profile_page_widgets/profile_img_fullscreen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:doggymatch_flutter/states/user_profile_state.dart';
 import 'package:doggymatch_flutter/services/auth.dart';
 import 'package:doggymatch_flutter/classes/profile.dart';
+import 'package:doggymatch_flutter/root_pages/search_page_widgets/post_img_fullscreen.dart';
 
 class OtherPersonsPosts extends StatefulWidget {
   final bool showOnlyCurrentUser;
   final Function(UserProfile, String, String, bool) onProfileSelected;
 
-  const OtherPersonsPosts(
-      {super.key,
-      required this.showOnlyCurrentUser,
-      required this.onProfileSelected});
+  const OtherPersonsPosts({
+    super.key,
+    required this.showOnlyCurrentUser,
+    required this.onProfileSelected,
+  });
 
   @override
   _OtherPersonsPostsState createState() => _OtherPersonsPostsState();
@@ -26,11 +27,23 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
   final AuthService _authService = AuthService();
   bool _isLoading = true;
   List<Map<String, dynamic>> _posts = [];
+  List<PageController> _pageControllers = []; // List of PageControllers
+  List<int> _currentImageIndexes =
+      []; // Track the current image index for each post
 
   @override
   void initState() {
     super.initState();
     _loadPosts();
+  }
+
+  @override
+  void dispose() {
+    // Dispose all page controllers
+    for (var controller in _pageControllers) {
+      controller.dispose();
+    }
+    super.dispose();
   }
 
   @override
@@ -102,6 +115,10 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
         setState(() {
           _posts = posts;
           _isLoading = false;
+          _pageControllers =
+              List.generate(_posts.length, (index) => PageController());
+          _currentImageIndexes = List.generate(
+              _posts.length, (index) => 0); // Initialize current indexes
         });
       }
     } catch (e) {
@@ -126,62 +143,57 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
     }
   }
 
-  Widget _buildPostImages(List<String> postImages) {
-    return postImages.isNotEmpty
-        ? Stack(
-            children: [
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 8.0),
-                height: 200,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14.0),
-                  border: Border.all(color: AppColors.customBlack, width: 3),
-                ),
+  Widget _buildPostImages(List<String> postImages, int postIndex) {
+    return Stack(
+      children: [
+        SizedBox(
+          height: 200,
+          child: PageView.builder(
+            controller: _pageControllers[
+                postIndex], // Independent PageController for each post
+            itemCount: postImages.isEmpty ? 1 : postImages.length,
+            onPageChanged: (index) {
+              setState(() {
+                _currentImageIndexes[postIndex] = index;
+              });
+            },
+            itemBuilder: (context, index) {
+              final imageUrl = postImages.isNotEmpty
+                  ? postImages[index]
+                  : UserProfileState.placeholderImageUrl;
+
+              return GestureDetector(
+                onTap: () =>
+                    _openFullScreenImageView(context, postImages, postIndex),
                 child: ClipRRect(
-                  borderRadius:
-                      BorderRadius.circular(14.0), // Ensure rounded edges
-                  child: PageView.builder(
-                    itemCount: postImages.length,
-                    itemBuilder: (context, index) {
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => FullScreenImageView(
-                                images: postImages,
-                                initialIndex: index,
-                                onImageChanged: (newIndex) {
-                                  // Handle any actions if needed
-                                },
-                              ),
-                            ),
-                          );
-                        },
-                        child: Image.network(
-                          postImages[index],
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                        ),
-                      );
+                  borderRadius: BorderRadius.circular(14.0),
+                  child: Image.network(
+                    imageUrl,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: 200,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Center(child: Text('Image load error'));
                     },
                   ),
                 ),
-              ),
-              Positioned(
-                bottom: 8.0,
-                left: 0.0,
-                right: 0.0,
-                child: Center(
-                  child: _buildImageIndicator(postImages.length),
-                ),
-              ),
-            ],
-          )
-        : SizedBox.shrink();
+              );
+            },
+          ),
+        ),
+        Positioned(
+          bottom: 8.0,
+          left: 0,
+          right: 0,
+          child: _buildImageIndicator(postImages, postIndex),
+        ),
+      ],
+    );
   }
 
-  Widget _buildImageIndicator(int imageCount) {
+  Widget _buildImageIndicator(List<String> images, int postIndex) {
+    final int imageCount = images.isEmpty ? 1 : images.length;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(imageCount, (index) {
@@ -190,15 +202,86 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
           width: 10.0,
           height: 10.0,
           decoration: BoxDecoration(
+            border: Border.all(
+              color: AppColors.customBlack,
+              width: 2.0,
+            ),
             shape: BoxShape.circle,
-            color: Colors.white.withOpacity(0.5),
+            color: Colors.white.withOpacity(
+                _currentImageIndexes[postIndex] == index ? 1.0 : 0.5),
           ),
         );
       }),
     );
   }
 
-  Widget _buildPostCard(Map<String, dynamic> postData) {
+  void _openFullScreenImageView(
+      BuildContext context, List<String> images, int postIndex) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => PostFullScreenImageView(
+          images: images.isNotEmpty
+              ? images
+              : [UserProfileState.placeholderImageUrl],
+          initialIndex: _currentImageIndexes[postIndex], // Pass current index
+          onImageChanged: (newIndex) {
+            setState(() {
+              _currentImageIndexes[postIndex] = newIndex;
+              _pageControllers[postIndex]
+                  .jumpToPage(newIndex); // Sync view after fullscreen
+            });
+          },
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_posts.isEmpty) {
+      return Center(
+        child: RichText(
+          textAlign: TextAlign.center,
+          text: const TextSpan(
+            text:
+                'No posts found 😔\n\nAdjust your filter settings\nand spread the word about ',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 10.0,
+              fontWeight: FontWeight.normal,
+              color: AppColors.customBlack,
+            ),
+            children: <TextSpan>[
+              TextSpan(
+                text: 'DoggyMatch',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              TextSpan(
+                text: ' 🐶❤️',
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.only(top: 0, left: 20, right: 20),
+      itemCount: _posts.length,
+      itemBuilder: (context, index) {
+        return _buildPostCard(
+            _posts[index], index); // Pass index to differentiate posts
+      },
+    );
+  }
+
+  Widget _buildPostCard(Map<String, dynamic> postData, int postIndex) {
     final user = postData['user'];
     final post = postData['post'];
     final DateTime createdAt = DateTime.parse(post['createdAt']);
@@ -328,8 +411,8 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
               ],
             ),
             const SizedBox(height: 10),
-            _buildPostImages(
-                postImages), // Display post images with rounded edges
+            _buildPostImages(postImages,
+                postIndex), // Display post images with rounded edges
             const SizedBox(height: 10),
             Center(
               child: Container(
@@ -353,56 +436,8 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
               ),
             ),
             const SizedBox(height: 10),
-            // Other post actions like likes, comments can remain the same
           ],
         ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_posts.isEmpty) {
-      return Center(
-        child: RichText(
-          textAlign: TextAlign.center,
-          text: const TextSpan(
-            text:
-                'No posts found 😔\n\nAdjust your filter settings\nand spread the word about ',
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 10.0,
-              fontWeight: FontWeight.normal,
-              color: AppColors.customBlack,
-            ),
-            children: <TextSpan>[
-              TextSpan(
-                text: 'DoggyMatch',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              TextSpan(
-                text: ' 🐶❤️',
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: _loadPosts,
-      child: ListView.builder(
-        padding: const EdgeInsets.only(top: 0, left: 20, right: 20),
-        itemCount: _posts.length,
-        itemBuilder: (context, index) {
-          return _buildPostCard(_posts[index]);
-        },
       ),
     );
   }
@@ -428,14 +463,19 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
   double _calculateDistance(
       double lat1, double lon1, double lat2, double lon2) {
     const R = 6371; // Radius of the Earth in kilometers
+
     final dLat = _deg2rad(lat2 - lat1);
+
     final dLon = _deg2rad(lon2 - lon1);
+
     final a = sin(dLat / 2) * sin(dLat / 2) +
         cos(_deg2rad(lat1)) *
             cos(_deg2rad(lat2)) *
             sin(dLon / 2) *
             sin(dLon / 2);
+
     final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
     return R * c; // Distance in kilometers
   }
 
@@ -445,10 +485,12 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
 
   String calculateLastOnline(DateTime? lastOnline) {
     final now = DateTime.now();
+
     final difference = now.difference(lastOnline!);
 
     if (difference.inDays >= 30) {
       final months = (difference.inDays / 30).floor();
+
       return '$months ${months == 1 ? 'month' : 'months'} ago';
     } else if (difference.inDays > 0) {
       return '${difference.inDays} ${difference.inDays == 1 ? 'day' : 'days'} ago';
