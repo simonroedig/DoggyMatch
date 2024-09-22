@@ -113,4 +113,23 @@ class PostService {
       log('Error unliking Post: $e');
     }
   }
+
+  // get all posts likes uid's
+  Future<List<String>?> getPostLikes(String postOwnerId, String postId) async {
+    try {
+      final postRef = _firestore
+          .collection('users')
+          .doc(postOwnerId)
+          .collection('user_posts')
+          .doc(postId);
+
+      final doc = await postRef.get();
+      final data = doc.data() as Map<String, dynamic>;
+
+      return List<String>.from(data['likes']);
+    } catch (e) {
+      log('Error getting Post likes: $e');
+      return null;
+    }
+  }
 }

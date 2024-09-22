@@ -33,6 +33,7 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
   List<int> _currentImageIndexes =
       []; // Track the current image index for each post
   final Map<String, bool> _postLikes = {};
+  Map<String, int> _postLikesCount = {}; // New Map to track likes count
 
   @override
   void initState() {
@@ -317,8 +318,12 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
 
     final currentUserId = _authService.getCurrentUserId();
 
+    // Initialize _postLikes and _postLikesCount if not already set
     if (!_postLikes.containsKey(postId)) {
       _postLikes[postId] = likes.contains(currentUserId);
+    }
+    if (!_postLikesCount.containsKey(postId)) {
+      _postLikesCount[postId] = likes.length;
     }
 
     return GestureDetector(
@@ -453,7 +458,7 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
               ),
             ),
             const SizedBox(height: 10),
-            // New section for icons
+            // Updated section for icons and likes
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               decoration: BoxDecoration(
@@ -461,57 +466,93 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
                 borderRadius: BorderRadius.circular(18.0),
                 border: Border.all(color: AppColors.customBlack, width: 3),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Left side icons (heart and comment)
+                  // *buttonrow
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      IconButton(
-                        icon: Icon(
-                          _postLikes[postId] ?? false
-                              ? Icons.favorite
-                              : Icons.favorite_border,
-                          color: AppColors.customBlack,
-                        ),
-                        onPressed: () {
-                          if (currentUserId!.isEmpty) {
-                            // Handle user not signed in
-                            return;
-                          }
-                          setState(() {
-                            _postLikes[postId] = !_postLikes[postId]!;
-                          });
+                      // Left side icons (heart and comment)
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              _postLikes[postId] ?? false
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color: AppColors.customBlack,
+                            ),
+                            onPressed: () {
+                              if (currentUserId!.isEmpty) {
+                                // Handle user not signed in
+                                return;
+                              }
+                              setState(() {
+                                _postLikes[postId] = !_postLikes[postId]!;
 
-                          if (_postLikes[postId] == true) {
-                            // Like the post
-                            PostService().likePost(postOwner, postId);
-                          } else {
-                            // Unlike the post
-                            PostService().unlikePost(postOwner, postId);
-                          }
-                        },
+                                if (_postLikes[postId] == true) {
+                                  // Like the post
+                                  PostService().likePost(postOwner, postId);
+                                  _postLikesCount[postId] =
+                                      (_postLikesCount[postId] ?? 0) + 1;
+                                } else {
+                                  // Unlike the post
+                                  PostService().unlikePost(postOwner, postId);
+                                  _postLikesCount[postId] =
+                                      (_postLikesCount[postId]! > 0)
+                                          ? _postLikesCount[postId]! - 1
+                                          : 0;
+                                }
+                              });
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.comment_outlined,
+                              color: AppColors.customBlack,
+                            ),
+                            onPressed: () {
+                              // Handle comment button press
+                            },
+                          ),
+                        ],
                       ),
+                      // Right side icon (save)
                       IconButton(
                         icon: const Icon(
-                          Icons.comment_outlined,
+                          Icons.bookmark_border,
                           color: AppColors.customBlack,
                         ),
                         onPressed: () {
-                          // Handle comment button press
+                          // Handle save button press
                         },
                       ),
                     ],
                   ),
-                  // Right side icon (save)
-                  IconButton(
-                    icon: const Icon(
-                      Icons.bookmark_border,
-                      color: AppColors.customBlack,
+                  // Separator line
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 4.0),
+                    height: 3.0,
+                    color: AppColors.customBlack,
+                  ),
+                  // New row for likes
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
+                    child: Text(
+                      _postLikesCount[postId] == 0
+                          ? 'no likes yet'
+                          : _postLikesCount[postId] == 1
+                              ? 'liked by 1 person'
+                              : 'liked by ${_postLikesCount[postId]} people',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w300,
+                        color: AppColors.customBlack,
+                      ),
                     ),
-                    onPressed: () {
-                      // Handle save button press
-                    },
                   ),
                 ],
               ),
