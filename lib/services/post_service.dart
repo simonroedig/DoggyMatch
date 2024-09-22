@@ -35,6 +35,8 @@ class PostService {
       }
 
       final postData = {
+        'postOwner': uid,
+        'postId': '$uid|${timestamp.toIso8601String()}',
         'postDescription': postDescription,
         'createdAt': timestamp.toIso8601String(),
         'images': imageUrls,
@@ -47,12 +49,68 @@ class PostService {
 
       await docRef
           .collection('user_posts')
-          .doc(timestamp.toIso8601String())
+          .doc('$uid|${timestamp.toIso8601String()}')
           .set(postData);
 
       log('Post created successfully');
     } catch (e) {
       log('Error creating Post: $e');
+    }
+  }
+
+  // New method to like a post
+  Future<void> likePost(String postOwnerId, String postId) async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      log('No user is signed in');
+      return;
+    }
+    final String uid = user.uid;
+
+    // log the two parameters of this function
+    log('postOwnerId: $postOwnerId');
+    log('postId: $postId');
+
+    try {
+      final postRef = _firestore
+          .collection('users')
+          .doc(postOwnerId)
+          .collection('user_posts')
+          .doc(postId);
+
+      await postRef.update({
+        'likes': FieldValue.arrayUnion([uid]),
+      });
+
+      log('Post liked successfully');
+    } catch (e) {
+      log('Error liking Post: $e');
+    }
+  }
+
+  // New method to unlike a post
+  Future<void> unlikePost(String postOwnerId, String postId) async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      log('No user is signed in');
+      return;
+    }
+    final String uid = user.uid;
+
+    try {
+      final postRef = _firestore
+          .collection('users')
+          .doc(postOwnerId)
+          .collection('user_posts')
+          .doc(postId);
+
+      await postRef.update({
+        'likes': FieldValue.arrayRemove([uid]),
+      });
+
+      log('Post unliked successfully');
+    } catch (e) {
+      log('Error unliking Post: $e');
     }
   }
 }

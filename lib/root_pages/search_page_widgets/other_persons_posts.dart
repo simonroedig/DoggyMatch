@@ -1,6 +1,7 @@
 import 'dart:developer' as developer;
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:doggymatch_flutter/services/post_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
@@ -20,6 +21,7 @@ class OtherPersonsPosts extends StatefulWidget {
   });
 
   @override
+  // ignore: library_private_types_in_public_api
   _OtherPersonsPostsState createState() => _OtherPersonsPostsState();
 }
 
@@ -30,6 +32,7 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
   List<PageController> _pageControllers = []; // List of PageControllers
   List<int> _currentImageIndexes =
       []; // Track the current image index for each post
+  final Map<String, bool> _postLikes = {};
 
   @override
   void initState() {
@@ -144,50 +147,55 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
   }
 
   Widget _buildPostImages(List<String> postImages, int postIndex) {
-    return Stack(
-      children: [
-        SizedBox(
-          height: 200,
-          child: PageView.builder(
-            controller: _pageControllers[
-                postIndex], // Independent PageController for each post
-            itemCount: postImages.isEmpty ? 1 : postImages.length,
-            onPageChanged: (index) {
-              setState(() {
-                _currentImageIndexes[postIndex] = index;
-              });
-            },
-            itemBuilder: (context, index) {
-              final imageUrl = postImages.isNotEmpty
-                  ? postImages[index]
-                  : UserProfileState.placeholderImageUrl;
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.customBlack, width: 3),
+        borderRadius: BorderRadius.circular(18.0),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(15.0),
+        child: Stack(
+          children: [
+            SizedBox(
+              height: 200,
+              child: PageView.builder(
+                controller: _pageControllers[postIndex],
+                itemCount: postImages.isEmpty ? 1 : postImages.length,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentImageIndexes[postIndex] = index;
+                  });
+                },
+                itemBuilder: (context, index) {
+                  final imageUrl = postImages.isNotEmpty
+                      ? postImages[index]
+                      : UserProfileState.placeholderImageUrl;
 
-              return GestureDetector(
-                onTap: () =>
-                    _openFullScreenImageView(context, postImages, postIndex),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(14.0),
-                  child: Image.network(
-                    imageUrl,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: 200,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Center(child: Text('Image load error'));
-                    },
-                  ),
-                ),
-              );
-            },
-          ),
+                  return GestureDetector(
+                    onTap: () => _openFullScreenImageView(
+                        context, postImages, postIndex),
+                    child: Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: 200,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Center(child: Text('Image load error'));
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+            Positioned(
+              bottom: 8.0,
+              left: 0,
+              right: 0,
+              child: _buildImageIndicator(postImages, postIndex),
+            ),
+          ],
         ),
-        Positioned(
-          bottom: 8.0,
-          left: 0,
-          right: 0,
-          child: _buildImageIndicator(postImages, postIndex),
-        ),
-      ],
+      ),
     );
   }
 
@@ -303,6 +311,15 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
     final dogName = user['dogName'] ?? '';
     final postDescription = post['postDescription'] ?? '';
     final postImages = List<String>.from(post['images'] ?? []);
+    final List<dynamic> likes = post['likes'] ?? [];
+    final String postOwner = post['postOwner'] ?? '';
+    final String postId = post['postId'] ?? '';
+
+    final currentUserId = _authService.getCurrentUserId();
+
+    if (!_postLikes.containsKey(postId)) {
+      _postLikes[postId] = likes.contains(currentUserId);
+    }
 
     return GestureDetector(
       onTap: () {
@@ -436,6 +453,70 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
               ),
             ),
             const SizedBox(height: 10),
+            // New section for icons
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              decoration: BoxDecoration(
+                color: AppColors.bg,
+                borderRadius: BorderRadius.circular(18.0),
+                border: Border.all(color: AppColors.customBlack, width: 3),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Left side icons (heart and comment)
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          _postLikes[postId] ?? false
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          color: AppColors.customBlack,
+                        ),
+                        onPressed: () {
+                          if (currentUserId!.isEmpty) {
+                            // Handle user not signed in
+                            return;
+                          }
+                          setState(() {
+                            _postLikes[postId] = !_postLikes[postId]!;
+                          });
+
+                          if (_postLikes[postId] == true) {
+                            // Like the post
+                            PostService().likePost(postOwner, postId);
+                          } else {
+                            // Unlike the post
+                            PostService().unlikePost(postOwner, postId);
+                          }
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.comment_outlined,
+                          color: AppColors.customBlack,
+                        ),
+                        onPressed: () {
+                          // Handle comment button press
+                        },
+                      ),
+                    ],
+                  ),
+                  // Right side icon (save)
+                  IconButton(
+                    icon: const Icon(
+                      Icons.bookmark_border,
+                      color: AppColors.customBlack,
+                    ),
+                    onPressed: () {
+                      // Handle save button press
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
           ],
         ),
       ),
@@ -509,6 +590,7 @@ class _AutoScrollingRow extends StatefulWidget {
   final bool isDogOwner;
   final String dogName;
 
+  // ignore: use_super_parameters
   const _AutoScrollingRow({
     Key? key,
     required this.userName,
