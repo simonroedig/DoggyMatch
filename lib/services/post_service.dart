@@ -42,6 +42,7 @@ class PostService {
         'images': imageUrls,
         'likes': [],
         'comments': [],
+        'commentsCount': 0, // Initialize comments count
       };
 
       // Store post in Firestore
@@ -177,6 +178,72 @@ class PostService {
       log('Post unsaved successfully');
     } catch (e) {
       log('Error unsaving Post: $e');
+    }
+  }
+
+  Future<void> addComment(
+      String postOwnerId, String postId, String commentText) async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      log('No user is signed in');
+      return;
+    }
+    final String uid = user.uid;
+
+    // Fetch user's display name or username
+    final userDoc = await _firestore.collection('users').doc(uid).get();
+    final userName = userDoc.data()?['userName'] ?? 'Anonymous';
+
+    final DateTime timestamp = DateTime.now();
+
+    final commentData = {
+      'commentId': '$uid|${timestamp.toIso8601String()}',
+      'userId': uid,
+      'userName': userName,
+      'commentText': commentText,
+      'createdAt': timestamp.toIso8601String(),
+    };
+
+    try {
+      final postRef = _firestore
+          .collection('users')
+          .doc(postOwnerId)
+          .collection('user_posts')
+          .doc(postId);
+
+      final commentRef =
+          postRef.collection('comments').doc(commentData['commentId']);
+
+      await commentRef.set(commentData);
+
+      // Increment comments count
+      await postRef.update({
+        'commentsCount': FieldValue.increment(1),
+      });
+
+      log('Comment added successfully');
+    } catch (e) {
+      log('Error adding comment: $e');
+    }
+  }
+
+  // Method to fetch comments
+  Future<List<Map<String, dynamic>>> getComments(
+      String postOwnerId, String postId) async {
+    try {
+      final commentsSnapshot = await _firestore
+          .collection('users')
+          .doc(postOwnerId)
+          .collection('user_posts')
+          .doc(postId)
+          .collection('comments')
+          .orderBy('createdAt', descending: false)
+          .get();
+
+      return commentsSnapshot.docs.map((doc) => doc.data()).toList();
+    } catch (e) {
+      log('Error getting comments: $e');
+      return [];
     }
   }
 }
