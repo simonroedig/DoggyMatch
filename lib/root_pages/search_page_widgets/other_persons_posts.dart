@@ -33,7 +33,11 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
   List<int> _currentImageIndexes =
       []; // Track the current image index for each post
   final Map<String, bool> _postLikes = {};
-  Map<String, int> _postLikesCount = {}; // New Map to track likes count
+  final Map<String, int> _postLikesCount = {}; // New Map to track likes count
+
+  // Variables for saved posts
+  Set<String> _savedPosts = {}; // To store saved post identifiers
+  final Map<String, bool> _postSaves = {}; // To track save state of posts
 
   @override
   void initState() {
@@ -115,6 +119,9 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
         return dateB.compareTo(dateA); // Newest first
       });
 
+      // Fetch saved posts before updating state
+      await _fetchSavedPosts();
+
       if (mounted) {
         setState(() {
           _posts = posts;
@@ -144,6 +151,26 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
     } catch (e) {
       developer.log('Error fetching posts: $e');
       return [];
+    }
+  }
+
+  Future<void> _fetchSavedPosts() async {
+    final String? currentUserId = _authService.getCurrentUserId();
+    if (currentUserId == null) return;
+
+    try {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUserId)
+          .get();
+      final data = userDoc.data();
+      if (data != null && data['savedPosts'] != null) {
+        _savedPosts = Set<String>.from(data['savedPosts']);
+      } else {
+        _savedPosts = {};
+      }
+    } catch (e) {
+      developer.log('Error fetching saved posts: $e');
     }
   }
 
@@ -315,6 +342,7 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
     final List<dynamic> likes = post['likes'] ?? [];
     final String postOwner = post['postOwner'] ?? '';
     final String postId = post['postId'] ?? '';
+    // Note: postId already includes postOwnerId and timestamp
 
     final currentUserId = _authService.getCurrentUserId();
 
@@ -324,6 +352,11 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
     }
     if (!_postLikesCount.containsKey(postId)) {
       _postLikesCount[postId] = likes.length;
+    }
+
+    // Initialize _postSaves
+    if (!_postSaves.containsKey(postId)) {
+      _postSaves[postId] = _savedPosts.contains(postId);
     }
 
     return GestureDetector(
@@ -484,7 +517,7 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
                               color: AppColors.customBlack,
                             ),
                             onPressed: () {
-                              if (currentUserId!.isEmpty) {
+                              if (currentUserId == null) {
                                 // Handle user not signed in
                                 return;
                               }
@@ -520,12 +553,30 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
                       ),
                       // Right side icon (save)
                       IconButton(
-                        icon: const Icon(
-                          Icons.bookmark_border,
+                        icon: Icon(
+                          _postSaves[postId] ?? false
+                              ? Icons.bookmark
+                              : Icons.bookmark_border,
                           color: AppColors.customBlack,
                         ),
                         onPressed: () {
-                          // Handle save button press
+                          if (currentUserId == null) {
+                            // Handle user not signed in
+                            return;
+                          }
+                          setState(() {
+                            _postSaves[postId] = !_postSaves[postId]!;
+
+                            if (_postSaves[postId] == true) {
+                              // Save the post
+                              PostService().savePost(postId);
+                              _savedPosts.add(postId);
+                            } else {
+                              // Unsave the post
+                              PostService().unsavePost(postId);
+                              _savedPosts.remove(postId);
+                            }
+                          });
                         },
                       ),
                     ],

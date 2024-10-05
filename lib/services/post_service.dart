@@ -132,4 +132,51 @@ class PostService {
       return null;
     }
   }
+
+  // Method to save a post using subcollection
+// Method to save a post
+  Future<void> savePost(String postId) async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      log('No user is signed in');
+      return;
+    }
+    final String uid = user.uid;
+
+    try {
+      final userRef = _firestore.collection('users').doc(uid);
+
+      // Add the postId to the user's 'savedPosts' array
+      await userRef.update({
+        'savedPosts': FieldValue.arrayUnion([postId]),
+      });
+
+      log('Post saved successfully');
+    } catch (e) {
+      log('Error saving Post: $e');
+    }
+  }
+
+  // Method to unsave a post
+  Future<void> unsavePost(String postId) async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      log('No user is signed in');
+      return;
+    }
+    final String uid = user.uid;
+
+    try {
+      final userRef = _firestore.collection('users').doc(uid);
+
+      // Remove the postId from the user's 'savedPosts' array
+      await userRef.update({
+        'savedPosts': FieldValue.arrayRemove([postId]),
+      });
+
+      log('Post unsaved successfully');
+    } catch (e) {
+      log('Error unsaving Post: $e');
+    }
+  }
 }
