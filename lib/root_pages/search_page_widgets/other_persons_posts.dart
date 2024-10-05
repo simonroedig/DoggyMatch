@@ -9,6 +9,7 @@ import 'package:doggymatch_flutter/states/user_profile_state.dart';
 import 'package:doggymatch_flutter/services/auth.dart';
 import 'package:doggymatch_flutter/classes/profile.dart';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/post_img_fullscreen.dart';
+import 'package:flutter/services.dart'; // Add this import
 
 class OtherPersonsPosts extends StatefulWidget {
   final bool showOnlyCurrentUser;
@@ -342,7 +343,7 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
     final List<dynamic> likes = post['likes'] ?? [];
     final String postOwner = post['postOwner'] ?? '';
     final String postId = post['postId'] ?? '';
-    // Note: postId already includes postOwnerId and timestamp
+    final int commentsCount = post['commentsCount'] ?? 0;
 
     final currentUserId = _authService.getCurrentUserId();
 
@@ -546,7 +547,15 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
                               color: AppColors.customBlack,
                             ),
                             onPressed: () {
-                              // Handle comment button press
+                              // Open comments overlay
+                              _openCommentsOverlay(
+                                  postOwner, postId, profileColor, () {
+                                setState(() {
+                                  // Update the commentsCount in the post data
+                                  post['commentsCount'] =
+                                      (post['commentsCount'] ?? 0) + 1;
+                                });
+                              });
                             },
                           ),
                         ],
@@ -602,6 +611,40 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
                         fontSize: 12,
                         fontWeight: FontWeight.w300,
                         color: AppColors.customBlack,
+                      ),
+                    ),
+                  ),
+                  // Separator line
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 4.0),
+                    height: 3.0,
+                    color: AppColors.customBlack,
+                  ),
+                  // Comments text
+                  GestureDetector(
+                    onTap: () {
+                      // Open comments overlay
+                      _openCommentsOverlay(postOwner, postId, profileColor, () {
+                        setState(() {
+                          // Update the commentsCount in the post data
+                          post['commentsCount'] =
+                              (post['commentsCount'] ?? 0) + 1;
+                        });
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: Text(
+                        commentsCount == 0
+                            ? 'Write the first comment'
+                            : 'View all $commentsCount comments',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w300,
+                          color: AppColors.customBlack,
+                        ),
                       ),
                     ),
                   ),
@@ -674,6 +717,419 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
     } else {
       return 'Just now';
     }
+  }
+
+  void _openCommentsOverlay(String postOwnerId, String postId,
+      Color profileColor, VoidCallback onCommentsUpdated) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return DraggableScrollableSheet(
+          expand: false,
+          builder: (BuildContext context, ScrollController scrollController) {
+            return Container(
+              decoration: const BoxDecoration(
+                color: AppColors.bg,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(24.0),
+                  topRight: Radius.circular(24.0),
+                ),
+              ),
+              child: _CommentsOverlay(
+                  postOwnerId: postOwnerId,
+                  postId: postId,
+                  onCommentsUpdated: onCommentsUpdated,
+                  profileColor: profileColor),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _CommentsOverlay extends StatefulWidget {
+  final String postOwnerId;
+  final String postId;
+  final VoidCallback onCommentsUpdated;
+  final Color profileColor;
+
+  // ignore: use_super_parameters
+  const _CommentsOverlay({
+    Key? key,
+    required this.postOwnerId,
+    required this.postId,
+    required this.onCommentsUpdated,
+    required this.profileColor,
+  }) : super(key: key);
+
+  @override
+  __CommentsOverlayState createState() => __CommentsOverlayState();
+}
+
+class __CommentsOverlayState extends State<_CommentsOverlay>
+    with TickerProviderStateMixin {
+  List<Map<String, dynamic>> _comments = [];
+  bool _isLoadingComments = true;
+  final TextEditingController _commentController = TextEditingController();
+  final PostService _postService = PostService();
+  final Map<String, Map<String, dynamic>> _userProfiles = {};
+  final Map<String, AnimationController> _animationControllers = {};
+  final Map<String, ScrollController> _scrollControllers = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _commentController.addListener(_updateCommentText);
+    _fetchComments();
+  }
+
+  @override
+  void dispose() {
+    _commentController.removeListener(_updateCommentText);
+    _commentController.dispose();
+    // Dispose all animation and scroll controllers
+    _animationControllers.values.forEach((controller) => controller.dispose());
+    _scrollControllers.values.forEach((controller) => controller.dispose());
+    super.dispose();
+  }
+
+  void _updateCommentText() {
+    setState(() {
+      // Trigger rebuild to update character count and send button opacity
+    });
+  }
+
+  Future<void> _fetchComments() async {
+    final comments =
+        await _postService.getComments(widget.postOwnerId, widget.postId);
+    if (mounted) {
+      setState(() {
+        _comments = comments;
+        _isLoadingComments = false;
+      });
+    }
+  }
+
+  String _calculateTimeAgo(DateTime createdAt) {
+    final now = DateTime.now();
+    final difference = now.difference(createdAt);
+
+    if (difference.inDays >= 30) {
+      final months = (difference.inDays / 30).floor();
+      return '$months ${months == 1 ? 'month' : 'months'} ago';
+    } else if (difference.inDays > 0) {
+      return '${difference.inDays} ${difference.inDays == 1 ? 'day' : 'days'} ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours} ${difference.inHours == 1 ? 'hour' : 'hours'} ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes} ${difference.inMinutes == 1 ? 'minute' : 'minutes'} ago';
+    } else {
+      return 'Just now';
+    }
+  }
+
+  void _fetchUserProfile(String userId) async {
+    try {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+
+      if (userDoc.exists) {
+        if (mounted) {
+          setState(() {
+            _userProfiles[userId] = userDoc.data() as Map<String, dynamic>;
+          });
+        }
+      }
+    } catch (e) {
+      developer.log('Error fetching user profile: $e');
+    }
+  }
+
+  Widget _buildCommentItem(Map<String, dynamic> commentData) {
+    final String userId = commentData['userId'] ?? '';
+    final String commentText = commentData['commentText'] ?? '';
+    final DateTime createdAt = DateTime.parse(commentData['createdAt']);
+    final String timeAgo = _calculateTimeAgo(createdAt);
+
+    // For profile picture and user data, we need to fetch the user's profile data
+    String profileImageUrl = UserProfileState.placeholderImageUrl;
+    String userName = 'Anonymous';
+    bool isDogOwner = false;
+    String dogName = '';
+
+    if (_userProfiles.containsKey(userId)) {
+      final userProfile = _userProfiles[userId]!;
+      final images = List<String>.from(userProfile['images'] ?? []);
+      if (images.isNotEmpty) {
+        profileImageUrl = images[0];
+      }
+      userName = userProfile['userName'] ?? 'Anonymous';
+      isDogOwner = userProfile['isDogOwner'] ?? false;
+      dogName = userProfile['dogName'] ?? '';
+    } else {
+      // Fetch user profile
+      _fetchUserProfile(userId);
+    }
+
+    // Create unique keys for controllers based on userId and comment timestamp
+    final String controllerKey = '$userId${createdAt.toIso8601String()}';
+
+    // Initialize controllers if they don't exist
+    if (!_scrollControllers.containsKey(controllerKey)) {
+      _scrollControllers[controllerKey] = ScrollController();
+      _animationControllers[controllerKey] = AnimationController(
+        vsync: this,
+        duration: const Duration(seconds: 5),
+      );
+
+      final Animation<double> animation = Tween<double>(begin: 0.0, end: 1.0)
+          .animate(_animationControllers[controllerKey]!);
+
+      animation.addListener(() {
+        if (_scrollControllers[controllerKey]!.hasClients) {
+          _scrollControllers[controllerKey]!.jumpTo(animation.value *
+              _scrollControllers[controllerKey]!.position.maxScrollExtent);
+        }
+      });
+
+      animation.addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          Future.delayed(const Duration(seconds: 1), () {
+            if (_scrollControllers[controllerKey]!.hasClients) {
+              _scrollControllers[controllerKey]!.jumpTo(0);
+              _animationControllers[controllerKey]!.forward(from: 0.0);
+            }
+          });
+        }
+      });
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _animationControllers[controllerKey]!.forward();
+      });
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start, // Align items at the top
+        children: [
+          // Profile picture
+          Container(
+            width: 40.0,
+            height: 40.0,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.customBlack, width: 2),
+              image: DecorationImage(
+                fit: BoxFit.cover,
+                image: NetworkImage(profileImageUrl),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8.0),
+          // Comment content
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Username and time
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Auto-scrolling username row
+                    Expanded(
+                      child: SingleChildScrollView(
+                        controller: _scrollControllers[controllerKey],
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            const Icon(Icons.person_rounded,
+                                size: 20, color: AppColors.customBlack),
+                            const SizedBox(width: 4),
+                            Text(
+                              userName,
+                              style: const TextStyle(
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: AppColors.customBlack,
+                              ),
+                            ),
+                            if (isDogOwner) ...[
+                              const SizedBox(width: 4),
+                              const Text(
+                                " • ",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                  color: AppColors.customBlack,
+                                ),
+                              ),
+                              const Icon(
+                                Icons.pets_rounded,
+                                size: 18,
+                                color: AppColors.customBlack,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                dogName,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  color: AppColors.customBlack,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8.0),
+                    Text(
+                      timeAgo,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: AppColors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4.0),
+                // Comment text
+                Text(
+                  commentText,
+                  style: const TextStyle(
+                    color: AppColors.customBlack,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Get the height of the keyboard
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.bg,
+        border: Border.all(color: AppColors.customBlack, width: 3),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(15.0), // Rounded top-left corner
+          topRight: Radius.circular(15.0), // Rounded top-right corner
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(15.0), // Match the container's border radius
+          topRight: Radius.circular(15.0),
+        ),
+        child: Padding(
+          padding: EdgeInsets.only(bottom: bottomInset),
+          child: Column(
+            children: [
+              // Comments list
+              Expanded(
+                child: _isLoadingComments
+                    ? const Center(child: CircularProgressIndicator())
+                    : _comments.isEmpty
+                        ? const Center(
+                            child: Text(
+                              "No comments yet, be the first one",
+                              style: TextStyle(color: AppColors.customBlack),
+                            ),
+                          )
+                        : ListView.builder(
+                            reverse: false,
+                            itemCount: _comments.length,
+                            itemBuilder: (context, index) {
+                              final comment = _comments[index];
+                              return _buildCommentItem(comment);
+                            },
+                          ),
+              ),
+              // Divider
+              Container(
+                height: 1.0,
+                color: AppColors.customBlack,
+              ),
+              // Comment input field
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    // Character counter
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        '${_commentController.text.length}/250',
+                        style: const TextStyle(
+                          color: AppColors.customBlack,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _commentController,
+                            maxLength: 250,
+                            maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                            decoration: const InputDecoration(
+                              hintText: 'Add a comment...',
+                              counterText: '', // Hide built-in counter
+                            ),
+                          ),
+                        ),
+                        Opacity(
+                          opacity: _commentController.text.trim().isNotEmpty
+                              ? 1.0
+                              : 0.5,
+                          child: IconButton(
+                            icon: const Icon(Icons.send),
+                            color: AppColors.customBlack,
+                            onPressed: _commentController.text.trim().isNotEmpty
+                                ? () {
+                                    final commentText =
+                                        _commentController.text.trim();
+                                    if (commentText.isNotEmpty) {
+                                      // Add comment
+                                      _postService
+                                          .addComment(widget.postOwnerId,
+                                              widget.postId, commentText)
+                                          .then((_) {
+                                        _commentController.clear();
+                                        // Fetch comments again
+                                        _fetchComments();
+                                        // Call the callback to update comments count
+                                        widget.onCommentsUpdated();
+                                      });
+                                    }
+                                  }
+                                : null,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
