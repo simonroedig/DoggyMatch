@@ -778,17 +778,18 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
   final Map<String, Map<String, dynamic>> _userProfiles = {};
   final Map<String, AnimationController> _animationControllers = {};
   final Map<String, ScrollController> _scrollControllers = {};
+  bool _hasText = false;
 
   @override
   void initState() {
     super.initState();
-    _commentController.addListener(_updateCommentText);
+    _commentController.addListener(_handleTextChange);
     _fetchComments();
   }
 
   @override
   void dispose() {
-    _commentController.removeListener(_updateCommentText);
+    _commentController.removeListener(_handleTextChange);
     _commentController.dispose();
     // Dispose all animation and scroll controllers
     _animationControllers.values.forEach((controller) => controller.dispose());
@@ -796,9 +797,9 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
     super.dispose();
   }
 
-  void _updateCommentText() {
+  void _handleTextChange() {
     setState(() {
-      // Trigger rebuild to update character count and send button opacity
+      _hasText = _commentController.text.trim().isNotEmpty;
     });
   }
 
@@ -1015,6 +1016,22 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
     );
   }
 
+  void _sendComment() {
+    final commentText = _commentController.text.trim();
+    if (commentText.isNotEmpty) {
+      // Add comment
+      _postService
+          .addComment(widget.postOwnerId, widget.postId, commentText)
+          .then((_) {
+        _commentController.clear();
+        // Fetch comments again
+        _fetchComments();
+        // Call the callback to update comments count
+        widget.onCommentsUpdated();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Get the height of the keyboard
@@ -1022,17 +1039,17 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.bg,
+        color: widget.profileColor,
         border: Border.all(color: AppColors.customBlack, width: 3),
         borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(15.0), // Rounded top-left corner
-          topRight: Radius.circular(15.0), // Rounded top-right corner
+          topLeft: Radius.circular(18.0), // Rounded top-left corner
+          topRight: Radius.circular(18.0), // Rounded top-right corner
         ),
       ),
       child: ClipRRect(
         borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(15.0), // Match the container's border radius
-          topRight: Radius.circular(15.0),
+          topLeft: Radius.circular(18.0), // Match the container's border radius
+          topRight: Radius.circular(18.0),
         ),
         child: Padding(
           padding: EdgeInsets.only(bottom: bottomInset),
@@ -1059,27 +1076,23 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
                           ),
               ),
               // Divider
-              Container(
-                height: 1.0,
-                color: AppColors.customBlack,
-              ),
               // Comment input field
               Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  children: [
-                    // Character counter
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: Text(
-                        '${_commentController.text.length}/250',
-                        style: const TextStyle(
-                          color: AppColors.customBlack,
-                          fontSize: 12,
-                        ),
+                padding: const EdgeInsets.only(bottom: 8.0, top: 14.0),
+                child: Center(
+                  child: Container(
+                    width: MediaQuery.of(context).size.width * 0.84,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 0.0, vertical: 0.0),
+                    decoration: BoxDecoration(
+                      color: AppColors.bg,
+                      borderRadius: BorderRadius.circular(20.0),
+                      border: Border.all(
+                        color: AppColors.customBlack,
+                        width: 3.0,
                       ),
                     ),
-                    Row(
+                    child: Row(
                       children: [
                         Expanded(
                           child: TextField(
@@ -1087,42 +1100,48 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
                             maxLength: 250,
                             maxLengthEnforcement: MaxLengthEnforcement.enforced,
                             decoration: const InputDecoration(
-                              hintText: 'Add a comment...',
+                              contentPadding:
+                                  EdgeInsets.symmetric(horizontal: 16.0),
+                              hintText: 'Write a comment..',
+                              hintStyle: TextStyle(color: AppColors.grey),
+                              border: InputBorder.none,
                               counterText: '', // Hide built-in counter
                             ),
+                            style:
+                                const TextStyle(color: AppColors.customBlack),
+                            minLines:
+                                1, // Minimum number of lines for the text field
+                            maxLines:
+                                5, // Maximum number of lines for the text field
                           ),
                         ),
-                        Opacity(
-                          opacity: _commentController.text.trim().isNotEmpty
-                              ? 1.0
-                              : 0.5,
-                          child: IconButton(
-                            icon: const Icon(Icons.send),
-                            color: AppColors.customBlack,
-                            onPressed: _commentController.text.trim().isNotEmpty
-                                ? () {
-                                    final commentText =
-                                        _commentController.text.trim();
-                                    if (commentText.isNotEmpty) {
-                                      // Add comment
-                                      _postService
-                                          .addComment(widget.postOwnerId,
-                                              widget.postId, commentText)
-                                          .then((_) {
-                                        _commentController.clear();
-                                        // Fetch comments again
-                                        _fetchComments();
-                                        // Call the callback to update comments count
-                                        widget.onCommentsUpdated();
-                                      });
-                                    }
-                                  }
-                                : null,
+                        IconButton(
+                          icon: Icon(
+                            Icons.send_rounded,
+                            color: _hasText
+                                ? AppColors.customBlack
+                                : AppColors.grey,
                           ),
+                          onPressed: _hasText ? _sendComment : null,
                         ),
                       ],
                     ),
-                  ],
+                  ),
+                ),
+              ),
+              // Character counter
+              Align(
+                alignment: Alignment.centerRight,
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                      right: 24.0, bottom: 8.0), // Adjust padding as needed
+                  child: Text(
+                    '${_commentController.text.length}/250',
+                    style: const TextStyle(
+                      color: AppColors.customBlack,
+                      fontSize: 12,
+                    ),
+                  ),
                 ),
               ),
             ],
