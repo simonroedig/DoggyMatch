@@ -792,8 +792,12 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
     _commentController.removeListener(_handleTextChange);
     _commentController.dispose();
     // Dispose all animation and scroll controllers
-    _animationControllers.values.forEach((controller) => controller.dispose());
-    _scrollControllers.values.forEach((controller) => controller.dispose());
+    for (var controller in _animationControllers.values) {
+      controller.dispose();
+    }
+    for (var controller in _scrollControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -808,7 +812,7 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
         await _postService.getComments(widget.postOwnerId, widget.postId);
     if (mounted) {
       setState(() {
-        _comments = comments;
+        _comments = comments.reversed.toList();
         _isLoadingComments = false;
       });
     }
