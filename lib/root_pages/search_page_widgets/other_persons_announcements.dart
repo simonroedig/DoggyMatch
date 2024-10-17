@@ -3,6 +3,7 @@
 import 'dart:developer' as developer;
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:doggymatch_flutter/root_pages/search_page_widgets/announcement_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
@@ -12,14 +13,14 @@ import 'package:doggymatch_flutter/notifiers/filter_notifier.dart';
 import 'package:doggymatch_flutter/classes/profile.dart';
 
 class OtherPersonsAnnouncements extends StatefulWidget {
-  final bool
-      showOnlyCurrentUser; // Add this parameter to determine inclusion of the current user
+  final bool showOnlyCurrentUser;
   final Function(UserProfile, String, String, bool) onProfileSelected;
 
-  const OtherPersonsAnnouncements(
-      {super.key,
-      required this.showOnlyCurrentUser,
-      required this.onProfileSelected});
+  const OtherPersonsAnnouncements({
+    Key? key,
+    required this.showOnlyCurrentUser,
+    required this.onProfileSelected,
+  }) : super(key: key);
 
   @override
   _OtherPersonsAnnouncementsState createState() =>
@@ -81,7 +82,7 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
           userProfileState.userProfile.filterLastOnline,
         );
 
-        // If showOnlyCurrentUser is false, exclude the current user's profile
+        // Exclude the current user's profile
         users = users.where((user) => user['uid'] != currentUserId).toList();
 
         for (var user in users) {
@@ -138,12 +139,16 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
   Future<List<Map<String, dynamic>>> _fetchUserAnnouncements(
       String userId) async {
     try {
-      final announcements = await FirebaseFirestore.instance
+      final announcementsSnapshot = await FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
           .collection('user_announcements')
           .get();
-      return announcements.docs.map((doc) => doc.data()).toList();
+      return announcementsSnapshot.docs.map((doc) {
+        var data = doc.data();
+        data['id'] = doc.id; // Include the document ID
+        return data;
+      }).toList();
     } catch (e) {
       developer.log('Error fetching announcements: $e');
       return [];
@@ -265,132 +270,205 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
               borderRadius: BorderRadius.circular(24.0),
               border: Border.all(color: AppColors.customBlack, width: 3),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Stack(
               children: [
-                Stack(
+                // Main content column
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    // Top part of the card (profile image and details)
+                    Stack(
                       children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(18.0),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                  color: AppColors.customBlack, width: 3),
+                        Row(
+                          children: [
+                            ClipRRect(
                               borderRadius: BorderRadius.circular(18.0),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                      color: AppColors.customBlack, width: 3),
+                                  borderRadius: BorderRadius.circular(18.0),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(15.0),
+                                  child: Image.network(
+                                    profileImage,
+                                    height: 70,
+                                    width: 70,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
                             ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(15.0),
-                              child: Image.network(
-                                profileImage,
-                                height: 70,
-                                width: 70,
-                                fit: BoxFit.cover,
+                            const SizedBox(width: 8.0),
+                            Expanded(
+                              child: Container(
+                                height: 74,
+                                padding: const EdgeInsets.all(8.0),
+                                decoration: BoxDecoration(
+                                  color: AppColors.bg,
+                                  borderRadius: BorderRadius.circular(18.0),
+                                  border: Border.all(
+                                      color: AppColors.customBlack, width: 3),
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _AutoScrollingRow(
+                                      userName: userName,
+                                      isDogOwner: isDogOwner,
+                                      dogName: dogName,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    _AutoScrollingTitleRow(
+                                      title: announcementTitle,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (isSaved)
+                          Positioned(
+                            top: 3,
+                            left: 4,
+                            child: Transform.scale(
+                              scale:
+                                  0.85, // Slightly smaller for the profile image
+                              child: const Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  // Outer icon for the stroke
+                                  Icon(
+                                    Icons.bookmark_border_rounded,
+                                    color: Colors.black, // Stroke color
+                                    size: 20, // Smaller size
+                                  ),
+                                  // Inner filled icon
+                                  Icon(
+                                    Icons.bookmark_rounded,
+                                    color: AppColors.bg, // Your original color
+                                    size: 16, // Smaller size
+                                  ),
+                                ],
                               ),
                             ),
                           ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    // Announcement text
+                    Center(
+                      child: Container(
+                        width: MediaQuery.of(context).size.width * 0.9,
+                        padding: const EdgeInsets.all(8.0),
+                        decoration: BoxDecoration(
+                          color: AppColors.bg,
+                          borderRadius: BorderRadius.circular(18.0),
+                          border: Border.all(
+                              color: AppColors.customBlack, width: 3),
                         ),
-                        const SizedBox(width: 8.0),
-                        Expanded(
-                          child: Container(
-                            height: 74,
-                            padding: const EdgeInsets.all(8.0),
-                            decoration: BoxDecoration(
-                              color: AppColors.bg,
-                              borderRadius: BorderRadius.circular(18.0),
-                              border: Border.all(
-                                  color: AppColors.customBlack, width: 3),
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _AutoScrollingRow(
-                                  userName: userName,
-                                  isDogOwner: isDogOwner,
-                                  dogName: dogName,
-                                ),
-                                const SizedBox(height: 4),
-                                _AutoScrollingTitleRow(
-                                  title: announcementTitle,
-                                ),
-                              ],
+                        child: Text(
+                          announcementText,
+                          textAlign: TextAlign.left,
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 12,
+                            fontWeight: FontWeight.w300,
+                            color: AppColors.customBlack,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    // Time ago and distance text
+                    Center(
+                      child: Text(
+                        widget.showOnlyCurrentUser
+                            ? timeAgo
+                            : '$timeAgo • $distance km',
+                        style: const TextStyle(
+                          color: AppColors.grey,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                // Kebab menu positioned at the bottom right
+                if (widget.showOnlyCurrentUser)
+                  Positioned(
+                    bottom: -16,
+                    right: -15,
+                    child: PopupMenuButton<String>(
+                      icon: const Icon(
+                        Icons.more_vert_rounded,
+                        color: AppColors.customBlack,
+                        size: 18,
+                      ),
+                      onSelected: (String value) {
+                        if (value == 'delete') {
+                          AnnouncementDialogs.showDeleteAnnouncementDialog(
+                            context,
+                            announcementTitle,
+                            () => _deleteAnnouncement(announcement['id']),
+                          );
+                        }
+                      },
+                      itemBuilder: (BuildContext context) =>
+                          <PopupMenuEntry<String>>[
+                        const PopupMenuItem<String>(
+                          value: 'delete',
+                          child: Center(
+                            child: Text(
+                              'Delete',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.customBlack,
+                              ),
                             ),
                           ),
                         ),
                       ],
-                    ),
-                    if (isSaved)
-                      Positioned(
-                        top: 3,
-                        left: 4,
-                        child: Transform.scale(
-                          scale: 0.85, // Slightly smaller for the profile image
-                          child: const Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              // Outer icon for the stroke
-                              Icon(
-                                Icons.bookmark_border_rounded,
-                                color: Colors.black, // Stroke color
-                                size: 20, // Smaller size
-                              ),
-                              // Inner filled icon
-                              Icon(
-                                Icons.bookmark_rounded,
-                                color: AppColors.bg, // Your original color
-                                size: 16, // Smaller size
-                              ),
-                            ],
-                          ),
+                      offset: const Offset(0, 50),
+                      color: AppColors.bg,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16.0),
+                        side: const BorderSide(
+                          color: AppColors.customBlack,
+                          width: 3.0,
                         ),
                       ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Center(
-                  child: Container(
-                    width: MediaQuery.of(context).size.width * 0.9,
-                    padding: const EdgeInsets.all(8.0),
-                    decoration: BoxDecoration(
-                      color: AppColors.bg,
-                      borderRadius: BorderRadius.circular(18.0),
-                      border:
-                          Border.all(color: AppColors.customBlack, width: 3),
-                    ),
-                    child: Text(
-                      announcementText,
-                      textAlign: TextAlign.left,
-                      style: const TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w300,
-                        color: AppColors.customBlack,
-                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 10),
-                Center(
-                  child: Text(
-                    widget.showOnlyCurrentUser
-                        ? timeAgo
-                        : '$timeAgo • $distance km',
-                    style: const TextStyle(
-                      color: AppColors.grey,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.bold,
-                      fontSize: 10,
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
         );
       },
     );
+  }
+
+  Future<void> _deleteAnnouncement(String announcementId) async {
+    try {
+      final currentUserId = _authService.getCurrentUserId();
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUserId)
+          .collection('user_announcements')
+          .doc(announcementId)
+          .delete();
+      setState(() {
+        _loadFilteredUsersAnnouncements();
+      });
+    } catch (e) {
+      developer.log('Error deleting announcement: $e');
+    }
   }
 
   @override

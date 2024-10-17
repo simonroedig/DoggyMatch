@@ -343,4 +343,99 @@ class AnnouncementDialogs {
       }
     });
   }
+
+  static void showDeleteAnnouncementDialog(
+    BuildContext context,
+    String announcementTitle,
+    VoidCallback onDeleteConfirmed,
+  ) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColors.bg,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+            side: const BorderSide(
+              color: AppColors.customBlack,
+              width: 3.0,
+            ),
+          ),
+          title: const Center(
+            child: Text(
+              'Are you sure?',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: AppColors.customBlack,
+              ),
+            ),
+          ),
+          content: Text(
+            'Deleting this shout is irreversible. '
+            'You can always create a new shout later.',
+            style: const TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 14,
+              color: AppColors.customBlack,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          actions: <Widget>[
+            Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(); // Close the dialog
+                      onDeleteConfirmed(); // Call the delete function
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.customBlack,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                    ),
+                    child: const Text(
+                      'Yes',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.bg,
+                      ),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(); // Close the dialog
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.bg,
+                      side: const BorderSide(
+                        color: AppColors.customBlack,
+                        width: 2.0,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                    ),
+                    child: const Text(
+                      'No',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.customBlack,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
