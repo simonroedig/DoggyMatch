@@ -403,10 +403,11 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
       return Center(
         child: RichText(
           textAlign: TextAlign.center,
-          text: const TextSpan(
-            text:
-                'No announcements found 😔\n\nAdjust your filter settings\nand spread the word about ',
-            style: TextStyle(
+          text: TextSpan(
+            text: widget.showOnlyCurrentUser
+                ? 'You do not have an active shout \n\nCreate a new one'
+                : 'No shouts found 😔\n\nAdjust your filter settings\nand spread the word about ',
+            style: const TextStyle(
               fontFamily: 'Poppins',
               fontSize: 10.0,
               fontWeight: FontWeight.normal,
@@ -414,12 +415,12 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
             ),
             children: <TextSpan>[
               TextSpan(
-                text: 'DoggyMatch',
-                style: TextStyle(
+                text: widget.showOnlyCurrentUser ? '' : 'DoggyMatch',
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              TextSpan(
+              const TextSpan(
                 text: ' 🐶❤️',
               ),
             ],

@@ -24,6 +24,9 @@ class AnnouncementService {
     try {
       final docRef = _firestore.collection('users').doc(uid);
 
+      // Delete existing announcements before creating a new one
+      await deleteAnnouncement();
+
       final announcementData = {
         'announcementTitle': announcementTitle,
         'announcementText': announcementText,
@@ -41,6 +44,61 @@ class AnnouncementService {
       log('Announcement created successfully');
     } catch (e) {
       log('Error creating announcement: $e');
+    }
+  }
+
+  Future<void> deleteAnnouncement() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      log('No user is signed in');
+      return;
+    }
+
+    final String uid = user.uid;
+
+    try {
+      final docRef = _firestore.collection('users').doc(uid);
+
+      // Get all documents in 'user_announcements' collection
+      final announcementCollection = docRef.collection('user_announcements');
+      final snapshot = await announcementCollection.get();
+
+      for (var doc in snapshot.docs) {
+        await doc.reference.delete();
+      }
+
+      log('Announcement(s) deleted successfully');
+    } catch (e) {
+      log('Error deleting announcement: $e');
+    }
+  }
+
+  Future<bool> hasAnnouncement() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      log('No user is signed in');
+      return false;
+    }
+
+    final String uid = user.uid;
+
+    try {
+      final docRef = _firestore.collection('users').doc(uid);
+      final announcementCollection = docRef.collection('user_announcements');
+
+      // Check if there is at least one announcement
+      final snapshot = await announcementCollection.limit(1).get();
+
+      if (snapshot.docs.isNotEmpty) {
+        log('User has existing announcement(s)');
+        return true;
+      } else {
+        log('No existing announcements found');
+        return false;
+      }
+    } catch (e) {
+      log('Error checking for announcements: $e');
+      return false;
     }
   }
 }

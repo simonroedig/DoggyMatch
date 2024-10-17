@@ -1,8 +1,8 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
-import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:intl/intl.dart';
+import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:doggymatch_flutter/services/announcement_service.dart';
 
 class AnnouncementDialogs {
@@ -97,11 +97,18 @@ class AnnouncementDialogs {
   }
 
   static void showCreateConfirmationDialog(
-      BuildContext context,
-      TextEditingController titleController, // Added titleController
-      TextEditingController announcementController,
-      DateTime? selectedDate,
-      bool showForever) {
+    BuildContext context,
+    TextEditingController titleController,
+    TextEditingController announcementController,
+    DateTime? selectedDate,
+    bool showForever,
+    bool hasAnnouncement, // Added hasAnnouncement parameter
+  ) {
+    // Determine the dialog title based on whether an announcement exists
+    String dialogTitle = hasAnnouncement
+        ? 'Create Shout\nand Replace Old Shout?'
+        : 'Create Shout?';
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -114,15 +121,16 @@ class AnnouncementDialogs {
               width: 3.0,
             ),
           ),
-          title: const Center(
+          title: Center(
             child: Text(
-              'Create Shout?',
-              style: TextStyle(
+              dialogTitle,
+              style: const TextStyle(
                 fontFamily: 'Poppins',
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
                 color: AppColors.customBlack,
               ),
+              textAlign: TextAlign.center,
             ),
           ),
           content: Column(
@@ -156,7 +164,7 @@ class AnnouncementDialogs {
                   borderRadius: BorderRadius.circular(8.0),
                 ),
                 child: Text(
-                  titleController.text, // Display the announcement title
+                  titleController.text,
                   style: const TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 14,
@@ -251,7 +259,7 @@ class AnnouncementDialogs {
                       AnnouncementService announcementService =
                           AnnouncementService();
                       await announcementService.createAnnouncement(
-                        announcementTitle: titleController.text, // Pass title
+                        announcementTitle: titleController.text,
                         announcementText: announcementController.text,
                         showUntilDate: selectedDate,
                         showForever: showForever,

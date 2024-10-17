@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/announcement_dialogs.dart';
+import 'package:doggymatch_flutter/services/announcement_service.dart';
 
 class NewAnnouncementPage extends StatefulWidget {
   const NewAnnouncementPage({super.key});
@@ -23,11 +24,15 @@ class _NewAnnouncementPageState extends State<NewAnnouncementPage> {
   final int _minAnnouncementLength = 10;
   final int _minTitleLength = 3;
 
+  bool _hasAnnouncement =
+      false; // New variable to track if user has an announcement
+
   @override
   void initState() {
     super.initState();
     _announcementController.addListener(_updateButtonState);
     _titleController.addListener(_updateButtonState);
+    _checkForExistingAnnouncement(); // Check for existing announcement
   }
 
   @override
@@ -41,6 +46,14 @@ class _NewAnnouncementPageState extends State<NewAnnouncementPage> {
 
   void _updateButtonState() {
     setState(() {});
+  }
+
+  Future<void> _checkForExistingAnnouncement() async {
+    final announcementService = AnnouncementService();
+    final hasAnnouncement = await announcementService.hasAnnouncement();
+    setState(() {
+      _hasAnnouncement = hasAnnouncement;
+    });
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -252,7 +265,8 @@ class _NewAnnouncementPageState extends State<NewAnnouncementPage> {
                                 _titleController,
                                 _announcementController,
                                 _selectedDate,
-                                _showForever);
+                                _showForever,
+                                _hasAnnouncement);
                           }
                         : null,
                     style: ElevatedButton.styleFrom(
@@ -272,7 +286,9 @@ class _NewAnnouncementPageState extends State<NewAnnouncementPage> {
                       ),
                     ),
                     child: Text(
-                      'Create Shout',
+                      _hasAnnouncement
+                          ? 'Create Shout (Replace Old)'
+                          : 'Create Shout',
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontWeight: isButtonEnabled

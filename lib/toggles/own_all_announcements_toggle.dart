@@ -42,7 +42,7 @@ class _OwnAllAnnouncementsToggleState extends State<OwnAllAnnouncementsToggle> {
         ),
         alignment: Alignment.center,
         child: Text(
-          isAllAnnouncSelected ? 'Own Shouts' : 'All Shouts',
+          isAllAnnouncSelected ? 'Own Shout' : 'All Shouts',
           style: const TextStyle(
             fontFamily: 'Poppins',
             color: AppColors.customBlack,
