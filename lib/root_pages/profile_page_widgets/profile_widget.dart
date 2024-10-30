@@ -1,3 +1,5 @@
+// ignore_for_file: use_super_parameters
+
 import 'package:doggymatch_flutter/services/auth.dart';
 import 'package:doggymatch_flutter/root_pages/profile_page_widgets/profile_edit_all.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +10,7 @@ import 'package:doggymatch_flutter/root_pages/chat_page_widgets/profile_chat.dar
 import 'package:doggymatch_flutter/classes/profile.dart';
 import 'package:doggymatch_flutter/services/friends_service.dart';
 import 'package:doggymatch_flutter/root_pages/community_page_widgets/friends_dialogs.dart';
+import 'package:doggymatch_flutter/services/announcement_service.dart';
 import 'dart:developer';
 
 class ProfileWidget extends StatefulWidget {
@@ -19,14 +22,14 @@ class ProfileWidget extends StatefulWidget {
   final bool isProfileSaved;
 
   const ProfileWidget({
-    super.key,
+    Key? key,
     required this.profile,
     required this.clickedOnOtherUser,
     required this.distance,
     required this.lastOnline,
     required this.isProfileSaved,
     this.startInChat = false,
-  });
+  }) : super(key: key);
 
   @override
   // ignore: library_private_types_in_public_api
@@ -41,12 +44,30 @@ class _ProfileWidgetState extends State<ProfileWidget> {
   bool _isProfileFriendRequestReceived =
       false; // Track if friend request is received from other person
   bool _isProfileFriend = false; // Track if profile is a friend
+  Map<String, dynamic>? _announcementData; // Holds the announcement data
 
-  // ignore: unused_element
-  Future<void> _checkIfProfileIsSaved() async {
-    bool isSaved = await AuthService().isProfileSaved(widget.profile.uid);
+  @override
+  void initState() {
+    super.initState();
+    _isInChat = widget.startInChat;
+    _isProfileSaved = widget.isProfileSaved;
+    // Log the UID of the profile
+    log('Profile uid: ${widget.profile.uid}');
+    // Log the UID of the own user
+    log('Own uid: ${AuthService().getCurrentUserId()}');
+
+    _checkIfISentFriendRequest();
+    _checkIfIReceivedFriendRequest();
+    _checkIfProfileFriend();
+    _fetchAnnouncementData(); // Fetch the announcement data
+  }
+
+  // Method to fetch the announcement data
+  void _fetchAnnouncementData() async {
+    Map<String, dynamic>? data =
+        await AnnouncementService().getAnnouncementForUser(widget.profile.uid);
     setState(() {
-      _isProfileSaved = isSaved;
+      _announcementData = data;
     });
   }
 
@@ -71,21 +92,6 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     setState(() {
       _isProfileFriend = isFriend;
     });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _isInChat = widget.startInChat;
-    _isProfileSaved = widget.isProfileSaved;
-    // log the uid of the profile
-    log('Profile uid: ${widget.profile.uid}');
-    // log the uid of the own user
-    log('Own uid: ${AuthService().getCurrentUserId()}');
-
-    _checkIfISentFriendRequest();
-    _checkIfIReceivedFriendRequest();
-    _checkIfProfileFriend();
   }
 
   Future<void> toggleFriendStatus() async {
@@ -266,6 +272,17 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               if (widget.profile.isDogOwner)
                                 DogInfoSection(profile: widget.profile),
                               AboutSection(profile: widget.profile),
+                              if (_announcementData != null)
+                                ShoutSection(
+                                  announcementTitle:
+                                      _announcementData!['announcementTitle'] ??
+                                          '',
+                                  announcementText:
+                                      _announcementData!['announcementText'] ??
+                                          '',
+                                  createdAt: DateTime.parse(
+                                      _announcementData!['createdAt']),
+                                ),
                             ],
                           ),
                         ),

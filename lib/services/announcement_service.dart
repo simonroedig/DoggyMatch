@@ -101,4 +101,23 @@ class AnnouncementService {
       return false;
     }
   }
+
+  Future<Map<String, dynamic>?> getAnnouncementForUser(String uid) async {
+    try {
+      final docRef = _firestore.collection('users').doc(uid);
+      final announcementCollection = docRef.collection('user_announcements');
+      final snapshot = await announcementCollection.limit(1).get();
+
+      if (snapshot.docs.isNotEmpty) {
+        log('User has existing announcement(s)');
+        return snapshot.docs.first.data();
+      } else {
+        log('No existing announcements found for user $uid');
+        return null;
+      }
+    } catch (e) {
+      log('Error fetching announcement for user $uid: $e');
+      return null;
+    }
+  }
 }

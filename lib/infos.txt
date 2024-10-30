@@ -1,0 +1,4 @@
+flutter run -t lib/main/main.dart
+
+hot reload by clicking r in terminal
+hot restart by clicking R in terminal

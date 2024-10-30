@@ -634,17 +634,23 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: Text(
-                        commentsCount == 0
-                            ? 'Write the first comment'
-                            : 'View all $commentsCount comments',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w300,
-                          color: AppColors.customBlack,
-                        ),
+                      child: Column(
+                        children: [
+                          Text(
+                            commentsCount == 0
+                                ? 'Write the first comment'
+                                : 'View all $commentsCount comments',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 12,
+                              fontWeight: FontWeight.w300,
+                              color: AppColors.customBlack,
+                            ),
+                          ),
+                          const SizedBox(
+                              height: 4), // Add extra spacing below comments
+                        ],
                       ),
                     ),
                   ),

@@ -1,3 +1,5 @@
+// ignore_for_file: use_super_parameters
+
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
@@ -10,11 +12,12 @@ class UserInfoSection extends StatelessWidget {
   final String lastOnline;
 
   const UserInfoSection(
-      {super.key,
+      {Key? key,
       required this.profile,
       required this.clickedOnOtherUser,
       required this.distance,
-      required this.lastOnline});
+      required this.lastOnline})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +62,7 @@ class UserInfoSection extends StatelessWidget {
 class DogInfoSection extends StatelessWidget {
   final UserProfile profile;
 
-  const DogInfoSection({super.key, required this.profile});
+  const DogInfoSection({Key? key, required this.profile}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +93,7 @@ class DogInfoSection extends StatelessWidget {
 class AboutSection extends StatelessWidget {
   final UserProfile profile;
 
-  const AboutSection({super.key, required this.profile});
+  const AboutSection({Key? key, required this.profile}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -109,6 +112,85 @@ class AboutSection extends StatelessWidget {
               fontFamily: 'Poppins',
               fontSize: 14,
               color: AppColors.customBlack,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ShoutSection extends StatelessWidget {
+  final String announcementTitle;
+  final String announcementText;
+  final DateTime createdAt;
+
+  const ShoutSection({
+    Key? key,
+    required this.announcementTitle,
+    required this.announcementText,
+    required this.createdAt,
+  }) : super(key: key);
+
+  String _calculateTimeAgo(DateTime createdAt) {
+    final now = DateTime.now();
+    final difference = now.difference(createdAt);
+
+    if (difference.inDays >= 30) {
+      final months = (difference.inDays / 30).floor();
+      return '$months ${months == 1 ? 'month' : 'months'} ago';
+    } else if (difference.inDays > 0) {
+      return '${difference.inDays} ${difference.inDays == 1 ? 'day' : 'days'} ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours} ${difference.inHours == 1 ? 'hour' : 'hours'} ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes} ${difference.inMinutes == 1 ? 'minute' : 'minutes'} ago';
+    } else {
+      return 'Just now';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    String timeAgo = _calculateTimeAgo(createdAt);
+
+    return _buildInfoContainer(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _InfoHeader(
+            icon: Icons.announcement_rounded,
+            title: 'Current Shout',
+          ),
+          const SizedBox(height: 8.0),
+          Text(
+            announcementTitle,
+            style: const TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: AppColors.customBlack,
+            ),
+          ),
+          const SizedBox(height: 4.0),
+          Text(
+            announcementText,
+            style: const TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 14,
+              color: AppColors.customBlack,
+            ),
+          ),
+          const SizedBox(height: 8.0),
+          Center(
+            child: Text(
+              timeAgo,
+              style: const TextStyle(
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.bold,
+                fontSize: 10,
+                color: AppColors.grey,
+              ),
             ),
           ),
         ],

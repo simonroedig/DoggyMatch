@@ -372,10 +372,10 @@ class AnnouncementDialogs {
               ),
             ),
           ),
-          content: Text(
+          content: const Text(
             'Deleting this shout is irreversible. '
             'You can always create a new shout later.',
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 14,
               color: AppColors.customBlack,
