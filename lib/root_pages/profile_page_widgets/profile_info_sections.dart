@@ -268,6 +268,72 @@ class PostsSection extends StatelessWidget {
   }
 }
 
+class SavedPostsSection extends StatelessWidget {
+  final List<Map<String, dynamic>> savedPosts;
+  final Function(int) onPostSelected;
+
+  const SavedPostsSection({
+    Key? key,
+    required this.savedPosts,
+    required this.onPostSelected,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return _buildInfoContainer(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _InfoHeader(
+            icon: Icons.bookmark_rounded,
+            title: 'Saved Posts',
+          ),
+          const SizedBox(height: 8.0),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: savedPosts.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3, // Three images per row
+              crossAxisSpacing: 4.0,
+              mainAxisSpacing: 4.0,
+            ),
+            itemBuilder: (context, index) {
+              final post = savedPosts[index]['post'];
+              final images = List<String>.from(post['images'] ?? []);
+              final imageUrl = images.isNotEmpty
+                  ? images[0]
+                  : UserProfileState.placeholderImageUrl;
+
+              return GestureDetector(
+                onTap: () {
+                  onPostSelected(index);
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.customBlack, width: 2),
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(6.0),
+                    child: Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Center(child: Text('Image load error'));
+                      },
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // Shared Components
 Widget _buildInfoContainer({required Widget child}) {
   return Container(

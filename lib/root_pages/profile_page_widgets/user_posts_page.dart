@@ -8,12 +8,14 @@ class UserPostsPage extends StatefulWidget {
   final Map<String, dynamic> user;
   final List<Map<String, dynamic>> posts;
   final int initialIndex;
+  final bool isSavedPosts;
 
   const UserPostsPage({
     Key? key,
     required this.user,
     required this.posts,
     required this.initialIndex,
+    this.isSavedPosts = false,
   }) : super(key: key);
 
   @override
@@ -74,9 +76,23 @@ class _UserPostsPageState extends State<UserPostsPage> {
             top: 16.0, left: 20, right: 20), // Add top padding
         itemCount: posts.length,
         itemBuilder: (context, index) {
+          Map<String, dynamic> post;
+          Map<String, dynamic> postUser;
+
+          if (widget.isSavedPosts) {
+            // For saved posts, each item in posts is a map with 'user' and 'post'
+            final postData = posts[index];
+            postUser = postData['user'];
+            post = postData['post'];
+          } else {
+            // For own posts, posts list contains only post data, user is provided in widget.user
+            postUser = user;
+            post = posts[index];
+          }
+
           return PostCard(
-            user: user,
-            post: posts[index],
+            user: postUser,
+            post: post,
             showUserProfile: false,
           );
         },

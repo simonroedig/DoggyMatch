@@ -49,6 +49,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
   Map<String, dynamic>? _announcementData; // Holds the announcement data
 
   List<Map<String, dynamic>> _userPosts = []; // Holds the user's posts
+  List<Map<String, dynamic>> _savedPosts = [];
 
   @override
   void initState() {
@@ -65,6 +66,9 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     _checkIfProfileFriend();
     _fetchAnnouncementData(); // Fetch the announcement data
     _fetchUserPosts(); // Fetch the user's posts
+    if (!widget.clickedOnOtherUser) {
+      _fetchSavedPosts();
+    }
   }
 
   // Method to fetch the user's posts
@@ -82,6 +86,67 @@ class _ProfileWidgetState extends State<ProfileWidget> {
       });
     } catch (e) {
       log('Error fetching user posts: $e');
+    }
+  }
+
+  // method to fetch saved posts
+  void _fetchSavedPosts() async {
+    final currentUserId = AuthService().getCurrentUserId();
+    if (currentUserId == null) return;
+
+    try {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUserId)
+          .get();
+
+      final data = userDoc.data();
+      if (data != null && data['savedPosts'] != null) {
+        List<String> savedPostIds = List<String>.from(data['savedPosts']);
+
+        // Reverse the savedPostIds list to have the most recent saved posts first
+        savedPostIds = savedPostIds.reversed.toList();
+
+        List<Map<String, dynamic>> posts = [];
+
+        for (String postId in savedPostIds) {
+          // Since postId is in the format 'postOwnerId|timestamp', extract postOwnerId
+          List<String> parts = postId.split('|');
+          if (parts.length < 2) continue;
+          String postOwnerId = parts[0];
+
+          // Fetch the post data
+          final postDoc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(postOwnerId)
+              .collection('user_posts')
+              .doc(postId)
+              .get();
+
+          if (postDoc.exists) {
+            Map<String, dynamic> postData = postDoc.data()!;
+            // Also get the user data of the post owner
+            final userDoc = await FirebaseFirestore.instance
+                .collection('users')
+                .doc(postOwnerId)
+                .get();
+
+            if (userDoc.exists) {
+              Map<String, dynamic> userData = userDoc.data()!;
+              posts.add({
+                'user': userData,
+                'post': postData,
+              });
+            }
+          }
+        }
+
+        setState(() {
+          _savedPosts = posts;
+        });
+      }
+    } catch (e) {
+      log('Error fetching saved posts: $e');
     }
   }
 
@@ -261,13 +326,14 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     });
   }
 
-  void _openUserPostsPage(int initialIndex) {
+  void _openUserPostsPage(int initialIndex, {required bool isSavedPosts}) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => UserPostsPage(
           user: widget.profile.toMap(),
-          posts: _userPosts,
+          posts: isSavedPosts ? _savedPosts : _userPosts,
           initialIndex: initialIndex,
+          isSavedPosts: isSavedPosts,
         ),
       ),
     );
@@ -321,7 +387,19 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               if (_userPosts.isNotEmpty)
                                 PostsSection(
                                   userPosts: _userPosts,
-                                  onPostSelected: _openUserPostsPage,
+                                  onPostSelected: (index) {
+                                    _openUserPostsPage(index,
+                                        isSavedPosts: false);
+                                  },
+                                ),
+                              if (_savedPosts.isNotEmpty &&
+                                  !widget.clickedOnOtherUser)
+                                SavedPostsSection(
+                                  savedPosts: _savedPosts,
+                                  onPostSelected: (index) {
+                                    _openUserPostsPage(index,
+                                        isSavedPosts: true);
+                                  },
                                 ),
                             ],
                           ),
