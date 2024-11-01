@@ -13,7 +13,7 @@ import 'package:doggymatch_flutter/root_pages/community_page_widgets/friends_dia
 import 'package:doggymatch_flutter/services/announcement_service.dart';
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'user_posts_page.dart'; // Import the new page
+import 'user_posts_content.dart'; // Import the new content widget
 
 class ProfileWidget extends StatefulWidget {
   final UserProfile profile;
@@ -50,6 +50,11 @@ class _ProfileWidgetState extends State<ProfileWidget> {
 
   List<Map<String, dynamic>> _userPosts = []; // Holds the user's posts
   List<Map<String, dynamic>> _savedPosts = [];
+
+  // New state variables
+  bool _isShowingPosts = false;
+  int _initialPostIndex = 0;
+  bool _isSavedPosts = false;
 
   @override
   void initState() {
@@ -89,7 +94,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     }
   }
 
-  // method to fetch saved posts
+  // Method to fetch saved posts
   void _fetchSavedPosts() async {
     final currentUserId = AuthService().getCurrentUserId();
     if (currentUserId == null) return;
@@ -326,17 +331,13 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     });
   }
 
+  // Update the method to toggle posts view
   void _openUserPostsPage(int initialIndex, {required bool isSavedPosts}) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => UserPostsPage(
-          user: widget.profile.toMap(),
-          posts: isSavedPosts ? _savedPosts : _userPosts,
-          initialIndex: initialIndex,
-          isSavedPosts: isSavedPosts,
-        ),
-      ),
-    );
+    setState(() {
+      _isShowingPosts = true;
+      _initialPostIndex = initialIndex;
+      _isSavedPosts = isSavedPosts;
+    });
   }
 
   @override
@@ -344,13 +345,43 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     return Container(
       color: AppColors.bg, // Set the background color here
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-            horizontal:
-                17.0), // Adjust padding to create space on the left and right
+        padding: EdgeInsets.symmetric(
+            horizontal: _isShowingPosts
+                ? 17.0
+                : 17.0), // Adjust padding to create space on the left and right
         child: _buildProfileContainer(
           child: Column(
             children: [
-              if (!_isInChat)
+              if (_isInChat)
+                Expanded(
+                  child: ProfileChat(
+                    otherUserProfile: widget.profile,
+                    onHeaderTapped: () {
+                      setState(() {
+                        _isInChat = false; // Go back to profile view
+                      });
+                    },
+                  ),
+                )
+              else if (_isShowingPosts)
+                Expanded(
+                  child: Column(
+                    children: [
+                      _buildPostsHeader(),
+                      Expanded(
+                        child: UserPostsContent(
+                          user: widget.profile.toMap(),
+                          posts: _isSavedPosts ? _savedPosts : _userPosts,
+                          initialIndex: _initialPostIndex,
+                          isSavedPosts: _isSavedPosts,
+                          onProfileSelected:
+                              _handleProfileSelected, // Define this function
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
@@ -407,19 +438,38 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                       ],
                     ),
                   ),
-                )
-              else
-                Expanded(
-                  child: ProfileChat(
-                    otherUserProfile: widget.profile,
-                    onHeaderTapped: () {
-                      setState(() {
-                        _isInChat = false; // Go back to profile view
-                      });
-                    },
-                  ),
                 ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _handleProfileSelected(UserProfile selectedProfile, String distance,
+      String lastOnline, bool isProfileSaved) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          appBar: AppBar(
+            leading: IconButton(
+              icon: Icon(Icons.close, color: AppColors.customBlack),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            backgroundColor: AppColors.bg,
+            elevation: 0,
+            title: Text(
+              selectedProfile.userName,
+              style: TextStyle(color: AppColors.customBlack),
+            ),
+            centerTitle: true,
+          ),
+          body: ProfileWidget(
+            profile: selectedProfile,
+            clickedOnOtherUser: true,
+            distance: double.parse(distance),
+            lastOnline: lastOnline,
+            isProfileSaved: isProfileSaved,
           ),
         ),
       ),
@@ -429,13 +479,21 @@ class _ProfileWidgetState extends State<ProfileWidget> {
   Widget _buildProfileContainer({required Widget child}) {
     return Container(
       decoration: BoxDecoration(
-        color:
-            _isInChat ? AppColors.brownLightest : widget.profile.profileColor,
+        color: _isInChat
+            ? AppColors.brownLightest
+            : _isShowingPosts
+                ? AppColors.bg
+                : widget.profile.profileColor,
         borderRadius: BorderRadius.circular(24.0),
-        border: Border.all(
-          color: AppColors.customBlack,
-          width: 3.0,
-        ),
+        border: _isShowingPosts
+            ? Border.all(
+                color: AppColors.customBlack,
+                width: 3.0,
+              )
+            : Border.all(
+                color: AppColors.customBlack,
+                width: 3.0,
+              ),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(21.0),
@@ -533,6 +591,39 @@ class _ProfileWidgetState extends State<ProfileWidget> {
           ],
         )
       ],
+    );
+  }
+
+  Widget _buildPostsHeader() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              size: 30.0,
+              color: AppColors.customBlack,
+            ),
+            onPressed: () {
+              setState(() {
+                _isShowingPosts = false;
+              });
+            },
+          ),
+          Text(
+            'Posts',
+            style: const TextStyle(
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.bold,
+              color: AppColors.customBlack,
+              fontSize: 20.0,
+            ),
+          ),
+          SizedBox(width: 48), // Placeholder for alignment
+        ],
+      ),
     );
   }
 
