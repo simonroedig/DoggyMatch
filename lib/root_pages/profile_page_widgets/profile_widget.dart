@@ -1,4 +1,4 @@
-// ignore_for_file: use_super_parameters
+// profile_widget.dart
 
 import 'package:doggymatch_flutter/services/auth.dart';
 import 'package:doggymatch_flutter/root_pages/profile_page_widgets/profile_edit_all.dart';
@@ -12,6 +12,8 @@ import 'package:doggymatch_flutter/services/friends_service.dart';
 import 'package:doggymatch_flutter/root_pages/community_page_widgets/friends_dialogs.dart';
 import 'package:doggymatch_flutter/services/announcement_service.dart';
 import 'dart:developer';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'user_posts_page.dart'; // Import the new page
 
 class ProfileWidget extends StatefulWidget {
   final UserProfile profile;
@@ -46,6 +48,8 @@ class _ProfileWidgetState extends State<ProfileWidget> {
   bool _isProfileFriend = false; // Track if profile is a friend
   Map<String, dynamic>? _announcementData; // Holds the announcement data
 
+  List<Map<String, dynamic>> _userPosts = []; // Holds the user's posts
+
   @override
   void initState() {
     super.initState();
@@ -60,6 +64,25 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     _checkIfIReceivedFriendRequest();
     _checkIfProfileFriend();
     _fetchAnnouncementData(); // Fetch the announcement data
+    _fetchUserPosts(); // Fetch the user's posts
+  }
+
+  // Method to fetch the user's posts
+  void _fetchUserPosts() async {
+    try {
+      final posts = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.profile.uid)
+          .collection('user_posts')
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      setState(() {
+        _userPosts = posts.docs.map((doc) => doc.data()).toList();
+      });
+    } catch (e) {
+      log('Error fetching user posts: $e');
+    }
   }
 
   // Method to fetch the announcement data
@@ -238,6 +261,18 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     });
   }
 
+  void _openUserPostsPage(int initialIndex) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => UserPostsPage(
+          user: widget.profile.toMap(),
+          posts: _userPosts,
+          initialIndex: initialIndex,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -282,6 +317,11 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                           '',
                                   createdAt: DateTime.parse(
                                       _announcementData!['createdAt']),
+                                ),
+                              if (_userPosts.isNotEmpty)
+                                PostsSection(
+                                  userPosts: _userPosts,
+                                  onPostSelected: _openUserPostsPage,
                                 ),
                             ],
                           ),

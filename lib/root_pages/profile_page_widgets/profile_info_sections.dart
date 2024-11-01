@@ -1,9 +1,12 @@
+// profile_info_sections.dart
+
 // ignore_for_file: use_super_parameters
 
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:doggymatch_flutter/classes/profile.dart';
+import 'package:doggymatch_flutter/states/user_profile_state.dart';
 
 class UserInfoSection extends StatelessWidget {
   final UserProfile profile;
@@ -192,6 +195,72 @@ class ShoutSection extends StatelessWidget {
                 color: AppColors.grey,
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class PostsSection extends StatelessWidget {
+  final List<Map<String, dynamic>> userPosts;
+  final Function(int) onPostSelected;
+
+  const PostsSection({
+    Key? key,
+    required this.userPosts,
+    required this.onPostSelected,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return _buildInfoContainer(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _InfoHeader(
+            icon: Icons.photo_library_rounded,
+            title: 'Posts',
+          ),
+          const SizedBox(height: 8.0),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: userPosts.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3, // Three images per row
+              crossAxisSpacing: 4.0,
+              mainAxisSpacing: 4.0,
+            ),
+            itemBuilder: (context, index) {
+              final post = userPosts[index];
+              final images = List<String>.from(post['images'] ?? []);
+              final imageUrl = images.isNotEmpty
+                  ? images[0]
+                  : UserProfileState.placeholderImageUrl;
+
+              return GestureDetector(
+                onTap: () {
+                  onPostSelected(index);
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.customBlack, width: 2),
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(6.0),
+                    child: Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Center(child: Text('Image load error'));
+                      },
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),
