@@ -67,7 +67,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     _fetchAnnouncementData(); // Fetch the announcement data
     _fetchUserPosts(); // Fetch the user's posts
     if (!widget.clickedOnOtherUser) {
-      _fetchSavedPosts();
+      //_fetchSavedPosts();
     }
   }
 
