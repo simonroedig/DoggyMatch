@@ -52,11 +52,12 @@ class _FriendsReceivedReqSentReqToggleState
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.person_rounded,
+                    Icon(Icons.people_alt_rounded,
                         size: 24,
                         color: currentState == 0
                             ? AppColors.bg
                             : AppColors.customBlack),
+                    const SizedBox(width: 4),
                     Transform.translate(
                       offset: const Offset(-6, -3), // Adjust icon position
                       child: Icon(Icons.check_rounded,
@@ -84,11 +85,12 @@ class _FriendsReceivedReqSentReqToggleState
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.person_rounded,
+                    Icon(Icons.people_alt_rounded,
                         size: 24,
                         color: currentState == 1
                             ? AppColors.bg
                             : AppColors.customBlack),
+                    const SizedBox(width: 4),
                     Transform.translate(
                       offset: const Offset(-6, -3), // Adjust icon position
                       child: Icon(Icons.call_received_rounded,
@@ -120,11 +122,12 @@ class _FriendsReceivedReqSentReqToggleState
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.person_rounded,
+                    Icon(Icons.people_alt_rounded,
                         size: 24,
                         color: currentState == 2
                             ? AppColors.bg
                             : AppColors.customBlack),
+                    const SizedBox(width: 4),
                     Transform.translate(
                       offset: const Offset(-6, -3), // Adjust icon position
                       child: Icon(Icons.call_made_rounded,

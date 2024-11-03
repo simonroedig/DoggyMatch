@@ -1,5 +1,7 @@
 // file: other_persons_announcements.dart
 
+// ignore_for_file: use_super_parameters, library_private_types_in_public_api
+
 import 'dart:developer' as developer;
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';

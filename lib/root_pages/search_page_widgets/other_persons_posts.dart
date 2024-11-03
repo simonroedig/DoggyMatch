@@ -1,4 +1,6 @@
 // other_persons_posts.dart
+// ignore_for_file: use_super_parameters, library_private_types_in_public_api
+
 import 'dart:developer' as developer;
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -123,6 +125,7 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
     }
   }
 
+  // ignore: unused_element
   Future<void> _loadOwnPosts(
       String? currentUserId, List<Map<String, dynamic>> posts) async {
     final currentUserProfile = await _authService.fetchUserProfile();
@@ -311,17 +314,20 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.only(top: 0, left: 20, right: 20),
-      itemCount: _posts.length,
-      itemBuilder: (context, index) {
-        return PostCard(
-          user: _posts[index]['user'],
-          post: _posts[index]['post'],
-          onProfileSelected: widget.onProfileSelected,
-          showUserProfile: showUserProfile,
-        );
-      },
+    return RefreshIndicator(
+      onRefresh: _loadPosts, // Call _loadPosts when pulled down
+      child: ListView.builder(
+        padding: const EdgeInsets.only(top: 0, left: 20, right: 20),
+        itemCount: _posts.length,
+        itemBuilder: (context, index) {
+          return PostCard(
+            user: _posts[index]['user'],
+            post: _posts[index]['post'],
+            onProfileSelected: widget.onProfileSelected,
+            showUserProfile: showUserProfile,
+          );
+        },
+      ),
     );
   }
 }
@@ -919,7 +925,6 @@ class _CommentsOverlay extends StatefulWidget {
   final VoidCallback onCommentsUpdated;
   final Color profileColor;
 
-  // ignore: use_super_parameters
   const _CommentsOverlay({
     Key? key,
     required this.postOwnerId,
@@ -1337,7 +1342,6 @@ class _AutoScrollingRow extends StatefulWidget {
   final bool isDogOwner;
   final String dogName;
 
-  // ignore: use_super_parameters
   const _AutoScrollingRow({
     Key? key,
     required this.userName,

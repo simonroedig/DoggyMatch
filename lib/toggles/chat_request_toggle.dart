@@ -36,6 +36,7 @@ class _ChatRequestToggleState extends State<ChatRequestToggle> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // Chats toggle
             Expanded(
               child: Container(
                 alignment: Alignment.center,
@@ -58,7 +59,7 @@ class _ChatRequestToggleState extends State<ChatRequestToggle> {
                           : Colors.transparent,
                       width: 3,
                     ),
-                    right: BorderSide.none, // No border on the right side
+                    right: BorderSide.none,
                     bottom: BorderSide(
                       color: !isChatSelected
                           ? AppColors.customBlack
@@ -67,22 +68,36 @@ class _ChatRequestToggleState extends State<ChatRequestToggle> {
                     ),
                   ),
                 ),
-                child: Text(
-                  isChatSelected ? '💬 Chats' : 'Chats',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontWeight:
-                        isChatSelected ? FontWeight.bold : FontWeight.normal,
-                    color:
-                        isChatSelected ? AppColors.bg : AppColors.customBlack,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.message_rounded,
+                      color:
+                          isChatSelected ? AppColors.bg : AppColors.customBlack,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Chats',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontWeight: isChatSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: isChatSelected
+                            ? AppColors.bg
+                            : AppColors.customBlack,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
             Container(
-              width: 2, // Adjusted the width to be consistent
+              width: 2, // Divider between the toggles
               color: AppColors.customBlack,
             ),
+            // Requests toggle with custom icon combination
             Expanded(
               child: Container(
                 alignment: Alignment.center,
@@ -111,18 +126,46 @@ class _ChatRequestToggleState extends State<ChatRequestToggle> {
                           : Colors.transparent,
                       width: 3,
                     ),
-                    left: BorderSide.none, // No border on the left side
+                    left: BorderSide.none,
                   ),
                 ),
-                child: Text(
-                  !isChatSelected ? '✉️ Requests' : 'Requests',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontWeight:
-                        !isChatSelected ? FontWeight.bold : FontWeight.normal,
-                    color:
-                        !isChatSelected ? AppColors.bg : AppColors.customBlack,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Main message icon
+                    Icon(
+                      Icons.message_rounded,
+                      size: 24,
+                      color: !isChatSelected
+                          ? AppColors.bg
+                          : AppColors.customBlack,
+                    ),
+                    const SizedBox(width: 4),
+                    // Smaller swap icon, offset for positioning
+                    Transform.translate(
+                      offset: const Offset(-6, -3),
+                      child: Icon(
+                        Icons.swap_vert_rounded,
+                        size: 16,
+                        color: !isChatSelected
+                            ? AppColors.bg
+                            : AppColors.customBlack,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Requests',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontWeight: !isChatSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: !isChatSelected
+                            ? AppColors.bg
+                            : AppColors.customBlack,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

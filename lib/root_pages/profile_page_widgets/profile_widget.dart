@@ -1,5 +1,7 @@
 // profile_widget.dart
 
+// ignore_for_file: use_super_parameters
+
 import 'package:doggymatch_flutter/services/auth.dart';
 import 'package:doggymatch_flutter/root_pages/profile_page_widgets/profile_edit_all.dart';
 import 'package:flutter/material.dart';
@@ -90,6 +92,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
   }
 
   // method to fetch saved posts
+  // ignore: unused_element
   void _fetchSavedPosts() async {
     final currentUserId = AuthService().getCurrentUserId();
     if (currentUserId == null) return;
@@ -243,28 +246,28 @@ class _ProfileWidgetState extends State<ProfileWidget> {
         !_isProfileFriendRequestSent &&
         !_isProfileFriendRequestReceived) {
       return Icon(
-        Icons.person_outline_rounded,
+        Icons.people_alt_outlined,
         color: color,
       );
     } else if (!_isProfileFriend &&
         !_isProfileFriendRequestSent &&
         _isProfileFriendRequestReceived) {
       return Icon(
-        Icons.person_rounded,
+        Icons.people_alt_rounded,
         color: color,
       );
     } else if (!_isProfileFriend &&
         _isProfileFriendRequestSent &&
         !_isProfileFriendRequestReceived) {
       return Icon(
-        Icons.person_rounded,
+        Icons.people_alt_rounded,
         color: color,
       );
     } else if (_isProfileFriend &&
         !_isProfileFriendRequestSent &&
         !_isProfileFriendRequestReceived) {
       return Icon(
-        Icons.person_rounded,
+        Icons.people_alt_rounded,
         color: color,
       );
     } else {
@@ -484,6 +487,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(child: getIcon1BasedOnState()),
+                      const SizedBox(width: 4),
                       Transform.translate(
                         offset: const Offset(
                             -6, -3), // Adjust icon position as needed

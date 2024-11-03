@@ -34,6 +34,7 @@ class _ProfileAnnouncementPostsToggleState
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          // Profiles toggle
           Expanded(
             child: GestureDetector(
               onTap: () => toggleSwitch(0),
@@ -68,17 +69,29 @@ class _ProfileAnnouncementPostsToggleState
                     ),
                   ),
                 ),
-                child: Text(
-                  selectedIndex == 0 ? '🐶 Profiles' : 'Profiles',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontWeight: selectedIndex == 0
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                    color: selectedIndex == 0
-                        ? AppColors.bg
-                        : AppColors.customBlack,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.people_outline_rounded,
+                      color: selectedIndex == 0
+                          ? AppColors.bg
+                          : AppColors.customBlack,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Profiles',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontWeight: selectedIndex == 0
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: selectedIndex == 0
+                            ? AppColors.bg
+                            : AppColors.customBlack,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -87,6 +100,7 @@ class _ProfileAnnouncementPostsToggleState
             width: 2,
             color: AppColors.customBlack,
           ),
+          // Shouts toggle
           Expanded(
             child: GestureDetector(
               onTap: () => toggleSwitch(1),
@@ -112,17 +126,29 @@ class _ProfileAnnouncementPostsToggleState
                     left: BorderSide.none,
                   ),
                 ),
-                child: Text(
-                  selectedIndex == 1 ? '📣 Shouts' : 'Shouts',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontWeight: selectedIndex == 1
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                    color: selectedIndex == 1
-                        ? AppColors.bg
-                        : AppColors.customBlack,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.campaign,
+                      color: selectedIndex == 1
+                          ? AppColors.bg
+                          : AppColors.customBlack,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Shouts',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontWeight: selectedIndex == 1
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: selectedIndex == 1
+                            ? AppColors.bg
+                            : AppColors.customBlack,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -131,6 +157,7 @@ class _ProfileAnnouncementPostsToggleState
             width: 2,
             color: AppColors.customBlack,
           ),
+          // Posts toggle
           Expanded(
             child: GestureDetector(
               onTap: () => toggleSwitch(2),
@@ -165,17 +192,29 @@ class _ProfileAnnouncementPostsToggleState
                     left: BorderSide.none,
                   ),
                 ),
-                child: Text(
-                  selectedIndex == 2 ? '📝 Posts' : 'Posts',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontWeight: selectedIndex == 2
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                    color: selectedIndex == 2
-                        ? AppColors.bg
-                        : AppColors.customBlack,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.photo_library,
+                      color: selectedIndex == 2
+                          ? AppColors.bg
+                          : AppColors.customBlack,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Posts',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontWeight: selectedIndex == 2
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: selectedIndex == 2
+                            ? AppColors.bg
+                            : AppColors.customBlack,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

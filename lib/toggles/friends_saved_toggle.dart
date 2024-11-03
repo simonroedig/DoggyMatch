@@ -37,6 +37,7 @@ class _FriendsSavedToggleState extends State<FriendsSavedToggle> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // Friends toggle
             Expanded(
               child: Container(
                 alignment: Alignment.center,
@@ -60,7 +61,7 @@ class _FriendsSavedToggleState extends State<FriendsSavedToggle> {
                           : Colors.transparent,
                       width: 3,
                     ),
-                    right: BorderSide.none, // No border on the right side
+                    right: BorderSide.none,
                     bottom: BorderSide(
                       color: !isFriendsSelected
                           ? AppColors.customBlack
@@ -69,23 +70,37 @@ class _FriendsSavedToggleState extends State<FriendsSavedToggle> {
                     ),
                   ),
                 ),
-                child: Text(
-                  isFriendsSelected ? '🧑‍🤝‍🧑 Friends' : 'Friends',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontWeight:
-                        isFriendsSelected ? FontWeight.bold : FontWeight.normal,
-                    color: isFriendsSelected
-                        ? AppColors.bg
-                        : AppColors.customBlack,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.people_alt_rounded,
+                      color: isFriendsSelected
+                          ? AppColors.bg
+                          : AppColors.customBlack,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Friends',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontWeight: isFriendsSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: isFriendsSelected
+                            ? AppColors.bg
+                            : AppColors.customBlack,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
             Container(
-              width: 2, // Adjusted the width to be consistent
+              width: 2, // Divider between the toggles
               color: AppColors.customBlack,
             ),
+            // Saved toggle
             Expanded(
               child: Container(
                 alignment: Alignment.center,
@@ -115,20 +130,32 @@ class _FriendsSavedToggleState extends State<FriendsSavedToggle> {
                           : Colors.transparent,
                       width: 3,
                     ),
-                    left: BorderSide.none, // No border on the left side
+                    left: BorderSide.none,
                   ),
                 ),
-                child: Text(
-                  !isFriendsSelected ? '🔖 Saved' : 'Saved',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontWeight: !isFriendsSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                    color: !isFriendsSelected
-                        ? AppColors.bg
-                        : AppColors.customBlack,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.bookmark,
+                      color: !isFriendsSelected
+                          ? AppColors.bg
+                          : AppColors.customBlack,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Saved',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontWeight: !isFriendsSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: !isFriendsSelected
+                            ? AppColors.bg
+                            : AppColors.customBlack,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

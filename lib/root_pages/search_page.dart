@@ -1,4 +1,6 @@
 // search_page.dart
+// ignore_for_file: use_super_parameters, deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:doggymatch_flutter/main/custom_app_bar.dart';

@@ -1,4 +1,5 @@
-// file: own_all_announcements_toggle.dart
+// ignore_for_file: use_super_parameters, library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:doggymatch_flutter/notifiers/filter_notifier.dart';
@@ -6,8 +7,7 @@ import 'package:doggymatch_flutter/root_pages/search_page_widgets/shouts_filter_
 import 'package:provider/provider.dart';
 
 class OwnAllAnnouncementsToggle extends StatefulWidget {
-  final Function(ShoutsFilterOption)
-      onToggle; // Callback for when the toggle is changed
+  final Function(ShoutsFilterOption) onToggle;
 
   const OwnAllAnnouncementsToggle({Key? key, required this.onToggle})
       : super(key: key);
@@ -22,7 +22,6 @@ class _OwnAllAnnouncementsToggleState extends State<OwnAllAnnouncementsToggle> {
 
   void toggleSwitch() {
     setState(() {
-      // Cycle between ShoutsFilterOption options
       _currentOption = ShoutsFilterOption.values[
           (_currentOption.index + 1) % ShoutsFilterOption.values.length];
       Provider.of<FilterNotifier>(context, listen: false).notifyFilterChanged();
@@ -35,12 +34,25 @@ class _OwnAllAnnouncementsToggleState extends State<OwnAllAnnouncementsToggle> {
     Widget displayText;
     switch (_currentOption) {
       case ShoutsFilterOption.friendsShouts:
-        displayText = const Row(
+        displayText = Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.people_alt_rounded),
-            SizedBox(width: 4),
-            Text('Friends Shouts'),
+            // Custom icon combination for Friends Shouts
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.people_alt_rounded,
+                    size: 24, color: AppColors.customBlack),
+                const SizedBox(width: 4),
+                Transform.translate(
+                  offset: const Offset(-6, -3), // Adjust icon position
+                  child: const Icon(Icons.check_rounded,
+                      size: 16, color: AppColors.customBlack),
+                ),
+              ],
+            ),
+            const SizedBox(width: 0),
+            const Text('Friends Shouts'),
           ],
         );
         break;

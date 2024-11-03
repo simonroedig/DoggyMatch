@@ -252,16 +252,30 @@ class _ChatPageState extends State<ChatPage> {
                               )
                         : ListView(
                             children: [
-                              const Center(
-                                child: Text(
-                                  "📥 Incoming Requests",
-                                  style: TextStyle(
-                                    fontFamily: 'Poppins',
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.customBlack,
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.message_rounded,
+                                      color: AppColors.customBlack),
+                                  const SizedBox(width: 4),
+                                  Transform.translate(
+                                    offset: const Offset(-6, -3),
+                                    child: const Icon(
+                                        Icons.call_received_rounded,
+                                        size: 16,
+                                        color: AppColors.customBlack),
                                   ),
-                                ),
+                                  const SizedBox(width: 0),
+                                  const Text(
+                                    "Incoming Requests",
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.customBlack,
+                                    ),
+                                  ),
+                                ],
                               ),
                               const SizedBox(height: 10),
                               if (incomingRequests.isEmpty)
@@ -298,16 +312,28 @@ class _ChatPageState extends State<ChatPage> {
                                       ),
                                     )),
                               const SizedBox(height: 30),
-                              const Center(
-                                child: Text(
-                                  "Outgoing Requests 📤",
-                                  style: TextStyle(
-                                    fontFamily: 'Poppins',
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.customBlack,
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Text(
+                                    "Outgoing Requests",
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.customBlack,
+                                    ),
                                   ),
-                                ),
+                                  const SizedBox(width: 8),
+                                  const Icon(Icons.message_rounded,
+                                      color: AppColors.customBlack),
+                                  const SizedBox(width: 4),
+                                  Transform.translate(
+                                    offset: const Offset(-6, -3),
+                                    child: const Icon(Icons.call_made_rounded,
+                                        size: 16, color: AppColors.customBlack),
+                                  ),
+                                ],
                               ),
                               const SizedBox(height: 10),
                               if (outgoingRequests.isEmpty)

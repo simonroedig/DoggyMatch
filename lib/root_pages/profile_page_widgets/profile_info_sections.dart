@@ -162,7 +162,7 @@ class ShoutSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const _InfoHeader(
-            icon: Icons.announcement_rounded,
+            icon: Icons.campaign,
             title: 'Current Shout',
           ),
           const SizedBox(height: 8.0),

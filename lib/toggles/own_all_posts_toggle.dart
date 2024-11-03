@@ -1,10 +1,11 @@
+// ignore_for_file: use_super_parameters, library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/post_filter_option.dart';
 
 class OwnAllPostsToggle extends StatefulWidget {
-  final Function(PostFilterOption)
-      onToggle; // Callback for when the toggle is changed
+  final Function(PostFilterOption) onToggle;
 
   const OwnAllPostsToggle({Key? key, required this.onToggle}) : super(key: key);
 
@@ -29,12 +30,25 @@ class _OwnAllPostsToggleState extends State<OwnAllPostsToggle> {
     Widget displayText;
     switch (_currentOption) {
       case PostFilterOption.friendsPosts:
-        displayText = const Row(
+        displayText = Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.people_alt_rounded), // Person icon
-            SizedBox(width: 4),
-            Text('Friends Posts'),
+            // Custom icon combination for Friends Posts
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.people_alt_rounded,
+                    size: 24, color: AppColors.customBlack),
+                const SizedBox(width: 4),
+                Transform.translate(
+                  offset: const Offset(-6, -3), // Adjust icon position
+                  child: const Icon(Icons.check_rounded,
+                      size: 16, color: AppColors.customBlack),
+                ),
+              ],
+            ),
+            const SizedBox(width: 0),
+            const Text('Friends Posts'),
           ],
         );
         break;
