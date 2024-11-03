@@ -1201,117 +1201,130 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
 
   @override
   Widget build(BuildContext context) {
-    // Get the height of the keyboard
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: widget.profileColor,
-        border: Border.all(color: AppColors.customBlack, width: 3),
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(18.0), // Rounded top-left corner
-          topRight: Radius.circular(18.0), // Rounded top-right corner
+    return GestureDetector(
+      onVerticalDragUpdate: (details) {
+        if (details.primaryDelta! > 0) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: widget.profileColor,
+          border: Border.all(color: AppColors.customBlack, width: 3),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(18.0),
+            topRight: Radius.circular(18.0),
+          ),
         ),
-      ),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(18.0), // Match the container's border radius
-          topRight: Radius.circular(18.0),
-        ),
-        child: Padding(
-          padding: EdgeInsets.only(bottom: bottomInset),
-          child: Column(
-            children: [
-              // Comments list
-              Expanded(
-                child: _isLoadingComments
-                    ? const Center(child: CircularProgressIndicator())
-                    : _comments.isEmpty
-                        ? const Center(
-                            child: Text(
-                              "No comments yet, be the first one",
-                              style: TextStyle(color: AppColors.customBlack),
-                            ),
-                          )
-                        : ListView.builder(
-                            reverse: false,
-                            itemCount: _comments.length,
-                            itemBuilder: (context, index) {
-                              final comment = _comments[index];
-                              return _buildCommentItem(comment);
-                            },
-                          ),
-              ),
-              // Divider
-              // Comment input field
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8.0, top: 14.0),
-                child: Center(
+        child: ClipRRect(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(18.0),
+            topRight: Radius.circular(18.0),
+          ),
+          child: Padding(
+            padding: EdgeInsets.only(bottom: bottomInset),
+            child: Column(
+              children: [
+                // Draggable notch at the top
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
                   child: Container(
-                    width: MediaQuery.of(context).size.width * 0.84,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 0.0, vertical: 0.0),
+                    width: 40,
+                    height: 5,
                     decoration: BoxDecoration(
-                      color: AppColors.bg,
-                      borderRadius: BorderRadius.circular(20.0),
-                      border: Border.all(
-                        color: AppColors.customBlack,
-                        width: 3.0,
+                      color: AppColors.customBlack,
+                      borderRadius: BorderRadius.circular(2.5),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: _isLoadingComments
+                      ? const Center(child: CircularProgressIndicator())
+                      : _comments.isEmpty
+                          ? const Center(
+                              child: Text(
+                                "No comments yet, be the first one",
+                                style: TextStyle(color: AppColors.customBlack),
+                              ),
+                            )
+                          : ListView.builder(
+                              reverse: false,
+                              itemCount: _comments.length,
+                              itemBuilder: (context, index) {
+                                final comment = _comments[index];
+                                return _buildCommentItem(comment);
+                              },
+                            ),
+                ),
+                // Comment input field and character counter
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0, top: 14.0),
+                  child: Center(
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.84,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 0.0, vertical: 0.0),
+                      decoration: BoxDecoration(
+                        color: AppColors.bg,
+                        borderRadius: BorderRadius.circular(20.0),
+                        border: Border.all(
+                          color: AppColors.customBlack,
+                          width: 3.0,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _commentController,
+                              maxLength: 250,
+                              maxLengthEnforcement:
+                                  MaxLengthEnforcement.enforced,
+                              decoration: const InputDecoration(
+                                contentPadding:
+                                    EdgeInsets.symmetric(horizontal: 16.0),
+                                hintText: 'Write a comment..',
+                                hintStyle: TextStyle(color: AppColors.grey),
+                                border: InputBorder.none,
+                                counterText: '',
+                              ),
+                              style:
+                                  const TextStyle(color: AppColors.customBlack),
+                              minLines: 1,
+                              maxLines: 5,
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              Icons.send_rounded,
+                              color: _hasText
+                                  ? AppColors.customBlack
+                                  : AppColors.grey,
+                            ),
+                            onPressed: _hasText ? _sendComment : null,
+                          ),
+                        ],
                       ),
                     ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _commentController,
-                            maxLength: 250,
-                            maxLengthEnforcement: MaxLengthEnforcement.enforced,
-                            decoration: const InputDecoration(
-                              contentPadding:
-                                  EdgeInsets.symmetric(horizontal: 16.0),
-                              hintText: 'Write a comment..',
-                              hintStyle: TextStyle(color: AppColors.grey),
-                              border: InputBorder.none,
-                              counterText: '', // Hide built-in counter
-                            ),
-                            style:
-                                const TextStyle(color: AppColors.customBlack),
-                            minLines:
-                                1, // Minimum number of lines for the text field
-                            maxLines:
-                                5, // Maximum number of lines for the text field
-                          ),
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            Icons.send_rounded,
-                            color: _hasText
-                                ? AppColors.customBlack
-                                : AppColors.grey,
-                          ),
-                          onPressed: _hasText ? _sendComment : null,
-                        ),
-                      ],
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 24.0, bottom: 8.0),
+                    child: Text(
+                      '${_commentController.text.length}/250',
+                      style: const TextStyle(
+                        color: AppColors.customBlack,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              // Character counter
-              Align(
-                alignment: Alignment.centerRight,
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                      right: 24.0, bottom: 8.0), // Adjust padding as needed
-                  child: Text(
-                    '${_commentController.text.length}/250',
-                    style: const TextStyle(
-                      color: AppColors.customBlack,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
