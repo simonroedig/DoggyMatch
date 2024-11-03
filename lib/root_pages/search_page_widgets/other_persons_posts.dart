@@ -1167,7 +1167,7 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
                     ),
                   ],
                 ),
-                const SizedBox(height: 4.0),
+                const SizedBox(height: 0.0),
                 // Comment text
                 Text(
                   commentText,
