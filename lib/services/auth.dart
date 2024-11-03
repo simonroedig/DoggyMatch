@@ -1,6 +1,7 @@
 import 'dart:developer' as dev;
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:doggymatch_flutter/classes/profile.dart';
@@ -8,6 +9,7 @@ import 'package:doggymatch_flutter/states/user_profile_state.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:provider/provider.dart';
+import 'package:image/image.dart' as img; // Import the image package
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -350,9 +352,28 @@ class AuthService {
     try {
       final ref = _storage.ref().child(
           'profile_images/$userId/${DateTime.now().millisecondsSinceEpoch}');
-      final uploadTask = await ref.putFile(File(filePath));
+
+      // Read the original image file as bytes
+      final File originalImageFile = File(filePath);
+      final List<int> imageBytes = await originalImageFile.readAsBytes();
+
+      // Decode the image
+      img.Image? image = img.decodeImage(imageBytes);
+      if (image == null) return null;
+
+      // Resize and compress the image (e.g., 600px width, keeping aspect ratio)
+      final img.Image resizedImage = img.copyResize(image, width: 600);
+
+      // Encode the resized image as JPEG with a quality level (0-100, higher = better quality)
+      final List<int> compressedImageBytes =
+          img.encodeJpg(resizedImage, quality: 60);
+
+      // Upload the compressed image to Firebase Storage
+      final uploadTask =
+          await ref.putData(Uint8List.fromList(compressedImageBytes));
       return await uploadTask.ref.getDownloadURL();
     } catch (e) {
+      dev.log('Error uploading profile image: $e');
       return null;
     }
   }

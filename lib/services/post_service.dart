@@ -1,8 +1,10 @@
 import 'dart:developer';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image/image.dart' as img; // Import the image package
 
 class PostService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -26,11 +28,28 @@ class PostService {
     try {
       // Upload each image to Firebase Storage
       for (var image in images) {
+        // Read the original image file as bytes
+        final List<int> imageBytes = await image.readAsBytes();
+
+        // Decode and resize/compress the image
+        img.Image? decodedImage = img.decodeImage(imageBytes);
+        if (decodedImage == null) continue;
+
+        // Resize to a width of 800px while maintaining aspect ratio
+        final img.Image resizedImage = img.copyResize(decodedImage, width: 800);
+
+        // Compress the image to JPEG with quality 80
+        final List<int> compressedImageBytes =
+            img.encodeJpg(resizedImage, quality: 60);
+
+        // Upload the compressed image to Firebase Storage
         final ref = _storage
             .ref()
             .child('posts/$uid/${DateTime.now().millisecondsSinceEpoch}.jpg');
-        final uploadTask = await ref.putFile(image);
+        final uploadTask =
+            await ref.putData(Uint8List.fromList(compressedImageBytes));
         final imageUrl = await uploadTask.ref.getDownloadURL();
+
         imageUrls.add(imageUrl);
       }
 
@@ -47,7 +66,6 @@ class PostService {
 
       // Store post in Firestore
       final docRef = _firestore.collection('users').doc(uid);
-
       await docRef
           .collection('user_posts')
           .doc('$uid|${timestamp.toIso8601String()}')

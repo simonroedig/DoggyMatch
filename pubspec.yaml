@@ -51,6 +51,7 @@ dependencies:
   fluttertoast: ^8.2.8
   reorderable_grid_view: ^2.2.8
   geoflutterfire_plus: ^0.0.29
+  image: ^3.0.1
 
 dev_dependencies:
   flutter_test:
