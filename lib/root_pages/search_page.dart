@@ -1,5 +1,4 @@
-// ignore_for_file: deprecated_member_use
-
+// search_page.dart
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:doggymatch_flutter/main/custom_app_bar.dart';
@@ -13,16 +12,19 @@ import 'package:doggymatch_flutter/notifiers/profile_close_notifier.dart';
 import 'package:doggymatch_flutter/notifiers/filter_notifier.dart';
 import 'package:doggymatch_flutter/toggles/profile_announcement_posts_toggle.dart';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/new_announcement_page.dart';
-import 'package:doggymatch_flutter/root_pages/search_page_widgets/new_post_page.dart'; // Import the new post page
+import 'package:doggymatch_flutter/root_pages/search_page_widgets/new_post_page.dart';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/other_persons_announcements.dart';
-import 'package:doggymatch_flutter/root_pages/search_page_widgets/other_persons_posts.dart'; // Import the posts widget
+import 'package:doggymatch_flutter/root_pages/search_page_widgets/other_persons_posts.dart';
 import 'package:doggymatch_flutter/toggles/own_all_announcements_toggle.dart';
-import 'package:doggymatch_flutter/toggles/own_all_posts_toggle.dart'; // Import the custom posts toggle
+import 'package:doggymatch_flutter/toggles/own_all_posts_toggle.dart';
+import 'package:doggymatch_flutter/root_pages/search_page_widgets/post_filter_option.dart';
+import 'package:doggymatch_flutter/root_pages/search_page_widgets/shouts_filter_option.dart';
 
 class SearchPage extends StatefulWidget {
   final ProfileCloseNotifier profileCloseNotifier;
 
-  const SearchPage({super.key, required this.profileCloseNotifier});
+  const SearchPage({Key? key, required this.profileCloseNotifier})
+      : super(key: key);
 
   @override
   SearchPageState createState() => SearchPageState();
@@ -30,14 +32,15 @@ class SearchPage extends StatefulWidget {
 
 class SearchPageState extends State<SearchPage> {
   bool _isFilterOpen = false;
-  int _selectedToggleIndex =
-      0; // To track the toggle state: 0 - Profiles, 1 - Announcements, 2 - Posts
-  bool _showOnlyCurrentUser =
-      false; // Track the toggle state for including/excluding current user
+  int _selectedToggleIndex = 0; // 0 - Profiles, 1 - Announcements, 2 - Posts
   UserProfile? _selectedProfile;
   String? _selectedDistance;
   String? _lastOnline;
   bool? _isSaved;
+
+  // State variables for toggles
+  PostFilterOption _selectedPostFilterOption = PostFilterOption.allPosts;
+  ShoutsFilterOption _selectedShoutFilterOption = ShoutsFilterOption.allShouts;
 
   @override
   void initState() {
@@ -93,10 +96,12 @@ class SearchPageState extends State<SearchPage> {
     setState(() {
       _selectedToggleIndex = selectedIndex;
 
-      // Reset to show all announcements or posts when switching back
-      if (_selectedToggleIndex == 1 || _selectedToggleIndex == 2) {
-        _showOnlyCurrentUser =
-            false; // Reset to show all announcements/posts by default
+      // Reset toggles when switching between tabs
+      if (_selectedToggleIndex == 1) {
+        _selectedShoutFilterOption = ShoutsFilterOption.allShouts;
+        _loadFilteredUsersContent();
+      } else if (_selectedToggleIndex == 2) {
+        _selectedPostFilterOption = PostFilterOption.allPosts;
         _loadFilteredUsersContent();
       }
     });
@@ -118,9 +123,19 @@ class SearchPageState extends State<SearchPage> {
     );
   }
 
-  void _onOwnAllToggle(bool isAllSelected) {
+  // Update this function to accept PostFilterOption
+  void _onPostsToggle(PostFilterOption selectedOption) {
     setState(() {
-      _showOnlyCurrentUser = isAllSelected;
+      _selectedPostFilterOption = selectedOption;
+      _loadFilteredUsersContent();
+    });
+    Provider.of<UserProfileState>(context, listen: false).refreshUserProfile();
+  }
+
+  // Update this function to accept ShoutsFilterOption instead of bool
+  void _onAnnouncementsToggle(ShoutsFilterOption selectedOption) {
+    setState(() {
+      _selectedShoutFilterOption = selectedOption;
       _loadFilteredUsersContent();
     });
     Provider.of<UserProfileState>(context, listen: false).refreshUserProfile();
@@ -170,7 +185,7 @@ class SearchPageState extends State<SearchPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         OwnAllAnnouncementsToggle(
-                          onToggle: _onOwnAllToggle,
+                          onToggle: _onAnnouncementsToggle,
                         ),
                         const SizedBox(width: 16),
                         IconButton(
@@ -186,8 +201,8 @@ class SearchPageState extends State<SearchPage> {
                     const SizedBox(height: 0),
                     Expanded(
                       child: OtherPersonsAnnouncements(
-                        key: ValueKey(_showOnlyCurrentUser),
-                        showOnlyCurrentUser: _showOnlyCurrentUser,
+                        key: ValueKey(_selectedShoutFilterOption),
+                        selectedOption: _selectedShoutFilterOption,
                         onProfileSelected: _openProfile,
                       ),
                     ),
@@ -197,7 +212,7 @@ class SearchPageState extends State<SearchPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         OwnAllPostsToggle(
-                          onToggle: _onOwnAllToggle,
+                          onToggle: _onPostsToggle,
                         ),
                         const SizedBox(width: 16),
                         IconButton(
@@ -206,16 +221,14 @@ class SearchPageState extends State<SearchPage> {
                             Icons.add_circle_outline_rounded,
                             color: AppColors.customBlack,
                           ),
-                          onPressed:
-                              _navigateToNewPost, // Navigate to the new post page
+                          onPressed: _navigateToNewPost,
                         ),
                       ],
                     ),
                     const SizedBox(height: 0),
                     Expanded(
                       child: OtherPersonsPosts(
-                        key: ValueKey(_showOnlyCurrentUser),
-                        showOnlyCurrentUser: _showOnlyCurrentUser,
+                        selectedOption: _selectedPostFilterOption,
                         onProfileSelected: _openProfile,
                       ),
                     ),
@@ -258,7 +271,7 @@ class SearchPageState extends State<SearchPage> {
                             child: ProfileWidget(
                               profile: _selectedProfile!,
                               clickedOnOtherUser: true,
-                              distance: double.parse(_selectedDistance ?? '?'),
+                              distance: double.parse(_selectedDistance ?? '0'),
                               lastOnline: _lastOnline ?? '',
                               isProfileSaved: _isSaved ?? false,
                             ),

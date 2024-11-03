@@ -1,7 +1,9 @@
+// other_persons_posts.dart
 import 'dart:developer' as developer;
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:doggymatch_flutter/services/post_service.dart';
+import 'package:doggymatch_flutter/services/friends_service.dart'; // Add this import
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
@@ -10,19 +12,19 @@ import 'package:doggymatch_flutter/services/auth.dart';
 import 'package:doggymatch_flutter/classes/profile.dart';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/post_img_fullscreen.dart';
 import 'package:flutter/services.dart'; // Add this import
+import 'package:doggymatch_flutter/root_pages/search_page_widgets/post_filter_option.dart';
 
 class OtherPersonsPosts extends StatefulWidget {
-  final bool showOnlyCurrentUser;
+  final PostFilterOption selectedOption;
   final Function(UserProfile, String, String, bool) onProfileSelected;
 
   const OtherPersonsPosts({
-    super.key,
-    required this.showOnlyCurrentUser,
+    Key? key,
+    required this.selectedOption,
     required this.onProfileSelected,
-  });
+  }) : super(key: key);
 
   @override
-  // ignore: library_private_types_in_public_api
   _OtherPersonsPostsState createState() => _OtherPersonsPostsState();
 }
 
@@ -40,7 +42,7 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
   @override
   void didUpdateWidget(covariant OtherPersonsPosts oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.showOnlyCurrentUser != oldWidget.showOnlyCurrentUser) {
+    if (widget.selectedOption != oldWidget.selectedOption) {
       _loadPosts();
     }
   }
@@ -54,48 +56,25 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
         Provider.of<UserProfileState>(context, listen: false);
     final String? currentUserId = _authService.getCurrentUserId();
 
-    List<Map<String, dynamic>> users = [];
     List<Map<String, dynamic>> posts = [];
 
     try {
-      if (!widget.showOnlyCurrentUser) {
-        users = await _authService.fetchAllUsersWithinFilter(
-          userProfileState.userProfile.filterLookingForDogOwner,
-          userProfileState.userProfile.filterLookingForDogSitter,
-          userProfileState.userProfile.filterDistance,
-          userProfileState.userProfile.latitude,
-          userProfileState.userProfile.longitude,
-          userProfileState.userProfile.filterLastOnline,
-        );
-        users = users.where((user) => user['uid'] != currentUserId).toList();
-
-        for (var user in users) {
-          final userPosts = await _fetchUserPosts(user['uid']);
-          if (userPosts.isNotEmpty) {
-            for (var post in userPosts) {
-              posts.add({
-                'user': user['firestoreData'],
-                'post': post,
-              });
-            }
-          }
-        }
-      } else {
-        final currentUserProfile = await _authService.fetchUserProfile();
-        if (currentUserProfile != null) {
-          users = [currentUserProfile.toMap()];
-          final userPosts = await _fetchUserPosts(users[0]['uid']);
-          if (userPosts.isNotEmpty) {
-            for (var post in userPosts) {
-              posts.add({
-                'user': users[0],
-                'post': post,
-              });
-            }
-          }
-        }
+      switch (widget.selectedOption) {
+        case PostFilterOption.allPosts:
+          await _loadAllPosts(currentUserId, userProfileState, posts);
+          break;
+        case PostFilterOption.friendsPosts:
+          await _loadFriendsPosts(currentUserId, posts);
+          break;
+        case PostFilterOption.likedPosts:
+          await _loadLikedPosts(currentUserId, posts);
+          break;
+        case PostFilterOption.savedPosts:
+          await _loadSavedPosts(currentUserId, posts);
+          break;
       }
 
+      // Sort posts by createdAt
       posts.sort((a, b) {
         final dateA = DateTime.parse(a['post']['createdAt']);
         final dateB = DateTime.parse(b['post']['createdAt']);
@@ -116,6 +95,171 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
     }
   }
 
+  Future<void> _loadAllPosts(
+      String? currentUserId,
+      UserProfileState userProfileState,
+      List<Map<String, dynamic>> posts) async {
+    List<Map<String, dynamic>> users =
+        await _authService.fetchAllUsersWithinFilter(
+      userProfileState.userProfile.filterLookingForDogOwner,
+      userProfileState.userProfile.filterLookingForDogSitter,
+      userProfileState.userProfile.filterDistance,
+      userProfileState.userProfile.latitude,
+      userProfileState.userProfile.longitude,
+      userProfileState.userProfile.filterLastOnline,
+    );
+    //users = users.where((user) => user['uid'] != currentUserId).toList();
+
+    for (var user in users) {
+      final userPosts = await _fetchUserPosts(user['uid']);
+      if (userPosts.isNotEmpty) {
+        for (var post in userPosts) {
+          posts.add({
+            'user': user['firestoreData'],
+            'post': post,
+          });
+        }
+      }
+    }
+  }
+
+  Future<void> _loadOwnPosts(
+      String? currentUserId, List<Map<String, dynamic>> posts) async {
+    final currentUserProfile = await _authService.fetchUserProfile();
+    if (currentUserProfile != null) {
+      final userPosts = await _fetchUserPosts(currentUserProfile.uid);
+      if (userPosts.isNotEmpty) {
+        for (var post in userPosts) {
+          posts.add({
+            'user': currentUserProfile.toMap(),
+            'post': post,
+          });
+        }
+      }
+    }
+  }
+
+  Future<void> _loadFriendsPosts(
+      String? currentUserId, List<Map<String, dynamic>> posts) async {
+    if (currentUserId == null) return;
+
+    final friendsService = FriendsService();
+
+    // Fetch all friends' profiles
+    final friends = await friendsService.fetchAllFriends();
+
+    for (var friend in friends) {
+      final friendId = friend['uid'];
+      final friendProfileData = friend['firestoreData'];
+
+      // Fetch posts for each friend
+      final friendPosts = await _fetchUserPosts(friendId);
+
+      if (friendPosts.isNotEmpty) {
+        for (var post in friendPosts) {
+          posts.add({
+            'user': friendProfileData,
+            'post': post,
+          });
+        }
+      }
+    }
+  }
+
+  Future<void> _loadLikedPosts(
+      String? currentUserId, List<Map<String, dynamic>> posts) async {
+    if (currentUserId == null) return;
+
+    final currentUserDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(currentUserId)
+        .get();
+
+    final data = currentUserDoc.data();
+    if (data != null && data['likedPosts'] != null) {
+      final List<dynamic> likedPostIds = data['likedPosts'];
+      for (String postId in likedPostIds) {
+        // Extract postOwnerId from postId
+        final parts = postId.split('|');
+        if (parts.length != 2) continue;
+        final postOwnerId = parts[0];
+
+        // Fetch the post data
+        final postDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(postOwnerId)
+            .collection('user_posts')
+            .doc(postId)
+            .get();
+        if (postDoc.exists) {
+          final postData = postDoc.data();
+          if (postData != null) {
+            final userDoc = await FirebaseFirestore.instance
+                .collection('users')
+                .doc(postOwnerId)
+                .get();
+            if (userDoc.exists) {
+              final userData = userDoc.data();
+              if (userData != null) {
+                posts.add({
+                  'user': userData,
+                  'post': postData,
+                });
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  Future<void> _loadSavedPosts(
+      String? currentUserId, List<Map<String, dynamic>> posts) async {
+    if (currentUserId == null) return;
+
+    final currentUserDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(currentUserId)
+        .get();
+
+    final data = currentUserDoc.data();
+    if (data != null && data['savedPosts'] != null) {
+      final List<dynamic> savedPostIds = data['savedPosts'];
+      for (String postId in savedPostIds) {
+        // Extract postOwnerId from postId
+        final parts = postId.split('|');
+        if (parts.length != 2) continue;
+        final postOwnerId = parts[0];
+
+        // Fetch the post data
+        final postDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(postOwnerId)
+            .collection('user_posts')
+            .doc(postId)
+            .get();
+        if (postDoc.exists) {
+          final postData = postDoc.data();
+          if (postData != null) {
+            final userDoc = await FirebaseFirestore.instance
+                .collection('users')
+                .doc(postOwnerId)
+                .get();
+            if (userDoc.exists) {
+              final userData = userDoc.data();
+              if (userData != null) {
+                posts.add({
+                  'user': userData,
+                  'post': postData,
+                });
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   Future<List<Map<String, dynamic>>> _fetchUserPosts(String userId) async {
     try {
       final posts = await FirebaseFirestore.instance
@@ -132,34 +276,36 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
 
   @override
   Widget build(BuildContext context) {
+    final bool showUserProfile =
+        widget.selectedOption != PostFilterOption.friendsPosts;
+
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 
     if (_posts.isEmpty) {
+      String noPostsMessage;
+      switch (widget.selectedOption) {
+        case PostFilterOption.friendsPosts:
+          noPostsMessage = 'You have not created any posts yet.';
+          break;
+        case PostFilterOption.allPosts:
+          noPostsMessage = 'No posts found.';
+          break;
+        case PostFilterOption.likedPosts:
+          noPostsMessage = 'You have not liked any posts yet.';
+          break;
+        case PostFilterOption.savedPosts:
+          noPostsMessage = 'You have not saved any posts yet.';
+          break;
+      }
       return Center(
-        child: RichText(
-          textAlign: TextAlign.center,
-          text: const TextSpan(
-            text:
-                'No posts found 😔\n\nAdjust your filter settings\nand spread the word about ',
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 10.0,
-              fontWeight: FontWeight.normal,
-              color: AppColors.customBlack,
-            ),
-            children: <TextSpan>[
-              TextSpan(
-                text: 'DoggyMatch',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              TextSpan(
-                text: ' 🐶❤️',
-              ),
-            ],
+        child: Text(
+          noPostsMessage,
+          style: const TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 16.0,
+            color: AppColors.customBlack,
           ),
         ),
       );
@@ -173,7 +319,7 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
           user: _posts[index]['user'],
           post: _posts[index]['post'],
           onProfileSelected: widget.onProfileSelected,
-          showUserProfile: !widget.showOnlyCurrentUser,
+          showUserProfile: showUserProfile,
         );
       },
     );

@@ -1,32 +1,75 @@
-// file: own_all_announcements_toggle.dart
-import 'package:doggymatch_flutter/notifiers/filter_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
-import 'package:provider/provider.dart';
+import 'package:doggymatch_flutter/root_pages/search_page_widgets/post_filter_option.dart';
 
 class OwnAllPostsToggle extends StatefulWidget {
-  final Function(bool) onToggle; // Callback for when the toggle is changed
+  final Function(PostFilterOption)
+      onToggle; // Callback for when the toggle is changed
 
-  const OwnAllPostsToggle({super.key, required this.onToggle});
+  const OwnAllPostsToggle({Key? key, required this.onToggle}) : super(key: key);
 
   @override
-  // ignore: library_private_types_in_public_api
   _OwnAllPostsToggleState createState() => _OwnAllPostsToggleState();
 }
 
 class _OwnAllPostsToggleState extends State<OwnAllPostsToggle> {
-  bool isAllAnnouncSelected = false;
+  PostFilterOption _currentOption = PostFilterOption.allPosts;
 
   void toggleSwitch() {
     setState(() {
-      isAllAnnouncSelected = !isAllAnnouncSelected;
-      Provider.of<FilterNotifier>(context, listen: false).notifyFilterChanged();
+      // Cycle to the next option
+      _currentOption = PostFilterOption
+          .values[(_currentOption.index + 1) % PostFilterOption.values.length];
     });
-    widget.onToggle(isAllAnnouncSelected);
+    widget.onToggle(_currentOption);
   }
 
   @override
   Widget build(BuildContext context) {
+    Widget displayText;
+    switch (_currentOption) {
+      case PostFilterOption.friendsPosts:
+        displayText = const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.people_alt_rounded), // Person icon
+            SizedBox(width: 4),
+            Text('Friends Posts'),
+          ],
+        );
+        break;
+      case PostFilterOption.allPosts:
+        displayText = const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.photo_library), // Gallery icon
+            SizedBox(width: 4),
+            Text('All Posts'),
+          ],
+        );
+        break;
+      case PostFilterOption.likedPosts:
+        displayText = const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.favorite), // Filled heart icon
+            SizedBox(width: 4),
+            Text('Liked Posts'),
+          ],
+        );
+        break;
+      case PostFilterOption.savedPosts:
+        displayText = const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.bookmark), // Filled save icon
+            SizedBox(width: 4),
+            Text('Saved Posts'),
+          ],
+        );
+        break;
+    }
+
     return GestureDetector(
       onTap: toggleSwitch,
       child: Container(
@@ -40,12 +83,12 @@ class _OwnAllPostsToggleState extends State<OwnAllPostsToggle> {
           ),
         ),
         alignment: Alignment.center,
-        child: Text(
-          isAllAnnouncSelected ? 'Own Posts' : 'All Posts',
+        child: DefaultTextStyle(
           style: const TextStyle(
             fontFamily: 'Poppins',
             color: AppColors.customBlack,
           ),
+          child: displayText,
         ),
       ),
     );

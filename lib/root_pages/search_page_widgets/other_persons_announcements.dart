@@ -1,9 +1,10 @@
-// ignore_for_file: library_private_types_in_public_api, use_super_parameters
 // file: other_persons_announcements.dart
+
 import 'dart:developer' as developer;
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/announcement_dialogs.dart';
+import 'package:doggymatch_flutter/services/friends_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
@@ -11,14 +12,16 @@ import 'package:doggymatch_flutter/states/user_profile_state.dart';
 import 'package:doggymatch_flutter/services/auth.dart';
 import 'package:doggymatch_flutter/notifiers/filter_notifier.dart';
 import 'package:doggymatch_flutter/classes/profile.dart';
+import 'package:doggymatch_flutter/root_pages/search_page_widgets/shouts_filter_option.dart';
 
 class OtherPersonsAnnouncements extends StatefulWidget {
-  final bool showOnlyCurrentUser;
+  final ShoutsFilterOption selectedOption;
+
   final Function(UserProfile, String, String, bool) onProfileSelected;
 
   const OtherPersonsAnnouncements({
     Key? key,
-    required this.showOnlyCurrentUser,
+    required this.selectedOption,
     required this.onProfileSelected,
   }) : super(key: key);
 
@@ -29,23 +32,33 @@ class OtherPersonsAnnouncements extends StatefulWidget {
 
 class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
   final AuthService _authService = AuthService();
+  String? _currentUserId;
+
   bool _isLoading = true;
+
   List<Map<String, dynamic>> _announcements = [];
+
   late FilterNotifier _filterNotifier;
 
   @override
   void initState() {
     super.initState();
+
     _filterNotifier = Provider.of<FilterNotifier>(context, listen: false);
+
     _filterNotifier.addListener(_loadFilteredUsersAnnouncements);
+    _currentUserId = _authService.getCurrentUserId();
+
     _loadFilteredUsersAnnouncements();
   }
 
   @override
   void didUpdateWidget(covariant OtherPersonsAnnouncements oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.showOnlyCurrentUser != oldWidget.showOnlyCurrentUser) {
-      // Reload announcements when the toggle state changes
+
+    if (widget.selectedOption != oldWidget.selectedOption) {
+      // Reload announcements when the filter option changes
+
       _loadFilteredUsersAnnouncements();
     }
   }
@@ -53,6 +66,7 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
   @override
   void dispose() {
     _filterNotifier.removeListener(_loadFilteredUsersAnnouncements);
+
     super.dispose();
   }
 
@@ -61,33 +75,32 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
       _isLoading = true;
     });
 
-    final userProfileState =
-        Provider.of<UserProfileState>(context, listen: false);
-    final String? currentUserId = _authService.getCurrentUserId();
+    if (widget.selectedOption == ShoutsFilterOption.friendsShouts) {
+      // Load friends' announcements
+      await _loadFriendsAnnouncements();
+    } else {
+      // Existing logic for other shouts (e.g., allShouts)
+      final userProfileState =
+          Provider.of<UserProfileState>(context, listen: false);
+      //final String? currentUserId = _authService.getCurrentUserId();
 
-    List<Map<String, dynamic>> users = [];
-    List<Map<String, dynamic>> announcements = [];
+      List<Map<String, dynamic>> users = [];
+      List<Map<String, dynamic>> announcements = [];
 
-    try {
-      if (!widget.showOnlyCurrentUser) {
-        users = [];
-        announcements = [];
-        // Fetch all users within the filter
-        users = await _authService.fetchAllUsersWithinFilter(
-          userProfileState.userProfile.filterLookingForDogOwner,
-          userProfileState.userProfile.filterLookingForDogSitter,
-          userProfileState.userProfile.filterDistance,
-          userProfileState.userProfile.latitude,
-          userProfileState.userProfile.longitude,
-          userProfileState.userProfile.filterLastOnline,
-        );
+      try {
+        if (widget.selectedOption == ShoutsFilterOption.allShouts) {
+          users = await _authService.fetchAllUsersWithinFilter(
+            userProfileState.userProfile.filterLookingForDogOwner,
+            userProfileState.userProfile.filterLookingForDogSitter,
+            userProfileState.userProfile.filterDistance,
+            userProfileState.userProfile.latitude,
+            userProfileState.userProfile.longitude,
+            userProfileState.userProfile.filterLastOnline,
+          );
 
-        // Exclude the current user's profile
-        users = users.where((user) => user['uid'] != currentUserId).toList();
-
-        for (var user in users) {
-          final userAnnouncements = await _fetchUserAnnouncements(user['uid']);
-          if (userAnnouncements.isNotEmpty) {
+          for (var user in users) {
+            final userAnnouncements =
+                await _fetchUserAnnouncements(user['uid']);
             for (var announcement in userAnnouncements) {
               announcements.add({
                 'user': user['firestoreData'],
@@ -96,30 +109,63 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
             }
           }
         }
-      } else {
-        users = [];
-        announcements = [];
-        final currentUserProfile = await _authService.fetchUserProfile();
-        if (currentUserProfile != null) {
-          users = [currentUserProfile.toMap()];
-          final userAnnouncements =
-              await _fetchUserAnnouncements(users[0]['uid']);
-          if (userAnnouncements.isNotEmpty) {
-            developer.log("own user announce not empty");
-            for (var announcement in userAnnouncements) {
-              announcements.add({
-                'user': users[0],
-                'announcement': announcement,
-              });
-            }
+
+        // Sort announcements by creation date (newest first)
+        announcements.sort((a, b) {
+          final dateA = DateTime.parse(a['announcement']['createdAt']);
+          final dateB = DateTime.parse(b['announcement']['createdAt']);
+          return dateB.compareTo(dateA);
+        });
+
+        if (mounted) {
+          setState(() {
+            _announcements = announcements;
+            _isLoading = false;
+          });
+        }
+      } catch (e) {
+        developer.log('Error loading filtered users and announcements: $e');
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _loadFriendsAnnouncements() async {
+    final String? currentUserId = _authService.getCurrentUserId();
+    List<Map<String, dynamic>> announcements = [];
+
+    if (currentUserId == null) return;
+
+    final friendsService = FriendsService();
+
+    try {
+      // Fetch all friends' profiles
+      final friends = await friendsService.fetchAllFriends();
+
+      for (var friend in friends) {
+        final friendId = friend['uid'];
+        final friendProfileData = friend['firestoreData'];
+
+        // Fetch announcements for each friend
+        final friendAnnouncements = await _fetchUserAnnouncements(friendId);
+
+        if (friendAnnouncements.isNotEmpty) {
+          for (var announcement in friendAnnouncements) {
+            announcements.add({
+              'user': friendProfileData,
+              'announcement': announcement,
+            });
           }
         }
       }
 
+      // Sort announcements by creation date (newest first)
       announcements.sort((a, b) {
         final dateA = DateTime.parse(a['announcement']['createdAt']);
         final dateB = DateTime.parse(b['announcement']['createdAt']);
-        return dateB.compareTo(dateA); // Newest first
+        return dateB.compareTo(dateA);
       });
 
       if (mounted) {
@@ -129,7 +175,7 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
         });
       }
     } catch (e) {
-      developer.log('Error loading filtered users and announcements: $e');
+      developer.log('Error loading friends announcements: $e');
       setState(() {
         _isLoading = false;
       });
@@ -144,13 +190,17 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
           .doc(userId)
           .collection('user_announcements')
           .get();
+
       return announcementsSnapshot.docs.map((doc) {
         var data = doc.data();
-        data['id'] = doc.id; // Include the document ID
+
+        data['id'] = doc.id;
+
         return data;
       }).toList();
     } catch (e) {
       developer.log('Error fetching announcements: $e');
+
       return [];
     }
   }
@@ -229,7 +279,7 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
 
         return GestureDetector(
           onTap: () {
-            if (!widget.showOnlyCurrentUser) {
+            if (user['uid'] != _currentUserId) {
               UserProfile selectedProfile = UserProfile(
                 uid: user['uid'],
                 email: user['email'],
@@ -272,11 +322,9 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
             ),
             child: Stack(
               children: [
-                // Main content column
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Top part of the card (profile image and details)
                     Stack(
                       children: [
                         Row(
@@ -335,22 +383,19 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
                             top: 3,
                             left: 4,
                             child: Transform.scale(
-                              scale:
-                                  0.85, // Slightly smaller for the profile image
+                              scale: 0.85,
                               child: const Stack(
                                 alignment: Alignment.center,
                                 children: [
-                                  // Outer icon for the stroke
                                   Icon(
                                     Icons.bookmark_border_rounded,
-                                    color: Colors.black, // Stroke color
-                                    size: 20, // Smaller size
+                                    color: Colors.black,
+                                    size: 20,
                                   ),
-                                  // Inner filled icon
                                   Icon(
                                     Icons.bookmark_rounded,
-                                    color: AppColors.bg, // Your original color
-                                    size: 16, // Smaller size
+                                    color: AppColors.bg,
+                                    size: 16,
                                   ),
                                 ],
                               ),
@@ -359,7 +404,6 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
                       ],
                     ),
                     const SizedBox(height: 10),
-                    // Announcement text
                     Center(
                       child: Container(
                         width: MediaQuery.of(context).size.width * 0.9,
@@ -383,10 +427,9 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    // Time ago and distance text
                     Center(
                       child: Text(
-                        widget.showOnlyCurrentUser
+                        user['uid'] == _currentUserId
                             ? timeAgo
                             : '$timeAgo • $distance km',
                         style: const TextStyle(
@@ -399,8 +442,7 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
                     ),
                   ],
                 ),
-                // Kebab menu positioned at the bottom right
-                if (widget.showOnlyCurrentUser)
+                if (user['uid'] == _currentUserId)
                   Positioned(
                     bottom: -16,
                     right: -15,
@@ -482,7 +524,7 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
         child: RichText(
           textAlign: TextAlign.center,
           text: TextSpan(
-            text: widget.showOnlyCurrentUser
+            text: widget.selectedOption == ShoutsFilterOption.friendsShouts
                 ? 'You do not have an active shout \n\nCreate a new one'
                 : 'No shouts found 😔\n\nAdjust your filter settings\nand spread the word about ',
             style: const TextStyle(
@@ -493,7 +535,9 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
             ),
             children: <TextSpan>[
               TextSpan(
-                text: widget.showOnlyCurrentUser ? '' : 'DoggyMatch',
+                text: widget.selectedOption == ShoutsFilterOption.friendsShouts
+                    ? ''
+                    : 'DoggyMatch',
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                 ),

@@ -68,7 +68,6 @@ class PostService {
     }
     final String uid = user.uid;
 
-    // log the two parameters of this function
     log('postOwnerId: $postOwnerId');
     log('postId: $postId');
 
@@ -79,11 +78,25 @@ class PostService {
           .collection('user_posts')
           .doc(postId);
 
-      await postRef.update({
+      final userRef = _firestore.collection('users').doc(uid);
+
+      // Use a batch to perform atomic updates
+      WriteBatch batch = _firestore.batch();
+
+      // Update the post's likes array
+      batch.update(postRef, {
         'likes': FieldValue.arrayUnion([uid]),
       });
 
-      log('Post liked successfully');
+      // Update the user's likedPosts array
+      batch.update(userRef, {
+        'likedPosts': FieldValue.arrayUnion([postId]),
+      });
+
+      // Commit the batch
+      await batch.commit();
+
+      log('Post liked and stored in user\'s likedPosts successfully');
     } catch (e) {
       log('Error liking Post: $e');
     }
@@ -105,11 +118,25 @@ class PostService {
           .collection('user_posts')
           .doc(postId);
 
-      await postRef.update({
+      final userRef = _firestore.collection('users').doc(uid);
+
+      // Use a batch to perform atomic updates
+      WriteBatch batch = _firestore.batch();
+
+      // Update the post's likes array
+      batch.update(postRef, {
         'likes': FieldValue.arrayRemove([uid]),
       });
 
-      log('Post unliked successfully');
+      // Update the user's likedPosts array
+      batch.update(userRef, {
+        'likedPosts': FieldValue.arrayRemove([postId]),
+      });
+
+      // Commit the batch
+      await batch.commit();
+
+      log('Post unliked and removed from user\'s likedPosts successfully');
     } catch (e) {
       log('Error unliking Post: $e');
     }
@@ -135,7 +162,7 @@ class PostService {
   }
 
   // Method to save a post using subcollection
-// Method to save a post
+  // Method to save a post
   Future<void> savePost(String postId) async {
     final user = _auth.currentUser;
     if (user == null) {
