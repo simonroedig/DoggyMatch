@@ -3,7 +3,6 @@
 // ignore_for_file: use_super_parameters, library_private_types_in_public_api
 
 import 'dart:developer' as developer;
-import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/announcement_dialogs.dart';
 import 'package:doggymatch_flutter/services/friends_service.dart';
@@ -15,6 +14,7 @@ import 'package:doggymatch_flutter/services/auth.dart';
 import 'package:doggymatch_flutter/notifiers/filter_notifier.dart';
 import 'package:doggymatch_flutter/classes/profile.dart';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/shouts_filter_option.dart';
+import 'package:doggymatch_flutter/shared_helper/shared_and_helper_functions.dart';
 
 class OtherPersonsAnnouncements extends StatefulWidget {
   final ShoutsFilterOption selectedOption;
@@ -207,24 +207,6 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
     }
   }
 
-  double _calculateDistance(
-      double lat1, double lon1, double lat2, double lon2) {
-    const R = 6371; // Radius of the Earth in kilometers
-    final dLat = _deg2rad(lat2 - lat1);
-    final dLon = _deg2rad(lon2 - lon1);
-    final a = sin(dLat / 2) * sin(dLat / 2) +
-        cos(_deg2rad(lat1)) *
-            cos(_deg2rad(lat2)) *
-            sin(dLon / 2) *
-            sin(dLon / 2);
-    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
-    return R * c; // Distance in kilometers
-  }
-
-  double _deg2rad(double deg) {
-    return deg * (pi / 180);
-  }
-
   String _calculateTimeAgo(DateTime createdAt) {
     final now = DateTime.now();
     final difference = now.difference(createdAt);
@@ -267,7 +249,7 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
     final mainUserLatitude = userProfileState.userProfile.latitude;
     final mainUserLongitude = userProfileState.userProfile.longitude;
 
-    final distance = _calculateDistance(
+    final distance = calculateDistance(
       mainUserLatitude,
       mainUserLongitude,
       user['latitude'].toDouble(),
@@ -307,7 +289,7 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
               );
 
               final lastOnline =
-                  calculateLastOnline(selectedProfile.lastOnline);
+                  calculateLastOnlineLong(selectedProfile.lastOnline);
 
               widget.onProfileSelected(
                   selectedProfile, distance, lastOnline, isSaved);
@@ -563,24 +545,6 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
         },
       ),
     );
-  }
-
-  String calculateLastOnline(DateTime? lastOnline) {
-    final now = DateTime.now();
-    final difference = now.difference(lastOnline!);
-
-    if (difference.inDays >= 30) {
-      final months = (difference.inDays / 30).floor();
-      return '$months ${months == 1 ? 'month' : 'months'}';
-    } else if (difference.inDays > 0) {
-      return '${difference.inDays} ${difference.inDays == 1 ? 'day' : 'days'}';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours} ${difference.inHours == 1 ? 'hour' : 'hours'}';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} ${difference.inMinutes == 1 ? 'minute' : 'minutes'}';
-    } else {
-      return 'Just now';
-    }
   }
 }
 

@@ -10,6 +10,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:image/image.dart' as img; // Import the image package
+import 'package:doggymatch_flutter/shared_helper/shared_and_helper_functions.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -142,8 +143,8 @@ class AuthService {
         final double userLatitude = userData['latitude'].toDouble();
         final double userLongitude = userData['longitude'].toDouble();
 
-        double distance = _calculateDistance(
-            latitude, longitude, userLatitude, userLongitude);
+        double distance =
+            calculateDistance(latitude, longitude, userLatitude, userLongitude);
 
         if (distance <= filterDistance) {
           usersWithinFilter.add({
@@ -523,23 +524,5 @@ class AuthService {
     } catch (e) {
       return null;
     }
-  }
-
-  double _calculateDistance(
-      double lat1, double lon1, double lat2, double lon2) {
-    const R = 6371;
-    final dLat = _deg2rad(lat2 - lat1);
-    final dLon = _deg2rad(lon2 - lon1);
-    final a = sin(dLat / 2) * sin(dLat / 2) +
-        cos(_deg2rad(lat1)) *
-            cos(_deg2rad(lat2)) *
-            sin(dLon / 2) *
-            sin(dLon / 2);
-    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
-    return R * c;
-  }
-
-  double _deg2rad(double deg) {
-    return deg * (pi / 180);
   }
 }

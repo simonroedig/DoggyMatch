@@ -2,7 +2,6 @@
 // ignore_for_file: use_super_parameters, library_private_types_in_public_api
 
 import 'dart:developer' as developer;
-import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:doggymatch_flutter/services/post_service.dart';
 import 'package:doggymatch_flutter/services/friends_service.dart'; // Add this import
@@ -15,6 +14,7 @@ import 'package:doggymatch_flutter/classes/profile.dart';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/post_img_fullscreen.dart';
 import 'package:flutter/services.dart'; // Add this import
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/post_filter_option.dart';
+import 'package:doggymatch_flutter/shared_helper/shared_and_helper_functions.dart';
 
 class OtherPersonsPosts extends StatefulWidget {
   final PostFilterOption selectedOption;
@@ -399,67 +399,6 @@ class _PostCardState extends State<PostCard> {
     super.dispose();
   }
 
-  String _calculateTimeAgo(DateTime createdAt) {
-    final now = DateTime.now();
-    final difference = now.difference(createdAt);
-
-    if (difference.inDays >= 30) {
-      final months = (difference.inDays / 30).floor();
-      return '$months ${months == 1 ? 'month' : 'months'} ago';
-    } else if (difference.inDays > 0) {
-      return '${difference.inDays} ${difference.inDays == 1 ? 'day' : 'days'} ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours} ${difference.inHours == 1 ? 'hour' : 'hours'} ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} ${difference.inMinutes == 1 ? 'minute' : 'minutes'} ago';
-    } else {
-      return 'Just now';
-    }
-  }
-
-  double _calculateDistance(
-      double lat1, double lon1, double lat2, double lon2) {
-    const R = 6371; // Radius of the Earth in kilometers
-
-    final dLat = _deg2rad(lat2 - lat1);
-
-    final dLon = _deg2rad(lon2 - lon1);
-
-    final a = sin(dLat / 2) * sin(dLat / 2) +
-        cos(_deg2rad(lat1)) *
-            cos(_deg2rad(lat2)) *
-            sin(dLon / 2) *
-            sin(dLon / 2);
-
-    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
-
-    return R * c; // Distance in kilometers
-  }
-
-  double _deg2rad(double deg) {
-    return deg * (pi / 180);
-  }
-
-  String calculateLastOnline(DateTime? lastOnline) {
-    final now = DateTime.now();
-
-    final difference = now.difference(lastOnline!);
-
-    if (difference.inDays >= 30) {
-      final months = (difference.inDays / 30).floor();
-
-      return '$months ${months == 1 ? 'month' : 'months'} ago';
-    } else if (difference.inDays > 0) {
-      return '${difference.inDays} ${difference.inDays == 1 ? 'day' : 'days'} ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours} ${difference.inHours == 1 ? 'hour' : 'hours'} ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} ${difference.inMinutes == 1 ? 'minute' : 'minutes'} ago';
-    } else {
-      return 'Just now';
-    }
-  }
-
   void _openCommentsOverlay(String postOwnerId, String postId,
       Color profileColor, VoidCallback onCommentsUpdated) {
     showModalBottomSheet(
@@ -497,7 +436,7 @@ class _PostCardState extends State<PostCard> {
     final post = widget.post;
 
     final DateTime createdAt = DateTime.parse(post['createdAt']);
-    final String timeAgo = _calculateTimeAgo(createdAt);
+    final String timeAgo = calculateLastOnlineLong(createdAt);
 
     // Get the current user's ID
     final String? currentUserId = _authService.getCurrentUserId();
@@ -510,7 +449,7 @@ class _PostCardState extends State<PostCard> {
     final mainUserLatitude = userProfileState.userProfile.latitude;
     final mainUserLongitude = userProfileState.userProfile.longitude;
 
-    final distance = _calculateDistance(
+    final distance = calculateDistance(
       mainUserLatitude,
       mainUserLongitude,
       user['latitude'].toDouble(),
@@ -553,7 +492,8 @@ class _PostCardState extends State<PostCard> {
                 : null,
             filterLastOnline: user['filterLastOnline'] ?? 3,
           );
-          final lastOnline = calculateLastOnline(selectedProfile.lastOnline);
+          final lastOnline =
+              calculateLastOnlineLong(selectedProfile.lastOnline);
           widget.onProfileSelected!(
               selectedProfile, distance, lastOnline, false);
         }

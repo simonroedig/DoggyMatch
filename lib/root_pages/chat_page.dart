@@ -1,9 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api
 
 import 'dart:async';
-import 'dart:math';
 import 'dart:developer' as developer;
-
 import 'package:doggymatch_flutter/services/auth.dart';
 import 'package:doggymatch_flutter/root_pages/profile_page_widgets/profile_widget.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +15,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/states/user_profile_state.dart';
 import 'package:doggymatch_flutter/notifiers/profile_close_notifier.dart';
+import 'package:doggymatch_flutter/shared_helper/shared_and_helper_functions.dart';
 
 class ChatPage extends StatefulWidget {
   final ProfileCloseNotifier profileCloseNotifier;
@@ -131,7 +130,7 @@ class _ChatPageState extends State<ChatPage> {
             }
           });
 
-          final double distance = _calculateDistance(
+          final double distance = calculateDistance(
             currentUserProfile!.latitude,
             currentUserProfile.longitude,
             otherUserProfile.latitude,
@@ -139,7 +138,7 @@ class _ChatPageState extends State<ChatPage> {
           );
 
           final String lastOnline =
-              calculateLastOnline(otherUserProfile.lastOnline);
+              calculateLastOnlineShort(otherUserProfile.lastOnline);
 
           bool userSentMessage = false;
           bool otherUserSentMessage = false;
@@ -407,38 +406,5 @@ class _ChatPageState extends State<ChatPage> {
         ],
       ),
     );
-  }
-
-  double _calculateDistance(
-      double lat1, double lon1, double lat2, double lon2) {
-    const R = 6371;
-    final dLat = _deg2rad(lat2 - lat1);
-    final dLon = _deg2rad(lon2 - lon1);
-    final a = sin(dLat / 2) * sin(dLat / 2) +
-        cos(_deg2rad(lat1)) *
-            cos(_deg2rad(lat2)) *
-            sin(dLon / 2) *
-            sin(dLon / 2);
-    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
-    return R * c;
-  }
-
-  double _deg2rad(double deg) {
-    return deg * (pi / 180);
-  }
-
-  String calculateLastOnline(DateTime? lastOnline) {
-    final now = DateTime.now();
-    final difference = now.difference(lastOnline!);
-
-    if (difference.inDays > 0) {
-      return '${difference.inDays}d';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours}h';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m';
-    } else {
-      return 'Just now';
-    }
   }
 }
