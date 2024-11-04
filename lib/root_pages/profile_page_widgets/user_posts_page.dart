@@ -95,7 +95,6 @@ class _UserPostsPageState extends State<UserPostsPage> {
           return PostCard(
             user: postUser,
             post: post,
-            showUserProfile: false,
           );
         },
       ),

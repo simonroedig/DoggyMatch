@@ -73,16 +73,21 @@ class _PostFullScreenImageViewState extends State<PostFullScreenImageView> {
             },
           ),
           Positioned(
-            top: 40.0,
-            right: 20.0,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.of(context).pop();
-              },
-              child: const Icon(
-                Icons.close_rounded,
-                color: Colors.white,
-                size: 30.0,
+            top: 10.0,
+            right: 10.0,
+            child: SafeArea(
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.of(context).pop();
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(20.0), // Increase tap area
+                  child: const Icon(
+                    Icons.close_rounded,
+                    color: Colors.white,
+                    size: 30.0,
+                  ),
+                ),
               ),
             ),
           ),

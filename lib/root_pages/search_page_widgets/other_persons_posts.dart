@@ -279,9 +279,6 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
 
   @override
   Widget build(BuildContext context) {
-    final bool showUserProfile =
-        widget.selectedOption != PostFilterOption.friendsPosts;
-
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -324,7 +321,6 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
             user: _posts[index]['user'],
             post: _posts[index]['post'],
             onProfileSelected: widget.onProfileSelected,
-            showUserProfile: showUserProfile,
           );
         },
       ),
@@ -336,14 +332,12 @@ class PostCard extends StatefulWidget {
   final Map<String, dynamic> user;
   final Map<String, dynamic> post;
   final Function(UserProfile, String, String, bool)? onProfileSelected;
-  final bool showUserProfile;
 
   const PostCard({
     Key? key,
     required this.user,
     required this.post,
     this.onProfileSelected,
-    this.showUserProfile = true,
   }) : super(key: key);
 
   @override
@@ -505,6 +499,12 @@ class _PostCardState extends State<PostCard> {
     final DateTime createdAt = DateTime.parse(post['createdAt']);
     final String timeAgo = _calculateTimeAgo(createdAt);
 
+    // Get the current user's ID
+    final String? currentUserId = _authService.getCurrentUserId();
+
+    // Determine if the post is from the current user
+    final bool isOwnPost = currentUserId == user['uid'];
+
     final userProfileState =
         Provider.of<UserProfileState>(context, listen: false);
     final mainUserLatitude = userProfileState.userProfile.latitude;
@@ -527,11 +527,9 @@ class _PostCardState extends State<PostCard> {
     final String postId = post['postId'] ?? '';
     final int commentsCount = post['commentsCount'] ?? 0;
 
-    final currentUserId = _authService.getCurrentUserId();
-
     return GestureDetector(
       onTap: () {
-        if (widget.showUserProfile && widget.onProfileSelected != null) {
+        if (!isOwnPost && widget.onProfileSelected != null) {
           UserProfile selectedProfile = UserProfile(
             uid: user['uid'],
             email: user['email'],
@@ -617,9 +615,7 @@ class _PostCardState extends State<PostCard> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              widget.showUserProfile
-                                  ? '$timeAgo • $distance km'
-                                  : timeAgo,
+                              isOwnPost ? timeAgo : '$timeAgo • $distance km',
                               style: const TextStyle(
                                 fontFamily: 'Poppins',
                                 fontWeight: FontWeight.bold,
