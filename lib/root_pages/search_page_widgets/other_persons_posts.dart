@@ -13,9 +13,10 @@ import 'package:doggymatch_flutter/services/auth_service.dart';
 import 'package:doggymatch_flutter/classes/profile.dart';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/post_img_fullscreen.dart';
 import 'package:flutter/services.dart'; // Add this import
-import 'package:doggymatch_flutter/root_pages/search_page_widgets/post_filter_option.dart';
+import 'package:doggymatch_flutter/root_pages/search_page_widgets/ENUM_post_filter_option.dart';
 import 'package:doggymatch_flutter/shared_helper/shared_and_helper_functions.dart';
 import 'package:doggymatch_flutter/services/profile_service.dart';
+import 'package:doggymatch_flutter/shared_helper/autoscrolling.dart';
 
 class OtherPersonsPosts extends StatefulWidget {
   final PostFilterOption selectedOption;
@@ -550,7 +551,7 @@ class _PostCardState extends State<PostCard> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _AutoScrollingRow(
+                            AutoScrollingRow(
                               userName: userName,
                               isDogOwner: isDogOwner,
                               dogName: dogName,
@@ -1270,123 +1271,6 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _AutoScrollingRow extends StatefulWidget {
-  final String userName;
-  final bool isDogOwner;
-  final String dogName;
-
-  const _AutoScrollingRow({
-    Key? key,
-    required this.userName,
-    required this.isDogOwner,
-    required this.dogName,
-  }) : super(key: key);
-
-  @override
-  __AutoScrollingRowState createState() => __AutoScrollingRowState();
-}
-
-class __AutoScrollingRowState extends State<_AutoScrollingRow>
-    with TickerProviderStateMixin {
-  late ScrollController _scrollController;
-  late AnimationController _animationController;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _scrollController = ScrollController();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 5),
-    );
-
-    _animation = Tween<double>(begin: 0.0, end: 1.0)
-        .animate(_animationController)
-      ..addListener(() {
-        if (_scrollController.hasClients) {
-          _scrollController.jumpTo(
-              _animation.value * _scrollController.position.maxScrollExtent);
-        }
-      })
-      ..addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          Future.delayed(const Duration(seconds: 1), () {
-            if (_scrollController.hasClients) {
-              _scrollController.jumpTo(0);
-              _animationController.forward(from: 0.0);
-            }
-          });
-        }
-      });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _startScrolling();
-    });
-  }
-
-  void _startScrolling() {
-    _animationController.forward();
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      controller: _scrollController,
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          const Icon(Icons.person_rounded,
-              size: 20, color: AppColors.customBlack),
-          const SizedBox(width: 4),
-          Text(
-            widget.userName,
-            style: const TextStyle(
-              fontFamily: 'Poppins',
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-              color: AppColors.customBlack,
-            ),
-          ),
-          if (widget.isDogOwner) ...[
-            const SizedBox(width: 4),
-            const Text(
-              " • ",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-                color: AppColors.customBlack,
-              ),
-            ),
-            const Icon(
-              Icons.pets_rounded,
-              size: 18,
-              color: AppColors.customBlack,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              widget.dogName,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-                color: AppColors.customBlack,
-              ),
-            ),
-          ],
-        ],
       ),
     );
   }

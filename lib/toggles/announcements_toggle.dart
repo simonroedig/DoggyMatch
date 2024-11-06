@@ -2,25 +2,29 @@
 
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
-import 'package:doggymatch_flutter/root_pages/search_page_widgets/post_filter_option.dart';
+import 'package:doggymatch_flutter/notifiers/filter_notifier.dart';
+import 'package:doggymatch_flutter/root_pages/search_page_widgets/ENUM_shouts_filter_option.dart';
+import 'package:provider/provider.dart';
 
-class OwnAllPostsToggle extends StatefulWidget {
-  final Function(PostFilterOption) onToggle;
+class AnnouncementsToggle extends StatefulWidget {
+  final Function(ShoutsFilterOption) onToggle;
 
-  const OwnAllPostsToggle({Key? key, required this.onToggle}) : super(key: key);
+  const AnnouncementsToggle({Key? key, required this.onToggle})
+      : super(key: key);
 
   @override
-  _OwnAllPostsToggleState createState() => _OwnAllPostsToggleState();
+  _OwnAllAnnouncementsToggleState createState() =>
+      _OwnAllAnnouncementsToggleState();
 }
 
-class _OwnAllPostsToggleState extends State<OwnAllPostsToggle> {
-  PostFilterOption _currentOption = PostFilterOption.allPosts;
+class _OwnAllAnnouncementsToggleState extends State<AnnouncementsToggle> {
+  ShoutsFilterOption _currentOption = ShoutsFilterOption.allShouts;
 
   void toggleSwitch() {
     setState(() {
-      // Cycle to the next option
-      _currentOption = PostFilterOption
-          .values[(_currentOption.index + 1) % PostFilterOption.values.length];
+      _currentOption = ShoutsFilterOption.values[
+          (_currentOption.index + 1) % ShoutsFilterOption.values.length];
+      Provider.of<FilterNotifier>(context, listen: false).notifyFilterChanged();
     });
     widget.onToggle(_currentOption);
   }
@@ -29,11 +33,11 @@ class _OwnAllPostsToggleState extends State<OwnAllPostsToggle> {
   Widget build(BuildContext context) {
     Widget displayText;
     switch (_currentOption) {
-      case PostFilterOption.friendsPosts:
+      case ShoutsFilterOption.friendsShouts:
         displayText = Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Custom icon combination for Friends Posts
+            // Custom icon combination for Friends Shouts
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -48,37 +52,17 @@ class _OwnAllPostsToggleState extends State<OwnAllPostsToggle> {
               ],
             ),
             const SizedBox(width: 0),
-            const Text('Friends Posts'),
+            const Text('Friends Shouts'),
           ],
         );
         break;
-      case PostFilterOption.allPosts:
+      case ShoutsFilterOption.allShouts:
         displayText = const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.photo_library), // Gallery icon
+            Icon(Icons.campaign), // Announcement icon
             SizedBox(width: 4),
-            Text('All Posts'),
-          ],
-        );
-        break;
-      case PostFilterOption.likedPosts:
-        displayText = const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.favorite), // Filled heart icon
-            SizedBox(width: 4),
-            Text('Liked Posts'),
-          ],
-        );
-        break;
-      case PostFilterOption.savedPosts:
-        displayText = const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.bookmark), // Filled save icon
-            SizedBox(width: 4),
-            Text('Saved Posts'),
+            Text('All Shouts'),
           ],
         );
         break;

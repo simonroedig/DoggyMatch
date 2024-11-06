@@ -86,7 +86,7 @@ class UserProfileState extends ChangeNotifier {
       images: images.isEmpty ? [placeholderImageUrl] : images,
     );
     notifyListeners();
-    await _authProfile.addUserProfileData(_userProfile);
+    await _authProfile.updateUserProfileField('images', images);
   }
 
   Future<void> _initializeUserProfile() async {
@@ -107,16 +107,16 @@ class UserProfileState extends ChangeNotifier {
   Future<void> updateDogOwnerStatus(bool isDogOwner) async {
     _userProfile = _userProfile.copyWith(isDogOwner: isDogOwner);
     notifyListeners();
-    await _authProfile.addUserProfileData(_userProfile);
+    await _authProfile.updateUserProfileField('isDogOwner', isDogOwner);
   }
 
   Future<void> updateProfileColor(Color color) async {
     _userProfile = _userProfile.copyWith(profileColor: color);
     notifyListeners();
-    await _authProfile.addUserProfileData(_userProfile);
+    await _authProfile.updateUserProfileField('profileColor', color.value);
   }
 
-  Future<void> updateUserProfile({
+  Future<void> updateUserProfileFromEdit({
     required String name,
     required DateTime? birthday,
     required String location,
@@ -127,6 +127,7 @@ class UserProfileState extends ChangeNotifier {
     String? dogBreed,
     String? dogAge,
   }) async {
+    // Update local state
     _userProfile = _userProfile.copyWith(
       userName: name,
       birthday: birthday,
@@ -139,7 +140,21 @@ class UserProfileState extends ChangeNotifier {
       dogAge: dogAge,
     );
     notifyListeners();
-    await _authProfile.addUserProfileData(_userProfile);
+
+    // Build a map of fields to update
+    final Map<String, dynamic> updates = {
+      'userName': name,
+      'birthday': birthday?.toIso8601String(),
+      'location': location,
+      'latitude': latitude,
+      'longitude': longitude,
+      'aboutText': aboutText,
+      if (dogName != null) 'dogName': dogName,
+      if (dogBreed != null) 'dogBreed': dogBreed,
+      if (dogAge != null) 'dogAge': dogAge,
+    };
+
+    await _authProfile.updateUserProfileFields(updates);
   }
 
   Future<void> updateFilterSettings({
@@ -155,7 +170,15 @@ class UserProfileState extends ChangeNotifier {
       filterLastOnline: filterLastOnline,
     );
     notifyListeners();
-    await _authProfile.addUserProfileData(_userProfile);
+
+    final Map<String, dynamic> updates = {
+      'filterLookingForDogOwner': filterLookingForDogOwner,
+      'filterLookingForDogSitter': filterLookingForDogSitter,
+      'filterDistance': filterDistance,
+      'filterLastOnline': filterLastOnline,
+    };
+
+    await _authProfile.updateUserProfileFields(updates);
   }
 
   void updateCurrentIndex(int index) {

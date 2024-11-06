@@ -17,10 +17,10 @@ import 'package:doggymatch_flutter/root_pages/search_page_widgets/new_announceme
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/new_post_page.dart';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/other_persons_announcements.dart';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/other_persons_posts.dart';
-import 'package:doggymatch_flutter/toggles/own_all_announcements_toggle.dart';
-import 'package:doggymatch_flutter/toggles/own_all_posts_toggle.dart';
-import 'package:doggymatch_flutter/root_pages/search_page_widgets/post_filter_option.dart';
-import 'package:doggymatch_flutter/root_pages/search_page_widgets/shouts_filter_option.dart';
+import 'package:doggymatch_flutter/toggles/announcements_toggle.dart';
+import 'package:doggymatch_flutter/toggles/posts_toggle.dart';
+import 'package:doggymatch_flutter/root_pages/search_page_widgets/ENUM_post_filter_option.dart';
+import 'package:doggymatch_flutter/root_pages/search_page_widgets/ENUM_shouts_filter_option.dart';
 
 class SearchPage extends StatefulWidget {
   final ProfileCloseNotifier profileCloseNotifier;
@@ -186,7 +186,7 @@ class SearchPageState extends State<SearchPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        OwnAllAnnouncementsToggle(
+                        AnnouncementsToggle(
                           onToggle: _onAnnouncementsToggle,
                         ),
                         const SizedBox(width: 16),
@@ -213,7 +213,7 @@ class SearchPageState extends State<SearchPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        OwnAllPostsToggle(
+                        PostsToggle(
                           onToggle: _onPostsToggle,
                         ),
                         const SizedBox(width: 16),

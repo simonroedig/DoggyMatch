@@ -15,7 +15,7 @@ import 'package:doggymatch_flutter/root_pages/community_page_widgets/friends_dia
 import 'package:doggymatch_flutter/services/announcement_service.dart';
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'user_posts_page.dart'; // Import the new page
+import 'profile_posts_section.dart'; // Import the new page
 import 'package:doggymatch_flutter/services/profile_service.dart';
 
 class ProfileWidget extends StatefulWidget {

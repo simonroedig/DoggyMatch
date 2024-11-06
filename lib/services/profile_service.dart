@@ -214,35 +214,25 @@ class ProfileService {
 
   /////////////////////////////////////////////////////////////////////////////
 
-  Future<void> addUserProfileData(UserProfile userProfile) async {
+  Future<void> updateUserProfileField(String field, dynamic value) async {
     final user = _auth.currentUser;
     if (user != null) {
-      final userProfileData = {
-        'userName': userProfile.userName,
-        'birthday': userProfile.birthday
-            ?.toIso8601String(), // Store date as ISO8601 string
-        'aboutText': userProfile.aboutText,
-        'profileColor':
-            userProfile.profileColor.value, // Convert Color to integer
-        'images': userProfile.images,
-        'location': userProfile.location,
-        'latitude': userProfile.latitude,
-        'longitude': userProfile.longitude,
-        'isDogOwner': userProfile.isDogOwner,
-        'dogName': userProfile.dogName,
-        'dogBreed': userProfile.dogBreed,
-        'dogAge': userProfile.dogAge,
-        'filterLookingForDogOwner': userProfile.filterLookingForDogOwner,
-        'filterLookingForDogSitter': userProfile.filterLookingForDogSitter,
-        'filterDistance': userProfile.filterDistance,
-        'lastOnline': userProfile.lastOnline?.toIso8601String(),
-        'filterLastOnline': userProfile.filterLastOnline,
-      };
-
       await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
-          .update(userProfileData);
+          .update({
+        field: value,
+      });
+    }
+  }
+
+  Future<void> updateUserProfileFields(Map<String, dynamic> updates) async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .update(updates);
     }
   }
 

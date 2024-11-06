@@ -143,7 +143,7 @@ class _ProfileImageEditState extends State<ProfileImageEdit> {
     final updatedDogAge = _dogAgeController.text;
 
     await Provider.of<UserProfileState>(context, listen: false)
-        .updateUserProfile(
+        .updateUserProfileFromEdit(
       name: updatedName,
       birthday: _selectedBirthday,
       location: updatedLocation,
