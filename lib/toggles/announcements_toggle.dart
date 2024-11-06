@@ -57,12 +57,25 @@ class _OwnAllAnnouncementsToggleState extends State<AnnouncementsToggle> {
         );
         break;
       case ShoutsFilterOption.allShouts:
-        displayText = const Row(
+        displayText = Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.campaign), // Announcement icon
-            SizedBox(width: 4),
-            Text('All Shouts'),
+            // Custom icon combination for All Shouts
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.campaign,
+                    size: 24, color: AppColors.customBlack),
+                const SizedBox(width: 4),
+                Transform.translate(
+                  offset: const Offset(-6, -3), // Adjust icon position
+                  child: const Icon(Icons.filter_list_rounded,
+                      size: 16, color: AppColors.customBlack),
+                ),
+              ],
+            ),
+            const SizedBox(width: 0),
+            const Text('All Shouts'),
           ],
         );
         break;

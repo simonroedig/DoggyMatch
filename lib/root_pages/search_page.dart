@@ -91,7 +91,7 @@ class SearchPageState extends State<SearchPage> {
     setState(() {
       _isFilterOpen = false;
     });
-    Provider.of<UserProfileState>(context, listen: false).refreshUserProfile();
+    //Provider.of<UserProfileState>(context, listen: false).refreshUserProfile();
   }
 
   void _onToggle(int selectedIndex) {
@@ -131,7 +131,7 @@ class SearchPageState extends State<SearchPage> {
       _selectedPostFilterOption = selectedOption;
       _loadFilteredUsersContent();
     });
-    Provider.of<UserProfileState>(context, listen: false).refreshUserProfile();
+    //Provider.of<UserProfileState>(context, listen: false).refreshUserProfile();
   }
 
   // Update this function to accept ShoutsFilterOption instead of bool
@@ -140,11 +140,11 @@ class SearchPageState extends State<SearchPage> {
       _selectedShoutFilterOption = selectedOption;
       _loadFilteredUsersContent();
     });
-    Provider.of<UserProfileState>(context, listen: false).refreshUserProfile();
+    //Provider.of<UserProfileState>(context, listen: false).refreshUserProfile();
   }
 
   void _loadFilteredUsersContent() {
-    Provider.of<UserProfileState>(context, listen: false).refreshUserProfile();
+    //Provider.of<UserProfileState>(context, listen: false).refreshUserProfile();
   }
 
   Future<bool> _onWillPop() async {

@@ -53,12 +53,25 @@ class _OwnAllPostsToggleState extends State<PostsToggle> {
         );
         break;
       case PostFilterOption.allPosts:
-        displayText = const Row(
+        displayText = Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.photo_library), // Gallery icon
-            SizedBox(width: 4),
-            Text('All Posts'),
+            // Custom icon combination for All Posts
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.photo_library,
+                    size: 24, color: AppColors.customBlack),
+                const SizedBox(width: 4),
+                Transform.translate(
+                  offset: const Offset(-6, -3), // Adjust icon position
+                  child: const Icon(Icons.filter_list_rounded,
+                      size: 16, color: AppColors.customBlack),
+                ),
+              ],
+            ),
+            const SizedBox(width: 0),
+            const Text('All Posts'),
           ],
         );
         break;
@@ -77,7 +90,7 @@ class _OwnAllPostsToggleState extends State<PostsToggle> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.bookmark), // Filled save icon
-            SizedBox(width: 4),
+            SizedBox(width: 0),
             Text('Saved Posts'),
           ],
         );

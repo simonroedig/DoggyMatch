@@ -3,6 +3,7 @@
 
 import 'dart:developer' as developer;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:doggymatch_flutter/notifiers/filter_notifier.dart';
 import 'package:doggymatch_flutter/services/post_service.dart';
 import 'package:doggymatch_flutter/services/friends_service.dart'; // Add this import
 import 'package:flutter/material.dart';
@@ -38,21 +39,38 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
   bool _isLoading = true;
   List<Map<String, dynamic>> _posts = [];
 
+  late FilterNotifier _filterNotifier;
+
   @override
   void initState() {
     super.initState();
-    _loadPosts();
+    _filterNotifier = Provider.of<FilterNotifier>(context, listen: false);
+    _filterNotifier.addListener(_onFilterChanged);
+
+    loadPosts();
+  }
+
+  @override
+  void dispose() {
+    // Remove the listener when the widget is disposed
+    _filterNotifier.removeListener(_onFilterChanged);
+    super.dispose();
+  }
+
+  void _onFilterChanged() {
+    // Reload posts whenever the filter changes
+    loadPosts();
   }
 
   @override
   void didUpdateWidget(covariant OtherPersonsPosts oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.selectedOption != oldWidget.selectedOption) {
-      _loadPosts();
+      loadPosts();
     }
   }
 
-  Future<void> _loadPosts() async {
+  Future<void> loadPosts() async {
     setState(() {
       _isLoading = true;
     });
@@ -113,7 +131,7 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
       userProfileState.userProfile.longitude,
       userProfileState.userProfile.filterLastOnline,
     );
-    //users = users.where((user) => user['uid'] != currentUserId).toList();
+    users = users.where((user) => user['uid'] != currentUserId).toList();
 
     for (var user in users) {
       final userPosts = await _fetchUserPosts(user['uid']);
@@ -315,7 +333,7 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
     }
 
     return RefreshIndicator(
-      onRefresh: _loadPosts, // Call _loadPosts when pulled down
+      onRefresh: loadPosts, // Call loadPosts when pulled down
       child: ListView.builder(
         padding: const EdgeInsets.only(top: 0, left: 20, right: 20),
         itemCount: _posts.length,
