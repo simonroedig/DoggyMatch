@@ -3,10 +3,10 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/classes/profile.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
-import 'package:doggymatch_flutter/services/auth.dart';
+import 'package:doggymatch_flutter/services/profile_service.dart';
 
 class UserProfileState extends ChangeNotifier {
-  final _auth = AuthService();
+  final _authProfile = ProfileService();
 
   static const String placeholderImageUrl =
       'https://firebasestorage.googleapis.com/v0/b/doggymatch-bb17f.appspot.com/o/placeholder.png?alt=media&token=6c364b4d-0e8b-4b34-b29e-58dc6dadcc65';
@@ -86,11 +86,11 @@ class UserProfileState extends ChangeNotifier {
       images: images.isEmpty ? [placeholderImageUrl] : images,
     );
     notifyListeners();
-    await _auth.addUserProfileData(_userProfile);
+    await _authProfile.addUserProfileData(_userProfile);
   }
 
   Future<void> _initializeUserProfile() async {
-    UserProfile? fetchedProfile = await _auth.fetchUserProfile();
+    UserProfile? fetchedProfile = await _authProfile.fetchUserProfile();
     if (fetchedProfile != null) {
       if (fetchedProfile.images.isEmpty) {
         fetchedProfile = fetchedProfile.copyWith(images: [placeholderImageUrl]);
@@ -107,13 +107,13 @@ class UserProfileState extends ChangeNotifier {
   Future<void> updateDogOwnerStatus(bool isDogOwner) async {
     _userProfile = _userProfile.copyWith(isDogOwner: isDogOwner);
     notifyListeners();
-    await _auth.addUserProfileData(_userProfile);
+    await _authProfile.addUserProfileData(_userProfile);
   }
 
   Future<void> updateProfileColor(Color color) async {
     _userProfile = _userProfile.copyWith(profileColor: color);
     notifyListeners();
-    await _auth.addUserProfileData(_userProfile);
+    await _authProfile.addUserProfileData(_userProfile);
   }
 
   Future<void> updateUserProfile({
@@ -139,7 +139,7 @@ class UserProfileState extends ChangeNotifier {
       dogAge: dogAge,
     );
     notifyListeners();
-    await _auth.addUserProfileData(_userProfile);
+    await _authProfile.addUserProfileData(_userProfile);
   }
 
   Future<void> updateFilterSettings({
@@ -155,7 +155,7 @@ class UserProfileState extends ChangeNotifier {
       filterLastOnline: filterLastOnline,
     );
     notifyListeners();
-    await _auth.addUserProfileData(_userProfile);
+    await _authProfile.addUserProfileData(_userProfile);
   }
 
   void updateCurrentIndex(int index) {

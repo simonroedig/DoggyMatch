@@ -6,7 +6,7 @@ import 'package:doggymatch_flutter/services/auth_gate.dart';
 import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/states/user_profile_state.dart';
 import 'package:doggymatch_flutter/main/colors.dart'; // Import your custom colors
-import 'package:doggymatch_flutter/services/auth.dart'; // Import AuthService
+import 'package:doggymatch_flutter/services/profile_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,7 +24,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
-  final AuthService _authService = AuthService(); // Instantiate AuthService
+  final _authProfile = ProfileService();
 
   @override
   void initState() {
@@ -45,7 +45,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
       // App is either minimized or closed
-      _authService.updateLastOnline();
+      _authProfile.updateLastOnline();
     }
   }
 

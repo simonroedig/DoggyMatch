@@ -2,12 +2,13 @@ import 'dart:developer' as developer;
 import 'package:doggymatch_flutter/services/friends_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:doggymatch_flutter/services/auth.dart';
+import 'package:doggymatch_flutter/services/auth_service.dart';
 import 'package:doggymatch_flutter/states/user_profile_state.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:doggymatch_flutter/classes/profile.dart';
 import 'package:doggymatch_flutter/notifiers/filter_notifier.dart';
 import 'package:doggymatch_flutter/shared_helper/shared_and_helper_functions.dart';
+import 'package:doggymatch_flutter/services/profile_service.dart';
 
 class OtherPersons extends StatefulWidget {
   final Function(UserProfile, String, String, bool)
@@ -35,6 +36,7 @@ class OtherPersons extends StatefulWidget {
 class _OtherPersonsState extends State<OtherPersons>
     with TickerProviderStateMixin {
   final AuthService _authService = AuthService();
+  final _authProfile = ProfileService();
   final FriendsService _friendsService = FriendsService();
   List<Map<String, dynamic>> _users = [];
   bool _isLoading = true;
@@ -80,7 +82,7 @@ class _OtherPersonsState extends State<OtherPersons>
 
     try {
       List<Map<String, dynamic>> users =
-          await _authService.fetchAllUsersWithinFilter(
+          await _authProfile.fetchAllUsersWithinFilter(
         userProfileState.userProfile.filterLookingForDogOwner,
         userProfileState.userProfile.filterLookingForDogSitter,
         userProfileState.userProfile.filterDistance,
@@ -114,7 +116,7 @@ class _OtherPersonsState extends State<OtherPersons>
 
     try {
       List<Map<String, dynamic>> users =
-          await _authService.fetchSavedUserProfiles();
+          await _authProfile.fetchSavedUserProfiles();
 
       if (mounted) {
         setState(() {
@@ -309,7 +311,7 @@ class _OtherPersonsState extends State<OtherPersons>
     ).toStringAsFixed(1);
 
     return FutureBuilder<bool>(
-      future: AuthService().isProfileSaved(data['uid']),
+      future: _authProfile.isProfileSaved(data['uid']),
       builder: (context, snapshot) {
         bool isSaved = snapshot.data ?? false;
 

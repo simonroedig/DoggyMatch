@@ -1,25 +1,19 @@
 import 'dart:developer' as dev;
+import 'dart:ui';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:doggymatch_flutter/classes/profile.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image/image.dart' as img; // Import the image package
+import 'package:doggymatch_flutter/shared_helper/shared_and_helper_functions.dart';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
-import 'dart:ui';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:doggymatch_flutter/classes/profile.dart';
-import 'package:doggymatch_flutter/states/user_profile_state.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:provider/provider.dart';
-import 'package:image/image.dart' as img; // Import the image package
-import 'package:doggymatch_flutter/shared_helper/shared_and_helper_functions.dart';
 
-class AuthService {
+class ProfileService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
-  // https://www.youtube.com/watch?v=Xe-8igE1_JI
-  // testpassword
-
-  // Fetch all users and their respective Firestore documents
   Future<List<Map<String, dynamic>>> fetchAllUsersWithDocuments() async {
     List<Map<String, dynamic>> usersWithDocuments = [];
 
@@ -46,7 +40,6 @@ class AuthService {
     return usersWithDocuments;
   }
 
-  // fetch all users within filter (certain distance, looking for dog owner/sitter)
   Future<List<Map<String, dynamic>>> fetchAllUsersWithinFilter(
       bool filterLookingForDogOwner,
       bool filterLookingForDogSitter,
@@ -165,6 +158,136 @@ class AuthService {
     return usersWithinFilter;
   }
 
+  /////////////////////////////////////////////////////////////////////////////
+
+  Future<String?> uploadProfileImage(String filePath, String userId) async {
+    try {
+      final ref = _storage.ref().child(
+          'profile_images/$userId/${DateTime.now().millisecondsSinceEpoch}');
+
+      // Read the original image file as bytes
+      final File originalImageFile = File(filePath);
+      final List<int> imageBytes = await originalImageFile.readAsBytes();
+
+      // Decode the image
+      img.Image? image = img.decodeImage(imageBytes);
+      if (image == null) return null;
+
+      // Resize and compress the image (e.g., 600px width, keeping aspect ratio)
+      final img.Image resizedImage = img.copyResize(image, width: 600);
+
+      // Encode the resized image as JPEG with a quality level (0-100, higher = better quality)
+      final List<int> compressedImageBytes =
+          img.encodeJpg(resizedImage, quality: 60);
+
+      // Upload the compressed image to Firebase Storage
+      final uploadTask =
+          await ref.putData(Uint8List.fromList(compressedImageBytes));
+      return await uploadTask.ref.getDownloadURL();
+    } catch (e) {
+      dev.log('Error uploading profile image: $e');
+      return null;
+    }
+  }
+
+  Future<void> deleteProfileImage(String imageUrl) async {
+    try {
+      if (imageUrl.contains("placeholder")) {
+        return;
+      }
+      final ref = _storage.refFromURL(imageUrl);
+      await ref.delete();
+    } catch (e) {
+      // Handle errors here
+    }
+  }
+
+  Future<void> updateLastOnline() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .update({'lastOnline': DateTime.now().toIso8601String()});
+    }
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+
+  Future<void> addUserProfileData(UserProfile userProfile) async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      final userProfileData = {
+        'userName': userProfile.userName,
+        'birthday': userProfile.birthday
+            ?.toIso8601String(), // Store date as ISO8601 string
+        'aboutText': userProfile.aboutText,
+        'profileColor':
+            userProfile.profileColor.value, // Convert Color to integer
+        'images': userProfile.images,
+        'location': userProfile.location,
+        'latitude': userProfile.latitude,
+        'longitude': userProfile.longitude,
+        'isDogOwner': userProfile.isDogOwner,
+        'dogName': userProfile.dogName,
+        'dogBreed': userProfile.dogBreed,
+        'dogAge': userProfile.dogAge,
+        'filterLookingForDogOwner': userProfile.filterLookingForDogOwner,
+        'filterLookingForDogSitter': userProfile.filterLookingForDogSitter,
+        'filterDistance': userProfile.filterDistance,
+        'lastOnline': userProfile.lastOnline?.toIso8601String(),
+        'filterLastOnline': userProfile.filterLastOnline,
+      };
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .update(userProfileData);
+    }
+  }
+
+  Future<UserProfile?> fetchUserProfile() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      if (userDoc.exists) {
+        final data = userDoc.data();
+        if (data != null) {
+          return UserProfile(
+            uid: user.uid,
+            email: user.email!,
+            userName: data['userName'] ?? '',
+            birthday: data['birthday'] != null
+                ? DateTime.parse(data['birthday'])
+                : null,
+            aboutText: data['aboutText'] ?? '',
+            profileColor: Color(data['profileColor'] ?? 0xFFFFFFFF),
+            images: List<String>.from(data['images'] ?? []),
+            location: data['location'] ?? '',
+            latitude: (data['latitude'] ?? 0.0).toDouble(),
+            longitude: (data['longitude'] ?? 0.0).toDouble(),
+            isDogOwner: data['isDogOwner'] ?? false,
+            dogName: data['dogName'] ?? '',
+            dogBreed: data['dogBreed'] ?? '',
+            dogAge: data['dogAge'] ?? '',
+            filterLookingForDogOwner: data['filterLookingForDogOwner'] ?? true,
+            filterLookingForDogSitter:
+                data['filterLookingForDogSitter'] ?? true,
+            filterDistance: (data['filterDistance'] ?? 10.0).toDouble(),
+            lastOnline: data['lastOnline'] != null
+                ? DateTime.parse(data['lastOnline'])
+                : null,
+            filterLastOnline: data['filterLastOnline'] ?? 3,
+          );
+        }
+      }
+    }
+    return null;
+  }
+
   Future<UserProfile?> fetchOtherUserProfile(String uid) async {
     try {
       final userDoc =
@@ -210,57 +333,10 @@ class AuthService {
     return null;
   }
 
-  // Delete user account, associated Firestore document, and all user images in Firebase Storage
-  Future<bool> deleteAccountAndData(context) async {
-    try {
-      final user = _auth.currentUser;
-      if (user != null) {
-        final userDocRef =
-            FirebaseFirestore.instance.collection('users').doc(user.uid);
-        final userDocSnapshot = await userDocRef.get();
+  /////////////////////////////////////////////////////////////////////////////
 
-        if (userDocSnapshot.exists) {
-          final userData = userDocSnapshot.data();
-          if (userData != null) {
-            // Delete all user images from Firebase Storage
-            List<String> images = List<String>.from(userData['images'] ?? []);
-            for (String imageUrl in images) {
-              await deleteProfileImage(imageUrl);
-            }
-          }
-        }
-
-        // Delete the user's document from Firestore
-        await userDocRef.delete();
-
-        // Delete the user's Firebase account
-        await user.delete();
-        // added the next 4 lines recentyl without testing
-        await FirebaseFirestore.instance.terminate(); // Clear Firestore cache
-        await FirebaseFirestore.instance.clearPersistence();
-        Provider.of<UserProfileState>(context, listen: false).clearProfile();
-        return true;
-      }
-    } catch (e) {
-      dev.log('Error deleting account and data: $e');
-    }
-    return false;
-  }
-
-  // Get the current user's UID
-  String? getCurrentUserId() {
-    final user = _auth.currentUser;
-    return user?.uid;
-  }
-
-  // Get the current user's email
-  String? getCurrentUserEmail() {
-    final user = _auth.currentUser;
-    return user?.email;
-  }
-
-  // Add a user's profile UID to the current user's saved profiles
   Future<void> saveUserProfile(String profileUid) async {
+    // Add a user's profile UID to the current user's saved profiles
     final user = _auth.currentUser;
     if (user != null) {
       final userDocRef =
@@ -271,7 +347,6 @@ class AuthService {
     }
   }
 
-  // fetch all saved user profiles
   Future<List<Map<String, dynamic>>> fetchSavedUserProfiles() async {
     final user = _auth.currentUser; // Get current user
     List<Map<String, dynamic>> savedUserProfiles = [];
@@ -319,8 +394,8 @@ class AuthService {
     return savedUserProfiles; // Return the list of saved user profiles
   }
 
-// Remove a user's profile UID from the current user's saved profiles
   Future<void> unsaveUserProfile(String profileUid) async {
+    // Remove a user's profile UID from the current user's saved profiles
     final user = _auth.currentUser;
     if (user != null) {
       final userDocRef =
@@ -331,7 +406,6 @@ class AuthService {
     }
   }
 
-  // Check if a profile is already saved in the current user's saved profiles
   Future<bool> isProfileSaved(String profileUid) async {
     final user = _auth.currentUser;
     if (user != null) {
@@ -346,183 +420,5 @@ class AuthService {
       }
     }
     return false;
-  }
-
-  // Upload image to Firebase Storage
-  Future<String?> uploadProfileImage(String filePath, String userId) async {
-    try {
-      final ref = _storage.ref().child(
-          'profile_images/$userId/${DateTime.now().millisecondsSinceEpoch}');
-
-      // Read the original image file as bytes
-      final File originalImageFile = File(filePath);
-      final List<int> imageBytes = await originalImageFile.readAsBytes();
-
-      // Decode the image
-      img.Image? image = img.decodeImage(imageBytes);
-      if (image == null) return null;
-
-      // Resize and compress the image (e.g., 600px width, keeping aspect ratio)
-      final img.Image resizedImage = img.copyResize(image, width: 600);
-
-      // Encode the resized image as JPEG with a quality level (0-100, higher = better quality)
-      final List<int> compressedImageBytes =
-          img.encodeJpg(resizedImage, quality: 60);
-
-      // Upload the compressed image to Firebase Storage
-      final uploadTask =
-          await ref.putData(Uint8List.fromList(compressedImageBytes));
-      return await uploadTask.ref.getDownloadURL();
-    } catch (e) {
-      dev.log('Error uploading profile image: $e');
-      return null;
-    }
-  }
-
-  // Delete image from Firebase Storage
-  Future<void> deleteProfileImage(String imageUrl) async {
-    try {
-      if (imageUrl.contains("placeholder")) {
-        return;
-      }
-      final ref = _storage.refFromURL(imageUrl);
-      await ref.delete();
-    } catch (e) {
-      // Handle errors here
-    }
-  }
-
-  // create user with email and password
-  Future createUserWithEmailAndPassword(String email, String password) async {
-    try {
-      final UserCredential userCredential = await _auth
-          .createUserWithEmailAndPassword(email: email, password: password);
-      return userCredential;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  // create user document
-  Future createUserDocument(UserCredential userCredential) async {
-    if (userCredential.user != null) {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userCredential.user!.uid)
-          .set({
-        'email': userCredential.user!.email,
-        'uid': userCredential.user!.uid,
-      });
-    }
-  }
-
-  // add data to user document
-  Future<void> addUserProfileData(UserProfile userProfile) async {
-    final user = _auth.currentUser;
-    if (user != null) {
-      final userProfileData = {
-        'userName': userProfile.userName,
-        'birthday': userProfile.birthday
-            ?.toIso8601String(), // Store date as ISO8601 string
-        'aboutText': userProfile.aboutText,
-        'profileColor':
-            userProfile.profileColor.value, // Convert Color to integer
-        'images': userProfile.images,
-        'location': userProfile.location,
-        'latitude': userProfile.latitude,
-        'longitude': userProfile.longitude,
-        'isDogOwner': userProfile.isDogOwner,
-        'dogName': userProfile.dogName,
-        'dogBreed': userProfile.dogBreed,
-        'dogAge': userProfile.dogAge,
-        'filterLookingForDogOwner': userProfile.filterLookingForDogOwner,
-        'filterLookingForDogSitter': userProfile.filterLookingForDogSitter,
-        'filterDistance': userProfile.filterDistance,
-        'lastOnline': userProfile.lastOnline?.toIso8601String(),
-        'filterLastOnline': userProfile.filterLastOnline,
-      };
-
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .update(userProfileData);
-    }
-  }
-
-  // update last online timestamp
-  Future<void> updateLastOnline() async {
-    final user = _auth.currentUser;
-    if (user != null) {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .update({'lastOnline': DateTime.now().toIso8601String()});
-    }
-  }
-
-  // get current user document
-  Future<UserProfile?> fetchUserProfile() async {
-    final user = _auth.currentUser;
-    if (user != null) {
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-      if (userDoc.exists) {
-        final data = userDoc.data();
-        if (data != null) {
-          return UserProfile(
-            uid: user.uid,
-            email: user.email!,
-            userName: data['userName'] ?? '',
-            birthday: data['birthday'] != null
-                ? DateTime.parse(data['birthday'])
-                : null,
-            aboutText: data['aboutText'] ?? '',
-            profileColor: Color(data['profileColor'] ?? 0xFFFFFFFF),
-            images: List<String>.from(data['images'] ?? []),
-            location: data['location'] ?? '',
-            latitude: (data['latitude'] ?? 0.0).toDouble(),
-            longitude: (data['longitude'] ?? 0.0).toDouble(),
-            isDogOwner: data['isDogOwner'] ?? false,
-            dogName: data['dogName'] ?? '',
-            dogBreed: data['dogBreed'] ?? '',
-            dogAge: data['dogAge'] ?? '',
-            filterLookingForDogOwner: data['filterLookingForDogOwner'] ?? true,
-            filterLookingForDogSitter:
-                data['filterLookingForDogSitter'] ?? true,
-            filterDistance: (data['filterDistance'] ?? 10.0).toDouble(),
-            lastOnline: data['lastOnline'] != null
-                ? DateTime.parse(data['lastOnline'])
-                : null,
-            filterLastOnline: data['filterLastOnline'] ?? 3,
-          );
-        }
-      }
-    }
-    return null;
-  }
-
-  // sign in user with email and password
-  Future signInWithEmailAndPassword(String email, String password) async {
-    try {
-      final UserCredential userCredential = await _auth
-          .signInWithEmailAndPassword(email: email, password: password);
-      return userCredential.user;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  // sign out
-  Future signOut(context) async {
-    try {
-      await FirebaseFirestore.instance.terminate(); // Clear Firestore cache
-      await FirebaseFirestore.instance.clearPersistence();
-      Provider.of<UserProfileState>(context, listen: false).clearProfile();
-      return await _auth.signOut();
-    } catch (e) {
-      return null;
-    }
   }
 }

@@ -4,14 +4,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:doggymatch_flutter/classes/message.dart';
 
-// https://www.youtube.com/watch?v=mBBycL0EtBQ
-// watched until minute 32:00
-
 class ChatService extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // SEND MESSAGE
   Future<void> sendMessage(
       String receiverID, String receiverEmail, String message) async {
     // get current user info
@@ -56,7 +52,6 @@ class ChatService extends ChangeNotifier {
         .add(newMessage.toMap());
   }
 
-  // GET MESSAGE
   Stream<QuerySnapshot> getMessages(String userID, String otherUserID) {
     List<String> ids = [userID, otherUserID];
     ids.sort();
@@ -70,7 +65,6 @@ class ChatService extends ChangeNotifier {
         .snapshots();
   }
 
-  // GET CHATROOMS
   Future<List<Map<String, dynamic>>> getExistingChatroomforUser(
       String userID) async {
     List<Map<String, dynamic>> chatRooms = [];
@@ -104,7 +98,6 @@ class ChatService extends ChangeNotifier {
     return chatRooms;
   }
 
-  // UPDATE chatSeenBy
   Future<void> updateChatSeenStatus(
       String receiverID, bool hasSeenAllAndLastMessage) async {
     // get current user info
@@ -137,7 +130,6 @@ class ChatService extends ChangeNotifier {
     }
   }
 
-  // GET chatSeenBy
   Future<bool> getChatSeenStatus(String receiverID) async {
     // get current user info
     final String currentUserID = _auth.currentUser!.uid;

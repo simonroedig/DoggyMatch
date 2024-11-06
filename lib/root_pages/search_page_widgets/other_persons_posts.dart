@@ -9,12 +9,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:doggymatch_flutter/states/user_profile_state.dart';
-import 'package:doggymatch_flutter/services/auth.dart';
+import 'package:doggymatch_flutter/services/auth_service.dart';
 import 'package:doggymatch_flutter/classes/profile.dart';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/post_img_fullscreen.dart';
 import 'package:flutter/services.dart'; // Add this import
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/post_filter_option.dart';
 import 'package:doggymatch_flutter/shared_helper/shared_and_helper_functions.dart';
+import 'package:doggymatch_flutter/services/profile_service.dart';
 
 class OtherPersonsPosts extends StatefulWidget {
   final PostFilterOption selectedOption;
@@ -32,6 +33,7 @@ class OtherPersonsPosts extends StatefulWidget {
 
 class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
   final AuthService _authService = AuthService();
+  final _authProfile = ProfileService();
   bool _isLoading = true;
   List<Map<String, dynamic>> _posts = [];
 
@@ -102,7 +104,7 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
       UserProfileState userProfileState,
       List<Map<String, dynamic>> posts) async {
     List<Map<String, dynamic>> users =
-        await _authService.fetchAllUsersWithinFilter(
+        await _authProfile.fetchAllUsersWithinFilter(
       userProfileState.userProfile.filterLookingForDogOwner,
       userProfileState.userProfile.filterLookingForDogSitter,
       userProfileState.userProfile.filterDistance,
@@ -128,7 +130,7 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
   // ignore: unused_element
   Future<void> _loadOwnPosts(
       String? currentUserId, List<Map<String, dynamic>> posts) async {
-    final currentUserProfile = await _authService.fetchUserProfile();
+    final currentUserProfile = await _authProfile.fetchUserProfile();
     if (currentUserProfile != null) {
       final userPosts = await _fetchUserPosts(currentUserProfile.uid);
       if (userPosts.isNotEmpty) {

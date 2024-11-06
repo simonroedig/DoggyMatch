@@ -2,7 +2,6 @@
 
 import 'dart:async';
 import 'dart:developer' as developer;
-import 'package:doggymatch_flutter/services/auth.dart';
 import 'package:doggymatch_flutter/root_pages/profile_page_widgets/profile_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/custom_app_bar.dart';
@@ -16,6 +15,7 @@ import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/states/user_profile_state.dart';
 import 'package:doggymatch_flutter/notifiers/profile_close_notifier.dart';
 import 'package:doggymatch_flutter/shared_helper/shared_and_helper_functions.dart';
+import 'package:doggymatch_flutter/services/profile_service.dart';
 
 class ChatPage extends StatefulWidget {
   final ProfileCloseNotifier profileCloseNotifier;
@@ -27,7 +27,7 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  final AuthService _authService = AuthService();
+  final _authProfile = ProfileService();
   final String _currentUserId = FirebaseAuth.instance.currentUser!.uid;
   bool isChatSelected = true;
   UserProfile? _selectedProfile;
@@ -100,7 +100,7 @@ class _ChatPageState extends State<ChatPage> {
       final List<Map<String, dynamic>> chatRooms = [];
 
       final UserProfile? currentUserProfile =
-          await _authService.fetchUserProfile();
+          await _authProfile.fetchUserProfile();
 
       for (var chatRoom in snapshot.docs) {
         final otherUserId = (chatRoom.data())['members']
@@ -108,7 +108,7 @@ class _ChatPageState extends State<ChatPage> {
             .first;
 
         final UserProfile? otherUserProfile =
-            await _authService.fetchOtherUserProfile(otherUserId);
+            await _authProfile.fetchOtherUserProfile(otherUserId);
 
         final messagesSnapshot = await chatRoom.reference
             .collection('messages')
@@ -168,7 +168,7 @@ class _ChatPageState extends State<ChatPage> {
             chatRoomState = "NO MESSAGES";
           }
 
-          final bool isSaved = await _authService.isProfileSaved(otherUserId);
+          final bool isSaved = await _authProfile.isProfileSaved(otherUserId);
 
           chatRooms.add({
             'profile': otherUserProfile,

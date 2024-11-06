@@ -5,8 +5,8 @@ import 'dart:developer' as dev;
 class FriendsService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // Add a user's profile UID to the current user's saved profiles
   Future<void> sendFriendRequest(String profileUid) async {
+    // Add a user's profile UID to the current user's saved profiles
     final user = _auth.currentUser;
     if (user != null) {
       final userDocRef =
@@ -23,7 +23,6 @@ class FriendsService {
     });
   }
 
-  // Cancel a friend request
   Future<void> cancelFriendRequest(String profileUid) async {
     final user = _auth.currentUser;
     if (user != null) {
@@ -41,7 +40,6 @@ class FriendsService {
     });
   }
 
-  // check if a friend request has been sent
   Future<bool> isFriendRequestSent(String profileUid) async {
     final user = _auth.currentUser;
     if (user != null) {
@@ -58,7 +56,6 @@ class FriendsService {
     return false;
   }
 
-  // remove received friend request
   Future<void> removeReceivedFriendRequest(String profileUid) async {
     final user = _auth.currentUser;
     if (user != null) {
@@ -76,8 +73,8 @@ class FriendsService {
     });
   }
 
-  // check if other user has sent a friend request
   Future<bool> isFriendRequestReceived(String profileUid) async {
+    // check if other user has sent a friend request
     final user = _auth.currentUser;
     if (user != null) {
       final userDoc = await FirebaseFirestore.instance
@@ -93,7 +90,6 @@ class FriendsService {
     return false;
   }
 
-  // check if users are friends
   Future<bool> areFriends(String profileUid) async {
     final user = _auth.currentUser;
     if (user != null) {
@@ -109,7 +105,6 @@ class FriendsService {
     return false;
   }
 
-  // remove friend
   Future<void> removeFriend(String profileUid) async {
     final user = _auth.currentUser;
     if (user != null) {
@@ -127,7 +122,6 @@ class FriendsService {
     });
   }
 
-  // make users friends
   Future<void> makeFriends(String profileUid) async {
     final user = _auth.currentUser;
     if (user != null) {
@@ -147,8 +141,6 @@ class FriendsService {
     cancelFriendRequest(profileUid);
   }
 
-  // fetching function
-  // fetch all friends
   Future<List<Map<String, dynamic>>> fetchAllFriends() async {
     final user = _auth.currentUser; // Get current user
     List<Map<String, dynamic>> friendProfiles = [];
@@ -195,7 +187,6 @@ class FriendsService {
     return friendProfiles; // Return the list of friend profiles
   }
 
-  // Fetch all received friend requests
   Future<List<Map<String, dynamic>>> fetchAllFriendRequestReceived() async {
     final user = _auth.currentUser; // Get current user
     List<Map<String, dynamic>> receivedRequests = [];
@@ -243,7 +234,6 @@ class FriendsService {
     return receivedRequests; // Return the list of received friend requests
   }
 
-  // Fetch all sent friend requests
   Future<List<Map<String, dynamic>>> fetchAllFriendRequestSent() async {
     final user = _auth.currentUser; // Get current user
     List<Map<String, dynamic>> sentRequests = [];

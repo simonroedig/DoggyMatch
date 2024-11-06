@@ -2,7 +2,7 @@
 
 // ignore_for_file: use_super_parameters
 
-import 'package:doggymatch_flutter/services/auth.dart';
+import 'package:doggymatch_flutter/services/auth_service.dart';
 import 'package:doggymatch_flutter/root_pages/profile_page_widgets/profile_edit_all.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
@@ -16,6 +16,7 @@ import 'package:doggymatch_flutter/services/announcement_service.dart';
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'user_posts_page.dart'; // Import the new page
+import 'package:doggymatch_flutter/services/profile_service.dart';
 
 class ProfileWidget extends StatefulWidget {
   final UserProfile profile;
@@ -41,6 +42,7 @@ class ProfileWidget extends StatefulWidget {
 }
 
 class _ProfileWidgetState extends State<ProfileWidget> {
+  final _authProfile = ProfileService();
   bool _isInChat = false;
   bool _isProfileSaved = false; // Track if profile is saved
   bool _isProfileFriendRequestSent =
@@ -319,10 +321,10 @@ class _ProfileWidgetState extends State<ProfileWidget> {
   Future<void> _toggleSavedStatus() async {
     if (_isProfileSaved) {
       // Unsave the profile
-      await AuthService().unsaveUserProfile(widget.profile.uid);
+      await _authProfile.unsaveUserProfile(widget.profile.uid);
     } else {
       // Save the profile
-      await AuthService().saveUserProfile(widget.profile.uid);
+      await _authProfile.saveUserProfile(widget.profile.uid);
     }
     setState(() {
       _isProfileSaved = !_isProfileSaved;

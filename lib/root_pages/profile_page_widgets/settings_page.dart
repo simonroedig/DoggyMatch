@@ -4,7 +4,7 @@ import 'package:doggymatch_flutter/main/main.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:doggymatch_flutter/welcome_pages/welcome_page.dart';
-import 'package:doggymatch_flutter/services/auth.dart';
+import 'package:doggymatch_flutter/services/auth_service.dart';
 import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/states/user_profile_state.dart';
 

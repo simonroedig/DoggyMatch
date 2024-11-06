@@ -77,7 +77,6 @@ class PostService {
     }
   }
 
-  // New method to like a post
   Future<void> likePost(String postOwnerId, String postId) async {
     final user = _auth.currentUser;
     if (user == null) {
@@ -120,7 +119,6 @@ class PostService {
     }
   }
 
-  // New method to unlike a post
   Future<void> unlikePost(String postOwnerId, String postId) async {
     final user = _auth.currentUser;
     if (user == null) {
@@ -160,7 +158,6 @@ class PostService {
     }
   }
 
-  // get all posts likes uid's
   Future<List<String>?> getPostLikes(String postOwnerId, String postId) async {
     try {
       final postRef = _firestore
@@ -179,8 +176,6 @@ class PostService {
     }
   }
 
-  // Method to save a post using subcollection
-  // Method to save a post
   Future<void> savePost(String postId) async {
     final user = _auth.currentUser;
     if (user == null) {
@@ -203,7 +198,6 @@ class PostService {
     }
   }
 
-  // Method to unsave a post
   Future<void> unsavePost(String postId) async {
     final user = _auth.currentUser;
     if (user == null) {
@@ -272,7 +266,6 @@ class PostService {
     }
   }
 
-  // Method to fetch comments
   Future<List<Map<String, dynamic>>> getComments(
       String postOwnerId, String postId) async {
     try {

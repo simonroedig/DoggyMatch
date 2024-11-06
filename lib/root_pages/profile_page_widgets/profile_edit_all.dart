@@ -2,7 +2,7 @@
 
 import 'dart:developer';
 import 'package:doggymatch_flutter/classes/profile.dart';
-import 'package:doggymatch_flutter/services/auth.dart';
+import 'package:doggymatch_flutter/services/auth_service.dart';
 import 'package:doggymatch_flutter/states/user_profile_state.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +15,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:doggymatch_flutter/main/colors.dart'; // Import your custom colors
 import 'package:doggymatch_flutter/main/main_screen.dart'; // Import MainScreen to navigate back
+import 'package:doggymatch_flutter/services/profile_service.dart';
 
 class ProfileImageEdit extends StatefulWidget {
   final UserProfile profile;
@@ -32,6 +33,7 @@ class _ProfileImageEditState extends State<ProfileImageEdit> {
   late List<String> _images;
   final ImagePicker _picker = ImagePicker();
   final AuthService _authService = AuthService();
+  final _authProfile = ProfileService();
 
   late TextEditingController _nameController;
   late TextEditingController _locationController;
@@ -292,7 +294,7 @@ class _ProfileImageEditState extends State<ProfileImageEdit> {
       final userId = _authService.getCurrentUserId();
       if (userId != null) {
         final downloadUrl =
-            await _authService.uploadProfileImage(pickedFile.path, userId);
+            await _authProfile.uploadProfileImage(pickedFile.path, userId);
         if (downloadUrl != null && mounted) {
           setState(() {
             _images.add(downloadUrl);
@@ -310,7 +312,7 @@ class _ProfileImageEditState extends State<ProfileImageEdit> {
 
   Future<void> _deleteImage(int index) async {
     final imageUrl = _images[index];
-    await _authService.deleteProfileImage(imageUrl);
+    await _authProfile.deleteProfileImage(imageUrl);
     setState(() {
       _images.removeAt(index);
     });
