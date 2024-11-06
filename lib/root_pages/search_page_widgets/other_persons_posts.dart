@@ -1161,32 +1161,95 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildCommentInputArea(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
-    return GestureDetector(
-      onVerticalDragUpdate: (details) {
-        if (details.primaryDelta! > 0) {
-          Navigator.of(context).pop();
-        }
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: widget.profileColor,
-          border: Border.all(color: AppColors.customBlack, width: 3),
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(18.0),
-            topRight: Radius.circular(18.0),
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottomInset),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Comment input field and character counter
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8.0, top: 14.0),
+            child: Center(
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.84,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
+                decoration: BoxDecoration(
+                  color: AppColors.bg,
+                  borderRadius: BorderRadius.circular(20.0),
+                  border: Border.all(
+                    color: AppColors.customBlack,
+                    width: 3.0,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _commentController,
+                        maxLength: 250,
+                        maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                        decoration: const InputDecoration(
+                          contentPadding:
+                              EdgeInsets.symmetric(horizontal: 16.0),
+                          hintText: 'Write a comment...',
+                          hintStyle: TextStyle(color: AppColors.grey),
+                          border: InputBorder.none,
+                          counterText: '',
+                        ),
+                        style: const TextStyle(color: AppColors.customBlack),
+                        minLines: 1,
+                        maxLines: 3, // Limit max lines to prevent overflow
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.send_rounded,
+                        color:
+                            _hasText ? AppColors.customBlack : AppColors.grey,
+                      ),
+                      onPressed: _hasText ? _sendComment : null,
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
-        ),
-        child: ClipRRect(
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(18.0),
-            topRight: Radius.circular(18.0),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 24.0, bottom: 8.0),
+              child: Text(
+                '${_commentController.text.length}/250',
+                style: const TextStyle(
+                  color: AppColors.customBlack,
+                  fontSize: 12,
+                ),
+              ),
+            ),
           ),
-          child: Padding(
-            padding: EdgeInsets.only(bottom: bottomInset),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Container(
+            decoration: BoxDecoration(
+              color: widget.profileColor,
+              border: Border.all(color: AppColors.customBlack, width: 3),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(18.0),
+                topRight: Radius.circular(18.0),
+              ),
+            ),
             child: Column(
               children: [
                 // Draggable notch at the top
@@ -1201,6 +1264,7 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
                     ),
                   ),
                 ),
+                // Comments list
                 Expanded(
                   child: _isLoadingComments
                       ? const Center(child: CircularProgressIndicator())
@@ -1220,75 +1284,12 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
                               },
                             ),
                 ),
-                // Comment input field and character counter
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0, top: 14.0),
-                  child: Center(
-                    child: Container(
-                      width: MediaQuery.of(context).size.width * 0.84,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 0.0, vertical: 0.0),
-                      decoration: BoxDecoration(
-                        color: AppColors.bg,
-                        borderRadius: BorderRadius.circular(20.0),
-                        border: Border.all(
-                          color: AppColors.customBlack,
-                          width: 3.0,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _commentController,
-                              maxLength: 250,
-                              maxLengthEnforcement:
-                                  MaxLengthEnforcement.enforced,
-                              decoration: const InputDecoration(
-                                contentPadding:
-                                    EdgeInsets.symmetric(horizontal: 16.0),
-                                hintText: 'Write a comment..',
-                                hintStyle: TextStyle(color: AppColors.grey),
-                                border: InputBorder.none,
-                                counterText: '',
-                              ),
-                              style:
-                                  const TextStyle(color: AppColors.customBlack),
-                              minLines: 1,
-                              maxLines: 5,
-                            ),
-                          ),
-                          IconButton(
-                            icon: Icon(
-                              Icons.send_rounded,
-                              color: _hasText
-                                  ? AppColors.customBlack
-                                  : AppColors.grey,
-                            ),
-                            onPressed: _hasText ? _sendComment : null,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 24.0, bottom: 8.0),
-                    child: Text(
-                      '${_commentController.text.length}/250',
-                      style: const TextStyle(
-                        color: AppColors.customBlack,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ),
+                // Input field and character counter
+                _buildCommentInputArea(context),
               ],
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }

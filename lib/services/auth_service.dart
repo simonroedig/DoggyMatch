@@ -82,6 +82,7 @@ class AuthService {
     try {
       final UserCredential userCredential = await _auth
           .signInWithEmailAndPassword(email: email, password: password);
+      dev.log('userCredential: $userCredential');
       return userCredential.user;
     } catch (e) {
       return null;
