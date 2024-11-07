@@ -94,6 +94,7 @@ class AuthService {
       await FirebaseFirestore.instance.terminate(); // Clear Firestore cache
       await FirebaseFirestore.instance.clearPersistence();
       Provider.of<UserProfileState>(context, listen: false).clearProfile();
+      FirebaseAuth.instance.signOut();
       return await _auth.signOut();
     } catch (e) {
       return null;

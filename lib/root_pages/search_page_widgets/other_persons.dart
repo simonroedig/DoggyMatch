@@ -319,7 +319,8 @@ class _OtherPersonsState extends State<OtherPersons>
           onTap: () async {
             developer.log('PERSONS Selected Profile UID: ${data['uid']}');
             developer.log('PERSONS Selected Profile Data: $data');
-            // Show progress indicator while fetching profile data
+            developer.log('Own UID: ${_authService.getCurrentUserId()}');
+
             showDialog(
               context: context,
               barrierDismissible: false,
@@ -328,6 +329,7 @@ class _OtherPersonsState extends State<OtherPersons>
                   child: CircularProgressIndicator(),
                 );
               },
+              useRootNavigator: true, // Add this line
             );
 
             try {
@@ -367,7 +369,8 @@ class _OtherPersonsState extends State<OtherPersons>
               widget.onProfileSelected(
                   selectedProfile, distance, lastOnline, isSaved);
             } finally {
-              Navigator.pop(context); // Hide the progress indicator
+              Navigator.of(context, rootNavigator: true)
+                  .pop(); // Pop the dialog
             }
           },
           child: Stack(

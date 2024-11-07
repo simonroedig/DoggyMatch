@@ -516,7 +516,7 @@ class _PostCardState extends State<PostCard> {
           final lastOnline =
               calculateLastOnlineLong(selectedProfile.lastOnline);
           widget.onProfileSelected!(
-              selectedProfile, distance, lastOnline, false);
+              selectedProfile, distance, lastOnline, _isSaved);
         }
       },
       child: Container(
@@ -772,7 +772,7 @@ class _PostCardState extends State<PostCard> {
                 ],
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 0),
           ],
         ),
       ),
@@ -789,8 +789,8 @@ class _PostCardState extends State<PostCard> {
         borderRadius: BorderRadius.circular(15.0),
         child: Stack(
           children: [
-            SizedBox(
-              height: 200,
+            AspectRatio(
+              aspectRatio: 1.0, // Set aspect ratio to 1:1
               child: PageView.builder(
                 controller: _pageController,
                 itemCount: postImages.isEmpty ? 1 : postImages.length,
@@ -810,7 +810,7 @@ class _PostCardState extends State<PostCard> {
                       imageUrl,
                       fit: BoxFit.cover,
                       width: double.infinity,
-                      height: 200,
+                      height: double.infinity,
                       errorBuilder: (context, error, stackTrace) {
                         return const Center(child: Text('Image load error'));
                       },

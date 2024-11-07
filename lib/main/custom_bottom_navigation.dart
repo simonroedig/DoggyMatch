@@ -188,7 +188,12 @@ class CustomBottomNavigationBar extends StatelessWidget {
   }
 
   Stream<bool> _hasUnseenMessagesStream() {
-    final String currentUserID = FirebaseAuth.instance.currentUser!.uid;
+    final String currentUserID;
+    if (FirebaseAuth.instance.currentUser != null) {
+      currentUserID = FirebaseAuth.instance.currentUser!.uid;
+    } else {
+      return Stream.value(false);
+    }
 
     return FirebaseFirestore.instance
         .collection('chatrooms')

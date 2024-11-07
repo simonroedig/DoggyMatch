@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/classes/profile.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:doggymatch_flutter/services/profile_service.dart';
 
@@ -41,6 +42,19 @@ class UserProfileState extends ChangeNotifier {
 
   UserProfileState() {
     _initializeUserProfile();
+    listenToAuthState();
+  }
+
+  void listenToAuthState() {
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      if (user == null) {
+        // User signed out
+        clearProfile();
+      } else {
+        // User signed in
+        _initializeUserProfile();
+      }
+    });
   }
 
   void clearProfile() {

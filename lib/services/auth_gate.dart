@@ -21,7 +21,7 @@ class AuthGate extends StatelessWidget {
           final User? user = snapshot.data;
           if (user == null) {
             dev.log('User is null, going to WelcomePage');
-            return const WelcomePage();
+            return WelcomePage();
           } else {
             dev.log('User is authenticated, going to MainScreen');
             // Refresh user profile when user logs in
