@@ -1,6 +1,9 @@
 // search_page.dart
 // ignore_for_file: use_super_parameters, deprecated_member_use
 
+import 'package:doggymatch_flutter/services/profile_service.dart';
+import 'dart:developer' as developer;
+import 'package:doggymatch_flutter/shared_helper/shared_and_helper_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:doggymatch_flutter/main/custom_app_bar.dart';
@@ -48,6 +51,48 @@ class SearchPageState extends State<SearchPage> {
   void initState() {
     super.initState();
     widget.profileCloseNotifier.addListener(_onProfileClose);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        // Ensure mounted before accessing context or calling setState
+        final userId = ModalRoute.of(context)?.settings.arguments as String?;
+        if (userId != null) {
+          _openProfileById(userId);
+        }
+      }
+    });
+  }
+
+  void _openProfileById(String userId) async {
+    // Simulate a delay to ensure routing is complete before fetching and opening the profile
+    await Future.delayed(const Duration(milliseconds: 250));
+    if (!mounted) return;
+
+    try {
+      final profileData = await ProfileService().fetchOtherUserProfile(userId);
+      if (profileData != null && mounted) {
+        // Re-check mounted before setState
+        final userProfile = profileData;
+        final userProfileState =
+            Provider.of<UserProfileState>(context, listen: false);
+        final distance = calculateDistance(
+          userProfileState.userProfile.latitude,
+          userProfileState.userProfile.longitude,
+          userProfile.latitude,
+          userProfile.longitude,
+        ).toStringAsFixed(1);
+        final lastOnline = calculateLastOnlineLong(userProfile.lastOnline);
+        final isSaved = await ProfileService().isProfileSaved(userId);
+
+        // Open profile automatically
+        _openProfile(userProfile, distance, lastOnline, isSaved);
+      }
+    } catch (e) {
+      // Handle error safely, without state changes if disposed
+      if (mounted) {
+        developer.log('Error loading profile: $e');
+      }
+    }
   }
 
   @override

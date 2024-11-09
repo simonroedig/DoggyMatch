@@ -71,9 +71,11 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
   }
 
   Future<void> loadPosts() async {
-    setState(() {
-      _isLoading = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
 
     final userProfileState =
         Provider.of<UserProfileState>(context, listen: false);
@@ -112,9 +114,11 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
       }
     } catch (e) {
       developer.log('Error loading posts: $e');
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -353,12 +357,14 @@ class PostCard extends StatefulWidget {
   final Map<String, dynamic> user;
   final Map<String, dynamic> post;
   final Function(UserProfile, String, String, bool)? onProfileSelected;
+  final bool fromSingleUserPostPage;
 
   const PostCard({
     Key? key,
     required this.user,
     required this.post,
     this.onProfileSelected,
+    this.fromSingleUserPostPage = false,
   }) : super(key: key);
 
   @override
@@ -401,13 +407,17 @@ class _PostCardState extends State<PostCard> {
       final data = userDoc.data();
       if (data != null && data['savedPosts'] != null) {
         final savedPosts = Set<String>.from(data['savedPosts']);
-        setState(() {
-          _isSaved = savedPosts.contains(postId);
-        });
+        if (mounted) {
+          setState(() {
+            _isSaved = savedPosts.contains(postId);
+          });
+        }
       } else {
-        setState(() {
-          _isSaved = false;
-        });
+        if (mounted) {
+          setState(() {
+            _isSaved = false;
+          });
+        }
       }
     } catch (e) {
       developer.log('Error fetching saved posts: $e');
@@ -450,6 +460,7 @@ class _PostCardState extends State<PostCard> {
                 onCommentsUpdated: onCommentsUpdated,
                 profileColor: profileColor,
                 onProfileSelected: onProfileSelected, // Pass it here
+                fromSingleUserPostPage: widget.fromSingleUserPostPage,
               ),
             );
           },
@@ -657,20 +668,22 @@ class _PostCardState extends State<PostCard> {
                                 // Handle user not signed in
                                 return;
                               }
-                              setState(() {
-                                _isLiked = !_isLiked;
+                              if (mounted) {
+                                setState(() {
+                                  _isLiked = !_isLiked;
 
-                                if (_isLiked) {
-                                  // Like the post
-                                  _postService.likePost(postOwner, postId);
-                                  _likesCount += 1;
-                                } else {
-                                  // Unlike the post
-                                  _postService.unlikePost(postOwner, postId);
-                                  _likesCount =
-                                      _likesCount > 0 ? _likesCount - 1 : 0;
-                                }
-                              });
+                                  if (_isLiked) {
+                                    // Like the post
+                                    _postService.likePost(postOwner, postId);
+                                    _likesCount += 1;
+                                  } else {
+                                    // Unlike the post
+                                    _postService.unlikePost(postOwner, postId);
+                                    _likesCount =
+                                        _likesCount > 0 ? _likesCount - 1 : 0;
+                                  }
+                                });
+                              }
                             },
                           ),
                           IconButton(
@@ -684,10 +697,12 @@ class _PostCardState extends State<PostCard> {
                                 postId,
                                 profileColor,
                                 () {
-                                  setState(() {
-                                    post['commentsCount'] =
-                                        (post['commentsCount'] ?? 0) + 1;
-                                  });
+                                  if (mounted) {
+                                    setState(() {
+                                      post['commentsCount'] =
+                                          (post['commentsCount'] ?? 0) + 1;
+                                    });
+                                  }
                                 },
                                 widget.onProfileSelected, // Pass it here
                               );
@@ -706,17 +721,19 @@ class _PostCardState extends State<PostCard> {
                             // Handle user not signed in
                             return;
                           }
-                          setState(() {
-                            _isSaved = !_isSaved;
+                          if (mounted) {
+                            setState(() {
+                              _isSaved = !_isSaved;
 
-                            if (_isSaved) {
-                              // Save the post
-                              _postService.savePost(postId);
-                            } else {
-                              // Unsave the post
-                              _postService.unsavePost(postId);
-                            }
-                          });
+                              if (_isSaved) {
+                                // Save the post
+                                _postService.savePost(postId);
+                              } else {
+                                // Unsave the post
+                                _postService.unsavePost(postId);
+                              }
+                            });
+                          }
                         },
                       ),
                     ],
@@ -760,11 +777,13 @@ class _PostCardState extends State<PostCard> {
                         postId,
                         profileColor,
                         () {
-                          setState(() {
-                            // Update the commentsCount in the post data
-                            post['commentsCount'] =
-                                (post['commentsCount'] ?? 0) + 1;
-                          });
+                          if (mounted) {
+                            setState(() {
+                              // Update the commentsCount in the post data
+                              post['commentsCount'] =
+                                  (post['commentsCount'] ?? 0) + 1;
+                            });
+                          }
                         },
                         widget.onProfileSelected, // Add this line
                       );
@@ -817,9 +836,11 @@ class _PostCardState extends State<PostCard> {
                 controller: _pageController,
                 itemCount: postImages.isEmpty ? 1 : postImages.length,
                 onPageChanged: (index) {
-                  setState(() {
-                    _currentImageIndex = index;
-                  });
+                  if (mounted) {
+                    setState(() {
+                      _currentImageIndex = index;
+                    });
+                  }
                 },
                 itemBuilder: (context, index) {
                   final imageUrl = postImages.isNotEmpty
@@ -886,11 +907,13 @@ class _PostCardState extends State<PostCard> {
               : [UserProfileState.placeholderImageUrl],
           initialIndex: _currentImageIndex, // Pass current index
           onImageChanged: (newIndex) {
-            setState(() {
-              _currentImageIndex = newIndex;
-              _pageController
-                  .jumpToPage(newIndex); // Sync view after fullscreen
-            });
+            if (mounted) {
+              setState(() {
+                _currentImageIndex = newIndex;
+                _pageController
+                    .jumpToPage(newIndex); // Sync view after fullscreen
+              });
+            }
           },
         ),
       ),
@@ -905,6 +928,7 @@ class _CommentsOverlay extends StatefulWidget {
   final Color profileColor;
   final Function(UserProfile, String, String, bool)?
       onProfileSelected; // Add this line
+  final bool fromSingleUserPostPage; // Add this line
 
   const _CommentsOverlay({
     Key? key,
@@ -912,7 +936,8 @@ class _CommentsOverlay extends StatefulWidget {
     required this.postId,
     required this.onCommentsUpdated,
     required this.profileColor,
-    this.onProfileSelected, // Add this line
+    this.onProfileSelected,
+    required this.fromSingleUserPostPage, // Add this line
   }) : super(key: key);
 
   @override
@@ -952,9 +977,11 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
   }
 
   void _handleTextChange() {
-    setState(() {
-      _hasText = _commentController.text.trim().isNotEmpty;
-    });
+    if (mounted) {
+      setState(() {
+        _hasText = _commentController.text.trim().isNotEmpty;
+      });
+    }
   }
 
   Future<void> _fetchComments() async {
@@ -1077,9 +1104,44 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
           GestureDetector(
             onTap: () async {
               final String? currentUserId = AuthService().getCurrentUserId();
-              if (userId != currentUserId &&
+              if (widget.fromSingleUserPostPage &&
+                  userId != currentUserId &&
+                  userId != widget.postOwnerId) {
+                // Navigate to search_page.dart when fromSingleUserPostPage is true
+                // Step 1: Navigate back to the MainScreen first.
+                developer.log('Navigating back to MainScreen');
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  '/', // Assuming MainScreen is the root route
+                  (Route<dynamic> route) => false,
+                  arguments: userId,
+                );
+
+                // Step 2: After navigation, update the current index to show SearchPage.
+                /*
+                Future.delayed(Duration.zero, () {
+                  if (mounted) {
+                    // Check if the widget is still mounted
+                    final userProfileState =
+                        Provider.of<UserProfileState>(context, listen: false);
+                    userProfileState
+                        .updateCurrentIndex(0); // Set index to SearchPage
+                    userProfileState.openProfile(); // Open the profile
+                  }
+                });
+                */
+
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    final userProfileState =
+                        Provider.of<UserProfileState>(context, listen: false);
+                    userProfileState.updateCurrentIndex(0);
+                    userProfileState.openProfile();
+                  }
+                });
+              } else if (userId != currentUserId &&
                   widget.onProfileSelected != null &&
-                  _userProfiles.containsKey(userId)) {
+                  _userProfiles.containsKey(userId) &&
+                  userId != widget.postOwnerId) {
                 final userProfileData = _userProfiles[userId]!;
 
                 UserProfile selectedProfile = UserProfile(
@@ -1135,7 +1197,9 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
                   isSaved, // Adjust saved status as needed
                 );
 
-                Navigator.pop(context);
+                if (mounted) {
+                  Navigator.pop(context);
+                }
               }
             },
             child: Container(
