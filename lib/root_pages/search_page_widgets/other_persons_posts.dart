@@ -420,8 +420,14 @@ class _PostCardState extends State<PostCard> {
     super.dispose();
   }
 
-  void _openCommentsOverlay(String postOwnerId, String postId,
-      Color profileColor, VoidCallback onCommentsUpdated) {
+  void _openCommentsOverlay(
+      String postOwnerId,
+      String postId,
+      Color profileColor,
+      VoidCallback onCommentsUpdated,
+      Function(UserProfile, String, String, bool)? onProfileSelected) {
+    // Modify here
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -443,6 +449,7 @@ class _PostCardState extends State<PostCard> {
                 postId: postId,
                 onCommentsUpdated: onCommentsUpdated,
                 profileColor: profileColor,
+                onProfileSelected: onProfileSelected, // Pass it here
               ),
             );
           },
@@ -488,7 +495,7 @@ class _PostCardState extends State<PostCard> {
     final int commentsCount = post['commentsCount'] ?? 0;
 
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
         if (!isOwnPost && widget.onProfileSelected != null) {
           UserProfile selectedProfile = UserProfile(
             uid: user['uid'],
@@ -515,8 +522,14 @@ class _PostCardState extends State<PostCard> {
           );
           final lastOnline =
               calculateLastOnlineLong(selectedProfile.lastOnline);
+
+          // Fetch the actual saved status of the profile
+          final profileService = ProfileService();
+          final isProfileSaved =
+              await profileService.isProfileSaved(user['uid']);
+
           widget.onProfileSelected!(
-              selectedProfile, distance, lastOnline, _isSaved);
+              selectedProfile, distance, lastOnline, isProfileSaved);
         }
       },
       child: Container(
@@ -666,15 +679,18 @@ class _PostCardState extends State<PostCard> {
                               color: AppColors.customBlack,
                             ),
                             onPressed: () {
-                              // Open comments overlay
                               _openCommentsOverlay(
-                                  postOwner, postId, profileColor, () {
-                                setState(() {
-                                  // Update the commentsCount in the post data
-                                  post['commentsCount'] =
-                                      (post['commentsCount'] ?? 0) + 1;
-                                });
-                              });
+                                postOwner,
+                                postId,
+                                profileColor,
+                                () {
+                                  setState(() {
+                                    post['commentsCount'] =
+                                        (post['commentsCount'] ?? 0) + 1;
+                                  });
+                                },
+                                widget.onProfileSelected, // Pass it here
+                              );
                             },
                           ),
                         ],
@@ -739,13 +755,19 @@ class _PostCardState extends State<PostCard> {
                   GestureDetector(
                     onTap: () {
                       // Open comments overlay
-                      _openCommentsOverlay(postOwner, postId, profileColor, () {
-                        setState(() {
-                          // Update the commentsCount in the post data
-                          post['commentsCount'] =
-                              (post['commentsCount'] ?? 0) + 1;
-                        });
-                      });
+                      _openCommentsOverlay(
+                        postOwner,
+                        postId,
+                        profileColor,
+                        () {
+                          setState(() {
+                            // Update the commentsCount in the post data
+                            post['commentsCount'] =
+                                (post['commentsCount'] ?? 0) + 1;
+                          });
+                        },
+                        widget.onProfileSelected, // Add this line
+                      );
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -881,6 +903,8 @@ class _CommentsOverlay extends StatefulWidget {
   final String postId;
   final VoidCallback onCommentsUpdated;
   final Color profileColor;
+  final Function(UserProfile, String, String, bool)?
+      onProfileSelected; // Add this line
 
   const _CommentsOverlay({
     Key? key,
@@ -888,6 +912,7 @@ class _CommentsOverlay extends StatefulWidget {
     required this.postId,
     required this.onCommentsUpdated,
     required this.profileColor,
+    this.onProfileSelected, // Add this line
   }) : super(key: key);
 
   @override
@@ -1048,16 +1073,81 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start, // Align items at the top
         children: [
-          // Profile picture
-          Container(
-            width: 40.0,
-            height: 40.0,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.customBlack, width: 2),
-              image: DecorationImage(
-                fit: BoxFit.cover,
-                image: NetworkImage(profileImageUrl),
+          // Profile picture with GestureDetector
+          GestureDetector(
+            onTap: () async {
+              final String? currentUserId = AuthService().getCurrentUserId();
+              if (userId != currentUserId &&
+                  widget.onProfileSelected != null &&
+                  _userProfiles.containsKey(userId)) {
+                final userProfileData = _userProfiles[userId]!;
+
+                UserProfile selectedProfile = UserProfile(
+                  uid: userProfileData['uid'],
+                  email: userProfileData['email'],
+                  userName: userProfileData['userName'],
+                  dogName: userProfileData['dogName'],
+                  dogBreed: userProfileData['dogBreed'],
+                  dogAge: userProfileData['dogAge'],
+                  isDogOwner: userProfileData['isDogOwner'],
+                  images: List<String>.from(userProfileData['images']),
+                  profileColor:
+                      Color(userProfileData['profileColor'] ?? 0xFFFFFFFF),
+                  aboutText: userProfileData['aboutText'],
+                  location: userProfileData['location'],
+                  latitude: userProfileData['latitude'].toDouble(),
+                  longitude: userProfileData['longitude'].toDouble(),
+                  filterDistance: userProfileData['filterDistance'],
+                  birthday: userProfileData['birthday'] != null
+                      ? DateTime.parse(userProfileData['birthday'])
+                      : null,
+                  lastOnline: userProfileData['lastOnline'] != null
+                      ? DateTime.parse(userProfileData['lastOnline'])
+                      : null,
+                  filterLastOnline: userProfileData['filterLastOnline'] ?? 3,
+                );
+
+                // Calculate distance and lastOnline
+                final userProfileState =
+                    Provider.of<UserProfileState>(context, listen: false);
+                final mainUserLatitude = userProfileState.userProfile.latitude;
+                final mainUserLongitude =
+                    userProfileState.userProfile.longitude;
+
+                final distance = calculateDistance(
+                  mainUserLatitude,
+                  mainUserLongitude,
+                  userProfileData['latitude'].toDouble(),
+                  userProfileData['longitude'].toDouble(),
+                ).toStringAsFixed(1);
+
+                final lastOnline =
+                    calculateLastOnlineLong(selectedProfile.lastOnline);
+
+                // Fetch the actual saved status
+                final profileService = ProfileService();
+                final isSaved = await profileService.isProfileSaved(userId);
+
+                widget.onProfileSelected!(
+                  selectedProfile,
+                  distance,
+                  lastOnline,
+                  isSaved, // Adjust saved status as needed
+                );
+
+                Navigator.pop(context);
+              }
+            },
+            child: Container(
+              width: 40.0,
+              height: 40.0,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.customBlack, width: 2),
+                image: DecorationImage(
+                  fit: BoxFit.cover,
+                  image: NetworkImage(profileImageUrl),
+                ),
               ),
             ),
           ),
