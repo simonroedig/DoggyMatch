@@ -35,7 +35,7 @@ class _UserPostsPageState extends State<UserPostsPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Calculate the offset to scroll to
       double offset =
-          widget.initialIndex * 500.0; // Approximate height of each post
+          widget.initialIndex * 600.0; // Approximate height of each post
       if (_scrollController.hasClients) {
         _scrollController.jumpTo(offset);
       }
@@ -75,7 +75,7 @@ class _UserPostsPageState extends State<UserPostsPage> {
       body: ListView.builder(
         controller: _scrollController,
         padding: const EdgeInsets.only(
-            top: 16.0, left: 20, right: 20), // Add top padding
+            top: 0.0, left: 20, right: 20, bottom: 10), // Add top padding
         itemCount: posts.length,
         itemBuilder: (context, index) {
           Map<String, dynamic> post;

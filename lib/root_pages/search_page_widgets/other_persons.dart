@@ -9,6 +9,7 @@ import 'package:doggymatch_flutter/classes/profile.dart';
 import 'package:doggymatch_flutter/notifiers/filter_notifier.dart';
 import 'package:doggymatch_flutter/shared_helper/shared_and_helper_functions.dart';
 import 'package:doggymatch_flutter/services/profile_service.dart';
+import 'package:doggymatch_flutter/shared_helper/icon_helpers.dart';
 
 class OtherPersons extends StatefulWidget {
   final Function(UserProfile, String, String, bool)
@@ -41,6 +42,8 @@ class _OtherPersonsState extends State<OtherPersons>
   List<Map<String, dynamic>> _users = [];
   bool _isLoading = true;
   late FilterNotifier _filterNotifier; // Add a state variable for the notifier
+
+  final iconHelpers = IconHelpers();
 
   @override
   void initState() {
@@ -399,30 +402,31 @@ class _OtherPersonsState extends State<OtherPersons>
                   ],
                 ),
               ),
+              // Friend status icon (new)
+              Positioned(
+                bottom: 42, // Adjust position to place it above the save icon
+                left: 12,
+                child: FutureBuilder(
+                  future: determineFriendStatus(data['uid']),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const SizedBox
+                          .shrink(); // Placeholder while loading
+                    }
+
+                    final friendStatus = snapshot.data ?? 'none';
+                    return Transform.scale(
+                        scale: 1.27,
+                        child: iconHelpers.buildFriendStatusIcon(
+                            friendStatus, profileColor));
+                  },
+                ),
+              ),
               if (isSaved)
                 Positioned(
-                  top: !isDogOwner ? -1 : 30.2,
-                  left: 20,
-                  child: Transform.scale(
-                    scale: 1.27, // Adjust scale for precise stroke size
-                    child: const Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // Outer icon for the stroke
-                        Icon(
-                          Icons.bookmark_border_rounded,
-                          color: Colors.black, // Stroke color
-                          size: 26, // Same size as the filled icon
-                        ),
-                        // Inner filled icon
-                        Icon(
-                          Icons.bookmark_rounded,
-                          color: AppColors.bg, // Your original color
-                          size: 20, // Original size
-                        ),
-                      ],
-                    ),
-                  ),
+                  bottom: 40,
+                  right: 10,
+                  child: iconHelpers.buildSaveIcon(isSaved, profileColor, 24),
                 ),
             ],
           ),
@@ -467,6 +471,150 @@ class _OtherPersonsState extends State<OtherPersons>
           );
         },
       ),
+    );
+  }
+
+  Future<String> determineFriendStatus(String profileUid) async {
+    if (await _friendsService.areFriends(profileUid)) {
+      return 'friends';
+    } else if (await _friendsService.isFriendRequestReceived(profileUid)) {
+      return 'received';
+    } else if (await _friendsService.isFriendRequestSent(profileUid)) {
+      return 'sent';
+    }
+    return 'none';
+  }
+
+  Widget buildFriendStatusIcon(String status, Color profileColor) {
+    Widget buildIconWithBackground(Widget icon) {
+      return Stack(
+        alignment: Alignment.center,
+        children: [
+          // Outer circle with profile color and customBlack stroke
+          Container(
+            width: 24, // Diameter of the circle
+            height: 24,
+            decoration: BoxDecoration(
+              color: profileColor, // Background color of the circle
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: AppColors.customBlack, // Stroke color
+                width: 1, // Stroke width
+              ),
+            ),
+          ),
+          // Inner combined icon
+          icon,
+        ],
+      );
+    }
+
+    switch (status) {
+      case 'friends':
+        return buildIconWithBackground(
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              Transform.translate(
+                offset: const Offset(-2, 0),
+                child: const Icon(
+                  Icons.people_alt_rounded,
+                  size: 12,
+                  color: AppColors.customBlack,
+                ),
+              ),
+              Transform.translate(
+                offset: const Offset(5, -3),
+                child: const Icon(
+                  Icons.check_rounded,
+                  size: 8,
+                  color: AppColors.customBlack,
+                ),
+              ),
+            ],
+          ),
+        );
+      case 'received':
+        return buildIconWithBackground(
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              Transform.translate(
+                offset: const Offset(-2, 0),
+                child: const Icon(
+                  Icons.people_alt_rounded,
+                  size: 12,
+                  color: AppColors.customBlack,
+                ),
+              ),
+              Transform.translate(
+                offset: const Offset(5, -3),
+                child: const Icon(
+                  Icons.call_received_rounded,
+                  size: 8,
+                  color: AppColors.customBlack,
+                ),
+              ),
+            ],
+          ),
+        );
+      case 'sent':
+        return buildIconWithBackground(
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              Transform.translate(
+                offset: const Offset(-2, 0),
+                child: const Icon(
+                  Icons.people_alt_rounded,
+                  size: 12,
+                  color: AppColors.customBlack,
+                ),
+              ),
+              Transform.translate(
+                offset: const Offset(5, -3),
+                child: const Icon(
+                  Icons.call_made_rounded,
+                  size: 8,
+                  color: AppColors.customBlack,
+                ),
+              ),
+            ],
+          ),
+        );
+      default:
+        return const SizedBox.shrink(); // Return nothing for no status
+    }
+  }
+
+  Widget buildSaveIcon(bool isSaved, Color profileColor) {
+    if (!isSaved) {
+      return const SizedBox.shrink(); // Return nothing if not saved
+    }
+
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        // Outer circle with profile color and customBlack stroke
+        Container(
+          width: 24, // Diameter of the circle
+          height: 24,
+          decoration: BoxDecoration(
+            color: profileColor, // Background color of the circle
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: AppColors.customBlack, // Stroke color
+              width: 1, // Stroke width
+            ),
+          ),
+        ),
+        // Save icon in customBlack
+        const Icon(
+          Icons.bookmark_rounded,
+          size: 12,
+          color: AppColors.customBlack, // Icon color
+        ),
+      ],
     );
   }
 

@@ -4,8 +4,9 @@
 
 import 'dart:developer' as developer;
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:doggymatch_flutter/root_pages/search_page_widgets/announcement_dialogs.dart';
+//import 'package:doggymatch_flutter/root_pages/search_page_widgets/announcement_dialogs.dart';
 import 'package:doggymatch_flutter/services/friends_service.dart';
+import 'package:doggymatch_flutter/shared_helper/icon_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
@@ -40,6 +41,8 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
   String? _currentUserId;
 
   bool _isLoading = true;
+
+  final iconHelpers = IconHelpers();
 
   List<Map<String, dynamic>> _announcements = [];
 
@@ -261,225 +264,190 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
       user['longitude'].toDouble(),
     ).toStringAsFixed(1);
 
-    return FutureBuilder<bool>(
-      future: _isProfileSaved(user['uid']),
+    return FutureBuilder<String>(
+      future: iconHelpers.determineFriendStatus(user['uid']),
       builder: (context, snapshot) {
-        bool isSaved = snapshot.data ?? false;
+        final friendStatus = snapshot.data ?? 'none';
 
-        return GestureDetector(
-          onTap: () {
-            if (user['uid'] != _currentUserId) {
-              UserProfile selectedProfile = UserProfile(
-                uid: user['uid'],
-                email: user['email'],
-                userName: user['userName'],
-                dogName: user['dogName'],
-                dogBreed: user['dogBreed'],
-                dogAge: user['dogAge'],
-                isDogOwner: user['isDogOwner'],
-                images: List<String>.from(user['images']),
-                profileColor: profileColor,
-                aboutText: user['aboutText'],
-                location: user['location'],
-                latitude: user['latitude'].toDouble(),
-                longitude: user['longitude'].toDouble(),
-                filterDistance: user['filterDistance'],
-                birthday: user['birthday'] != null
-                    ? DateTime.parse(user['birthday'])
-                    : null,
-                lastOnline: user['lastOnline'] != null
-                    ? DateTime.parse(user['lastOnline'])
-                    : null,
-                filterLastOnline: user['filterLastOnline'] ?? 3,
-              );
+        return FutureBuilder<bool>(
+          future: _isProfileSaved(user['uid']),
+          builder: (context, snapshot) {
+            bool isSaved = snapshot.data ?? false;
 
-              final lastOnline =
-                  calculateLastOnlineLong(selectedProfile.lastOnline);
+            return GestureDetector(
+              onTap: () {
+                if (user['uid'] != _currentUserId) {
+                  UserProfile selectedProfile = UserProfile(
+                    uid: user['uid'],
+                    email: user['email'],
+                    userName: user['userName'],
+                    dogName: user['dogName'],
+                    dogBreed: user['dogBreed'],
+                    dogAge: user['dogAge'],
+                    isDogOwner: user['isDogOwner'],
+                    images: List<String>.from(user['images']),
+                    profileColor: profileColor,
+                    aboutText: user['aboutText'],
+                    location: user['location'],
+                    latitude: user['latitude'].toDouble(),
+                    longitude: user['longitude'].toDouble(),
+                    filterDistance: user['filterDistance'],
+                    birthday: user['birthday'] != null
+                        ? DateTime.parse(user['birthday'])
+                        : null,
+                    lastOnline: user['lastOnline'] != null
+                        ? DateTime.parse(user['lastOnline'])
+                        : null,
+                    filterLastOnline: user['filterLastOnline'] ?? 3,
+                  );
 
-              widget.onProfileSelected(
-                  selectedProfile, distance, lastOnline, isSaved);
-            }
-          },
-          child: Container(
-            margin: const EdgeInsets.symmetric(vertical: 8.0),
-            padding: const EdgeInsets.all(10.0),
-            width: MediaQuery.of(context).size.width * 0.9,
-            decoration: BoxDecoration(
-              color: profileColor,
-              borderRadius: BorderRadius.circular(24.0),
-              border: Border.all(color: AppColors.customBlack, width: 3),
-            ),
-            child: Stack(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  final lastOnline =
+                      calculateLastOnlineLong(selectedProfile.lastOnline);
+
+                  widget.onProfileSelected(
+                      selectedProfile, distance, lastOnline, isSaved);
+                }
+              },
+              child: Container(
+                margin: const EdgeInsets.symmetric(vertical: 8.0),
+                padding: const EdgeInsets.all(10.0),
+                width: MediaQuery.of(context).size.width * 0.9,
+                decoration: BoxDecoration(
+                  color: profileColor,
+                  borderRadius: BorderRadius.circular(24.0),
+                  border: Border.all(color: AppColors.customBlack, width: 3),
+                ),
+                child: Stack(
                   children: [
-                    Stack(
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
+                        Stack(
+                          alignment: Alignment.topLeft,
                           children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(18.0),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                      color: AppColors.customBlack, width: 3),
-                                  borderRadius: BorderRadius.circular(18.0),
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(15.0),
-                                  child: Image.network(
-                                    profileImage,
-                                    height: 70,
-                                    width: 70,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8.0),
-                            Expanded(
-                              child: Container(
-                                height: 74,
-                                padding: const EdgeInsets.all(8.0),
-                                decoration: BoxDecoration(
-                                  color: AppColors.bg,
-                                  borderRadius: BorderRadius.circular(18.0),
-                                  border: Border.all(
-                                      color: AppColors.customBlack, width: 3),
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                            Row(
+                              children: [
+                                Stack(
+                                  alignment: Alignment.topLeft,
                                   children: [
-                                    AutoScrollingRow(
-                                      userName: userName,
-                                      isDogOwner: isDogOwner,
-                                      dogName: dogName,
+                                    // Profile Image
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(18.0),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                              color: AppColors.customBlack,
+                                              width: 3),
+                                          borderRadius:
+                                              BorderRadius.circular(18.0),
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(15.0),
+                                          child: Image.network(
+                                            profileImage,
+                                            height: 70,
+                                            width: 70,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                    const SizedBox(height: 4),
-                                    AutoScrollingTitleRow(
-                                      title: announcementTitle,
+                                    // Friends Icon
+                                    Positioned(
+                                      top: -4,
+                                      left: -4,
+                                      child: iconHelpers.buildFriendStatusIcon(
+                                          friendStatus, profileColor),
+                                    ),
+                                    // Save Icon
+                                    Positioned(
+                                      bottom: -4,
+                                      right: -4,
+                                      child: iconHelpers.buildSaveIcon(
+                                          isSaved, profileColor, 20),
                                     ),
                                   ],
                                 ),
-                              ),
+                                const SizedBox(width: 8.0),
+                                Expanded(
+                                  child: Container(
+                                    height: 74,
+                                    padding: const EdgeInsets.all(8.0),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.bg,
+                                      borderRadius: BorderRadius.circular(18.0),
+                                      border: Border.all(
+                                          color: AppColors.customBlack,
+                                          width: 3),
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        AutoScrollingRow(
+                                          userName: userName,
+                                          isDogOwner: isDogOwner,
+                                          dogName: dogName,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        AutoScrollingTitleRow(
+                                          title: announcementTitle,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                        if (isSaved)
-                          Positioned(
-                            top: 3,
-                            left: 4,
-                            child: Transform.scale(
-                              scale: 0.85,
-                              child: const Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.bookmark_border_rounded,
-                                    color: Colors.black,
-                                    size: 20,
-                                  ),
-                                  Icon(
-                                    Icons.bookmark_rounded,
-                                    color: AppColors.bg,
-                                    size: 16,
-                                  ),
-                                ],
-                              ),
+                        const SizedBox(height: 10),
+                        Center(
+                          child: Container(
+                            width: MediaQuery.of(context).size.width * 0.9,
+                            padding: const EdgeInsets.all(8.0),
+                            decoration: BoxDecoration(
+                              color: AppColors.bg,
+                              borderRadius: BorderRadius.circular(18.0),
+                              border: Border.all(
+                                  color: AppColors.customBlack, width: 3),
                             ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Center(
-                      child: Container(
-                        width: MediaQuery.of(context).size.width * 0.9,
-                        padding: const EdgeInsets.all(8.0),
-                        decoration: BoxDecoration(
-                          color: AppColors.bg,
-                          borderRadius: BorderRadius.circular(18.0),
-                          border: Border.all(
-                              color: AppColors.customBlack, width: 3),
-                        ),
-                        child: Text(
-                          announcementText,
-                          textAlign: TextAlign.left,
-                          style: const TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 12,
-                            fontWeight: FontWeight.w300,
-                            color: AppColors.customBlack,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Center(
-                      child: Text(
-                        user['uid'] == _currentUserId
-                            ? timeAgo
-                            : '$timeAgo • $distance km',
-                        style: const TextStyle(
-                          color: AppColors.grey,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                if (user['uid'] == _currentUserId)
-                  Positioned(
-                    bottom: -16,
-                    right: -15,
-                    child: PopupMenuButton<String>(
-                      icon: const Icon(
-                        Icons.more_vert_rounded,
-                        color: AppColors.customBlack,
-                        size: 18,
-                      ),
-                      onSelected: (String value) {
-                        if (value == 'delete') {
-                          AnnouncementDialogs.showDeleteAnnouncementDialog(
-                            context,
-                            announcementTitle,
-                            () => _deleteAnnouncement(announcement['id']),
-                          );
-                        }
-                      },
-                      itemBuilder: (BuildContext context) =>
-                          <PopupMenuEntry<String>>[
-                        const PopupMenuItem<String>(
-                          value: 'delete',
-                          child: Center(
                             child: Text(
-                              'Delete',
-                              style: TextStyle(
+                              announcementText,
+                              textAlign: TextAlign.left,
+                              style: const TextStyle(
                                 fontFamily: 'Poppins',
-                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w300,
                                 color: AppColors.customBlack,
                               ),
                             ),
                           ),
                         ),
-                      ],
-                      offset: const Offset(0, 50),
-                      color: AppColors.bg,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16.0),
-                        side: const BorderSide(
-                          color: AppColors.customBlack,
-                          width: 3.0,
+                        const SizedBox(height: 10),
+                        Center(
+                          child: Text(
+                            user['uid'] == _currentUserId
+                                ? timeAgo
+                                : '$timeAgo • $distance km',
+                            style: const TextStyle(
+                              color: AppColors.grey,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 10,
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ),
-              ],
-            ),
-          ),
+                  ],
+                ),
+              ),
+            );
+          },
         );
       },
     );
