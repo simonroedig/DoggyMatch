@@ -9,8 +9,19 @@ import 'package:doggymatch_flutter/services/profile_service.dart';
 class UserProfileState extends ChangeNotifier {
   final _authProfile = ProfileService();
 
+  String? userIdToOpen;
+
   static const String placeholderImageUrl =
       'https://firebasestorage.googleapis.com/v0/b/doggymatch-bb17f.appspot.com/o/placeholder.png?alt=media&token=6c364b4d-0e8b-4b34-b29e-58dc6dadcc65';
+
+  void setUserIdToOpen(String? id) {
+    userIdToOpen = id;
+    notifyListeners();
+  }
+
+  void resetUserIdToOpen() {
+    userIdToOpen = null;
+  }
 
   UserProfile _userProfile = UserProfile(
       uid: '',

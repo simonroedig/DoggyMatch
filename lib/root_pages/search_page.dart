@@ -43,6 +43,8 @@ class SearchPageState extends State<SearchPage> {
   String? _lastOnline;
   bool? _isSaved;
 
+  bool _hasOpenedProfileFromUserId = false;
+
   // State variables for toggles
   PostFilterOption _selectedPostFilterOption = PostFilterOption.allPosts;
   ShoutsFilterOption _selectedShoutFilterOption = ShoutsFilterOption.allShouts;
@@ -51,16 +53,21 @@ class SearchPageState extends State<SearchPage> {
   void initState() {
     super.initState();
     widget.profileCloseNotifier.addListener(_onProfileClose);
+  }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        // Ensure mounted before accessing context or calling setState
-        final userId = ModalRoute.of(context)?.settings.arguments as String?;
-        if (userId != null) {
-          _openProfileById(userId);
-        }
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_hasOpenedProfileFromUserId) {
+      final userProfileState =
+          Provider.of<UserProfileState>(context, listen: false);
+      final userId = userProfileState.userIdToOpen;
+      if (userId != null) {
+        _openProfileById(userId);
+        _hasOpenedProfileFromUserId = true;
+        userProfileState.resetUserIdToOpen();
       }
-    });
+    }
   }
 
   void _openProfileById(String userId) async {

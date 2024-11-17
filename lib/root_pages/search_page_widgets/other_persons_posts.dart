@@ -1169,32 +1169,22 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
                 // Navigate to search_page.dart when fromSingleUserPostPage is true
                 // Step 1: Navigate back to the MainScreen first.
                 developer.log('Navigating back to MainScreen');
+                // Set the userId in UserProfileState
+                final userProfileState =
+                    Provider.of<UserProfileState>(context, listen: false);
+                userProfileState.setUserIdToOpen(userId);
+
+// Navigate back to the MainScreen without arguments
                 Navigator.of(context).pushNamedAndRemoveUntil(
-                  '/', // Assuming MainScreen is the root route
+                  '/', // Replace with your main screen route
                   (Route<dynamic> route) => false,
-                  arguments: userId,
                 );
 
-                // Step 2: After navigation, update the current index to show SearchPage.
-                /*
-                Future.delayed(Duration.zero, () {
-                  if (mounted) {
-                    // Check if the widget is still mounted
-                    final userProfileState =
-                        Provider.of<UserProfileState>(context, listen: false);
-                    userProfileState
-                        .updateCurrentIndex(0); // Set index to SearchPage
-                    userProfileState.openProfile(); // Open the profile
-                  }
-                });
-                */
-
+// Update the current index to show SearchPage
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (mounted) {
-                    final userProfileState =
-                        Provider.of<UserProfileState>(context, listen: false);
-                    userProfileState.updateCurrentIndex(0);
-                    userProfileState.openProfile();
+                    userProfileState
+                        .updateCurrentIndex(0); // Set index to SearchPage
                   }
                 });
               } else if (userId != currentUserId &&
