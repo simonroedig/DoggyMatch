@@ -2,6 +2,9 @@
 
 // ignore_for_file: use_super_parameters
 
+import 'package:doggymatch_flutter/root_pages/search_page_widgets/announcement_dialogs.dart';
+import 'package:doggymatch_flutter/services/announcement_service.dart';
+import 'package:doggymatch_flutter/shared_helper/shared_and_helper_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
@@ -135,37 +138,74 @@ class ShoutSection extends StatelessWidget {
     required this.createdAt,
   }) : super(key: key);
 
-  String _calculateTimeAgo(DateTime createdAt) {
-    final now = DateTime.now();
-    final difference = now.difference(createdAt);
-
-    if (difference.inDays >= 30) {
-      final months = (difference.inDays / 30).floor();
-      return '$months ${months == 1 ? 'month' : 'months'} ago';
-    } else if (difference.inDays > 0) {
-      return '${difference.inDays} ${difference.inDays == 1 ? 'day' : 'days'} ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours} ${difference.inHours == 1 ? 'hour' : 'hours'} ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} ${difference.inMinutes == 1 ? 'minute' : 'minutes'} ago';
-    } else {
-      return 'Just now';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    String timeAgo = _calculateTimeAgo(createdAt);
+    String timeAgo = calculateTimeAgo(createdAt);
 
     return _buildInfoContainer(
+      shoutPadding: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _InfoHeader(
-            icon: Icons.campaign,
-            title: 'Current Shout',
+          Row(
+            mainAxisAlignment:
+                MainAxisAlignment.spaceBetween, // Align text and icon at edges
+            children: [
+              const _InfoHeader(
+                icon: Icons.campaign,
+                title: 'Current Shout',
+              ),
+              Transform.translate(
+                offset: const Offset(
+                    14.0, 0.0), // Move the icon further to the right
+                child: PopupMenuButton<String>(
+                  padding: EdgeInsets.zero, // Remove extra padding
+                  constraints:
+                      const BoxConstraints(), // Prevent internal spacing
+                  icon: const Icon(
+                    Icons.more_vert,
+                    color: AppColors.customBlack,
+                  ),
+                  onSelected: (String value) async {
+                    if (value == 'delete') {
+                      bool confirmed = await AnnouncementDialogs
+                          .showDeleteShoutConfirmationDialog(context);
+                      if (confirmed) {
+                        AnnouncementService announcementService =
+                            AnnouncementService();
+                        await announcementService.deleteAnnouncement();
+                      }
+                    }
+                  },
+                  itemBuilder: (BuildContext context) =>
+                      <PopupMenuEntry<String>>[
+                    const PopupMenuItem<String>(
+                      value: 'delete',
+                      child: Center(
+                        child: Text(
+                          'Delete',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.customRed,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                  offset: const Offset(-10, 40),
+                  color: AppColors.bg,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16.0),
+                    side: const BorderSide(
+                      color: AppColors.customBlack,
+                      width: 3.0,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8.0),
           Text(
             announcementTitle,
             style: const TextStyle(
@@ -335,10 +375,12 @@ class SavedPostsSection extends StatelessWidget {
 }
 
 // Shared Components
-Widget _buildInfoContainer({required Widget child}) {
+Widget _buildInfoContainer({required Widget child, bool shoutPadding = false}) {
   return Container(
     margin: const EdgeInsets.symmetric(vertical: 8.0),
-    padding: const EdgeInsets.all(12.0),
+    padding: !shoutPadding
+        ? const EdgeInsets.all(12.0)
+        : const EdgeInsets.only(left: 12.0, right: 12.0, bottom: 12.0),
     decoration: BoxDecoration(
       color: AppColors.bg,
       borderRadius: BorderRadius.circular(18.0),

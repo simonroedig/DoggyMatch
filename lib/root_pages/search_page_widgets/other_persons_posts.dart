@@ -4,6 +4,7 @@
 import 'dart:developer' as developer;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:doggymatch_flutter/notifiers/filter_notifier.dart';
+import 'package:doggymatch_flutter/root_pages/search_page_widgets/posts_dialogs.dart';
 import 'package:doggymatch_flutter/services/post_service.dart';
 import 'package:doggymatch_flutter/services/friends_service.dart'; // Add this import
 import 'package:doggymatch_flutter/shared_helper/icon_helpers.dart';
@@ -762,32 +763,102 @@ class _PostCardState extends State<PostCard> {
                                 ],
                               ),
                               // Right side icon (save)
-                              IconButton(
-                                icon: Icon(
-                                  _isSaved
-                                      ? Icons.bookmark
-                                      : Icons.bookmark_border,
-                                  color: AppColors.customBlack,
-                                ),
-                                onPressed: () {
-                                  if (currentUserId == null) {
-                                    // Handle user not signed in
-                                    return;
-                                  }
-                                  if (mounted) {
-                                    setState(() {
-                                      _isSaved = !_isSaved;
-
-                                      if (_isSaved) {
-                                        // Save the post
-                                        _postService.savePost(postId);
-                                      } else {
-                                        // Unsave the post
-                                        _postService.unsavePost(postId);
+                              Row(
+                                children: [
+                                  // Save Icon
+                                  IconButton(
+                                    icon: Icon(
+                                      _isSaved
+                                          ? Icons.bookmark
+                                          : Icons.bookmark_border,
+                                      color: AppColors.customBlack,
+                                    ),
+                                    onPressed: () {
+                                      if (currentUserId == null) {
+                                        // Handle user not signed in
+                                        return;
                                       }
-                                    });
-                                  }
-                                },
+                                      if (mounted) {
+                                        setState(() {
+                                          _isSaved = !_isSaved;
+
+                                          if (_isSaved) {
+                                            // Save the post
+                                            _postService.savePost(postId);
+                                          } else {
+                                            // Unsave the post
+                                            _postService.unsavePost(postId);
+                                          }
+                                        });
+                                      }
+                                    },
+                                  ),
+
+                                  // Kebab Menu Icon
+                                  PopupMenuButton<String>(
+                                    icon: const Icon(Icons.more_vert,
+                                        color: AppColors.customBlack),
+                                    onSelected: (String value) async {
+                                      if (value == 'delete') {
+                                        bool confirmed = await PostsDialogs
+                                            .showDeletePostConfirmationDialog(
+                                                context);
+                                        if (confirmed) {
+                                          _postService.deletePost(
+                                              postId); // Add logic for deletion
+                                        }
+                                      } else if (value == 'report') {
+                                        bool confirmed = await PostsDialogs
+                                            .showReportPostConfirmationDialog(
+                                                context,
+                                                user['userName'] ?? 'User');
+                                        if (confirmed) {
+                                          // Add logic for reporting the post
+                                        }
+                                      }
+                                    },
+                                    itemBuilder: (BuildContext context) =>
+                                        <PopupMenuEntry<String>>[
+                                      if (isOwnPost)
+                                        const PopupMenuItem<String>(
+                                          value: 'delete',
+                                          child: Center(
+                                            child: Text(
+                                              'Delete',
+                                              style: TextStyle(
+                                                fontFamily: 'Poppins',
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColors.customRed,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      if (!isOwnPost)
+                                        const PopupMenuItem<String>(
+                                          value: 'report',
+                                          child: Center(
+                                            child: Text(
+                                              'Report',
+                                              style: TextStyle(
+                                                fontFamily: 'Poppins',
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColors.customRed,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                    offset: const Offset(-10, 40),
+                                    color: AppColors.bg,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16.0),
+                                      side: const BorderSide(
+                                        color: AppColors.customBlack,
+                                        width: 3.0,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),

@@ -284,4 +284,63 @@ class PostService {
       return [];
     }
   }
+
+  Future<void> deletePost(String postId) async {
+    try {
+      // Parse the postId to get postOwnerId and postDocId
+      final parts = postId.split('|');
+      if (parts.length != 2) {
+        log('Invalid post ID format: $postId');
+        return;
+      }
+      final String postOwnerId = parts[0];
+      final String postDocId = postId; // Use full postId as the document ID
+
+      // Reference the post document in Firestore
+      final postRef = _firestore
+          .collection('users')
+          .doc(postOwnerId)
+          .collection('user_posts')
+          .doc(postDocId);
+
+      // Check if the post exists
+      final postDoc = await postRef.get();
+      if (!postDoc.exists) {
+        log('Post not found for ID: $postId');
+        return;
+      }
+
+      // Get the post data
+      final postData = postDoc.data();
+
+      // Transaction to delete the post and associated comments atomically
+      await _firestore.runTransaction((transaction) async {
+        transaction.delete(postRef);
+
+        // Delete associated comments
+        final commentsSnapshot = await postRef.collection('comments').get();
+        for (var comment in commentsSnapshot.docs) {
+          transaction.delete(comment.reference);
+        }
+      });
+
+      // Delete associated images from Firebase Storage
+      if (postData != null && postData['images'] is List) {
+        final List<String> imageUrls = List<String>.from(postData['images']);
+        for (String imageUrl in imageUrls) {
+          try {
+            final ref = _storage.refFromURL(imageUrl);
+            await ref.delete();
+            log('Deleted image: $imageUrl');
+          } catch (e) {
+            log('Error deleting image: $imageUrl, error: $e');
+          }
+        }
+      }
+
+      log('Post deleted successfully: $postId');
+    } catch (e) {
+      log('Error deleting post: $e');
+    }
+  }
 }

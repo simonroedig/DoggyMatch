@@ -344,12 +344,9 @@ class AnnouncementDialogs {
     });
   }
 
-  static void showDeleteAnnouncementDialog(
-    BuildContext context,
-    String announcementTitle,
-    VoidCallback onDeleteConfirmed,
-  ) {
-    showDialog(
+  static Future<bool> showDeleteShoutConfirmationDialog(
+      BuildContext context) async {
+    return await showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
@@ -373,8 +370,7 @@ class AnnouncementDialogs {
             ),
           ),
           content: const Text(
-            'Deleting this shout is irreversible. '
-            'You can always create a new shout later.',
+            'Deleting this shout will remove it permanently and it cannot be undone.',
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 14,
@@ -389,27 +385,7 @@ class AnnouncementDialogs {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.of(context).pop(); // Close the dialog
-                      onDeleteConfirmed(); // Call the delete function
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.customBlack,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                    ),
-                    child: const Text(
-                      'Yes',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.bg,
-                      ),
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(); // Close the dialog
+                      Navigator.of(context).pop(false);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.bg,
@@ -422,11 +398,30 @@ class AnnouncementDialogs {
                       ),
                     ),
                     child: const Text(
-                      'No',
+                      'Cancel',
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontWeight: FontWeight.bold,
                         color: AppColors.customBlack,
+                      ),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(true);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.customRed,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                    ),
+                    child: const Text(
+                      'Delete',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.bg,
                       ),
                     ),
                   ),
