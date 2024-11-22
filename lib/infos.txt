@@ -12,3 +12,8 @@ set flutter icon:
 https://medium.com/@hpatilabhi10/changing-app-icon-in-flutter-a-step-by-step-guide-e2ba52c91e96
 convert to ratio:
 https://resizeappicon.com/
+
+flutter pub get
+dart run flutter_launcher_icons
+
+Use #AARRGGBB for colors instead of #AABBGGRR, to be compatible with Flutter image class.

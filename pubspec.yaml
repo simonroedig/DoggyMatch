@@ -27,6 +27,12 @@ environment:
 # dependencies can be manually updated by changing the version numbers below to
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "lib/app_icon.png" # Replace with your actual icon path
+
 dependencies:
   flutter:
     sdk: flutter
@@ -54,6 +60,8 @@ dependencies:
   image: ^3.0.1
 
 dev_dependencies:
+  flutter_launcher_icons: "^0.11.0"
+
   flutter_test:
     sdk: flutter
 
@@ -66,6 +74,15 @@ dev_dependencies:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "lib/app_icon.png"
+  min_sdk_version: 21
+  remove_alpha_ios: true
+  adaptive_icon_background: "lib/app_icon_bg.png"
+  adaptive_icon_foreground: "lib/app_icon.png"
 
 # The following section is specific to Flutter packages.
 flutter:
