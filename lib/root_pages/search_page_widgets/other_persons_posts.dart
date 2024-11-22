@@ -346,10 +346,12 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
         padding: const EdgeInsets.only(top: 0, left: 20, right: 20),
         itemCount: _posts.length,
         itemBuilder: (context, index) {
-          return PostCard(
-            user: _posts[index]['user'],
-            post: _posts[index]['post'],
-            onProfileSelected: widget.onProfileSelected,
+          return RepaintBoundary(
+            child: PostCard(
+              user: _posts[index]['user'],
+              post: _posts[index]['post'],
+              onProfileSelected: widget.onProfileSelected,
+            ),
           );
         },
       ),
