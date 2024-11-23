@@ -4,7 +4,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
-import 'package:doggymatch_flutter/root_pages/search_page_widgets/other_persons_posts.dart'; // Import PostCard
+import 'package:doggymatch_flutter/root_pages/search_page_widgets/other_persons_posts.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart'; // Import PostCard
 
 class UserPostsPage extends StatefulWidget {
   final Map<String, dynamic> user;
@@ -25,19 +26,14 @@ class UserPostsPage extends StatefulWidget {
 }
 
 class _UserPostsPageState extends State<UserPostsPage> {
-  final ScrollController _scrollController = ScrollController();
+  final ItemScrollController _itemScrollController = ItemScrollController();
 
   @override
   void initState() {
     super.initState();
-
-    // Wait for the build to complete
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Calculate the offset to scroll to
-      double offset =
-          widget.initialIndex * 600.0; // Approximate height of each post
-      if (_scrollController.hasClients) {
-        _scrollController.jumpTo(offset);
+      if (_itemScrollController.isAttached) {
+        _itemScrollController.jumpTo(index: widget.initialIndex);
       }
     });
   }
@@ -48,7 +44,7 @@ class _UserPostsPageState extends State<UserPostsPage> {
     final posts = widget.posts;
 
     return Scaffold(
-      backgroundColor: AppColors.bg, // Use your preferred background color
+      backgroundColor: AppColors.bg,
       appBar: AppBar(
         title: const Text(
           'Posts',
@@ -59,10 +55,9 @@ class _UserPostsPageState extends State<UserPostsPage> {
           ),
         ),
         backgroundColor: AppColors.bg,
-        elevation: 0.0, // Remove shadow
-        scrolledUnderElevation: 0.0, // Prevent darkening on scroll
-        surfaceTintColor:
-            Colors.transparent, // Keep the background color consistent
+        elevation: 0.0,
+        scrolledUnderElevation: 0.0,
+        surfaceTintColor: Colors.transparent,
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_circle_left_rounded,
@@ -72,22 +67,20 @@ class _UserPostsPageState extends State<UserPostsPage> {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: ListView.builder(
-        controller: _scrollController,
-        padding: const EdgeInsets.only(
-            top: 0.0, left: 20, right: 20, bottom: 10), // Add top padding
+      body: ScrollablePositionedList.builder(
+        itemScrollController: _itemScrollController,
+        padding:
+            const EdgeInsets.only(top: 0.0, left: 20, right: 20, bottom: 10),
         itemCount: posts.length,
         itemBuilder: (context, index) {
           Map<String, dynamic> post;
           Map<String, dynamic> postUser;
 
           if (widget.isSavedPosts) {
-            // For saved posts, each item in posts is a map with 'user' and 'post'
             final postData = posts[index];
             postUser = postData['user'];
             post = postData['post'];
           } else {
-            // For own posts, posts list contains only post data, user is provided in widget.user
             postUser = user;
             post = posts[index];
           }
