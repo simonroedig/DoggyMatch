@@ -1,4 +1,4 @@
-// user_posts_page.dart
+// profile_posts_section.dart
 
 // ignore_for_file: use_super_parameters, library_private_types_in_public_api
 
