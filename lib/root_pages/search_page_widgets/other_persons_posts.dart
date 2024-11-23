@@ -850,7 +850,7 @@ class _PostCardState extends State<PostCard> {
                                           ),
                                         ),
                                     ],
-                                    offset: const Offset(-10, 40),
+                                    offset: const Offset(0, 40),
                                     color: AppColors.bg,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(16.0),
