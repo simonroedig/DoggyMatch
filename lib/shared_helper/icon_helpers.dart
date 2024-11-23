@@ -75,18 +75,24 @@ class IconHelpers {
             children: [
               Transform.translate(
                 offset: const Offset(-2, 0),
-                child: const Icon(
-                  Icons.people_alt_rounded,
-                  size: 12,
-                  color: AppColors.customBlack,
+                child: const Opacity(
+                  opacity: 0.5, // Set the opacity for the main icon
+                  child: Icon(
+                    Icons.people_alt_rounded,
+                    size: 12,
+                    color: AppColors.customBlack,
+                  ),
                 ),
               ),
               Transform.translate(
                 offset: const Offset(5, -3),
-                child: const Icon(
-                  Icons.call_received_rounded,
-                  size: 8,
-                  color: AppColors.customBlack,
+                child: const Opacity(
+                  opacity: 0.5, // Set the opacity for the smaller icon
+                  child: Icon(
+                    Icons.call_received_rounded,
+                    size: 8,
+                    color: AppColors.customBlack,
+                  ),
                 ),
               ),
             ],
@@ -99,23 +105,30 @@ class IconHelpers {
             children: [
               Transform.translate(
                 offset: const Offset(-2, 0),
-                child: const Icon(
-                  Icons.people_alt_rounded,
-                  size: 12,
-                  color: AppColors.customBlack,
+                child: const Opacity(
+                  opacity: 0.5, // Set the opacity for the main icon
+                  child: Icon(
+                    Icons.people_alt_rounded,
+                    size: 12,
+                    color: AppColors.customBlack,
+                  ),
                 ),
               ),
               Transform.translate(
                 offset: const Offset(5, -3),
-                child: const Icon(
-                  Icons.call_made_rounded,
-                  size: 8,
-                  color: AppColors.customBlack,
+                child: const Opacity(
+                  opacity: 0.5, // Set the opacity for the smaller icon
+                  child: Icon(
+                    Icons.call_made_rounded,
+                    size: 8,
+                    color: AppColors.customBlack,
+                  ),
                 ),
               ),
             ],
           ),
         );
+
       default:
         return const SizedBox.shrink(); // Return nothing for no status
     }
