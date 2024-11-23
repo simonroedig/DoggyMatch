@@ -873,21 +873,47 @@ class _PostCardState extends State<PostCard> {
                           // New row for likes
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: Text(
-                              _likesCount == 0
-                                  ? 'no likes yet'
-                                  : _likesCount == 1
-                                      ? 'liked by 1 person'
-                                      : 'liked by $_likesCount people',
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 12,
-                                fontWeight: FontWeight.w300,
-                                color: AppColors.customBlack,
-                              ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment
+                                  .center, // Center the content
+                              crossAxisAlignment: CrossAxisAlignment
+                                  .center, // Align icons and text
+                              children: [
+                                // Like icon before the text
+                                const Icon(
+                                  Icons.favorite_border, // Heart icon
+                                  color: AppColors.customBlack,
+                                  size: 16, // Adjust size to match the text
+                                ),
+                                const SizedBox(
+                                    width: 4), // Spacing between icon and text
+                                // Likes text
+                                Text(
+                                  _likesCount == 0
+                                      ? 'no likes yet'
+                                      : _likesCount == 1
+                                          ? 'liked by 1 person'
+                                          : 'liked by $_likesCount people',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w300,
+                                    color: AppColors.customBlack,
+                                  ),
+                                ),
+                                const SizedBox(
+                                    width: 4), // Spacing between text and icon
+                                // Open in browser icon after the text
+                                const Icon(
+                                  Icons.open_in_browser_rounded, // Browser icon
+                                  color: AppColors.customBlack,
+                                  size: 16, // Adjust size to match the text
+                                ),
+                              ],
                             ),
                           ),
+
                           // Separator line
                           Container(
                             margin: const EdgeInsets.symmetric(vertical: 4.0),
@@ -919,17 +945,43 @@ class _PostCardState extends State<PostCard> {
                                   const EdgeInsets.symmetric(vertical: 4.0),
                               child: Column(
                                 children: [
-                                  Text(
-                                    commentsCount == 0
-                                        ? 'Write the first comment'
-                                        : 'View all $commentsCount comments',
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w300,
-                                      color: AppColors.customBlack,
-                                    ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment
+                                        .center, // Center the Row content
+                                    children: [
+                                      const Icon(
+                                        Icons
+                                            .comment_outlined, // Choose an appropriate icon
+                                        size: 14, // Adjust size to match text
+                                        color: AppColors
+                                            .customBlack, // Same color as the text
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        commentsCount == 0
+                                            ? 'Write the first comment'
+                                            : commentsCount == 1
+                                                ? 'View $commentsCount comment'
+                                                : 'View all $commentsCount comments',
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          fontFamily: 'Poppins',
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w300,
+                                          color: AppColors.customBlack,
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                          width:
+                                              4), // Add spacing between text and icon
+                                      const Icon(
+                                        Icons
+                                            .open_in_browser_rounded, // Choose an appropriate icon
+                                        size: 14, // Adjust size to match text
+                                        color: AppColors
+                                            .customBlack, // Same color as the text
+                                      ),
+                                    ],
                                   ),
                                   const SizedBox(
                                       height:
