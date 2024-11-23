@@ -871,46 +871,62 @@ class _PostCardState extends State<PostCard> {
                             color: AppColors.customBlack,
                           ),
                           // New row for likes
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment
-                                  .center, // Center the content
-                              crossAxisAlignment: CrossAxisAlignment
-                                  .center, // Align icons and text
-                              children: [
-                                // Like icon before the text
-                                const Icon(
-                                  Icons.favorite_border, // Heart icon
-                                  color: AppColors.customBlack,
-                                  size: 16, // Adjust size to match the text
-                                ),
-                                const SizedBox(
-                                    width: 4), // Spacing between icon and text
-                                // Likes text
-                                Text(
-                                  _likesCount == 0
-                                      ? 'no likes yet'
-                                      : _likesCount == 1
-                                          ? 'liked by 1 person'
-                                          : 'liked by $_likesCount people',
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    fontFamily: 'Poppins',
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w300,
+                          // New row for likes
+                          GestureDetector(
+                            onTap: () {
+                              // Open likes overlay
+                              _openLikesOverlay(
+                                postOwner,
+                                postId,
+                                profileColor,
+                                widget.onProfileSelected, // Pass it here
+                              );
+                            },
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 4.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment
+                                    .center, // Center the content
+                                crossAxisAlignment: CrossAxisAlignment
+                                    .center, // Align icons and text
+                                children: [
+                                  // Like icon before the text
+                                  const Icon(
+                                    Icons.favorite_border, // Heart icon
                                     color: AppColors.customBlack,
+                                    size: 16, // Adjust size to match the text
                                   ),
-                                ),
-                                const SizedBox(
-                                    width: 4), // Spacing between text and icon
-                                // Open in browser icon after the text
-                                const Icon(
-                                  Icons.open_in_browser_rounded, // Browser icon
-                                  color: AppColors.customBlack,
-                                  size: 16, // Adjust size to match the text
-                                ),
-                              ],
+                                  const SizedBox(
+                                      width:
+                                          4), // Spacing between icon and text
+                                  // Likes text
+                                  Text(
+                                    _likesCount == 0
+                                        ? 'no likes yet'
+                                        : _likesCount == 1
+                                            ? 'liked by 1 person'
+                                            : 'liked by $_likesCount people',
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w300,
+                                      color: AppColors.customBlack,
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                      width:
+                                          4), // Spacing between text and icon
+                                  // Open in browser icon after the text
+                                  const Icon(
+                                    Icons
+                                        .open_in_browser_rounded, // Browser icon
+                                    color: AppColors.customBlack,
+                                    size: 16, // Adjust size to match the text
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
 
@@ -996,6 +1012,43 @@ class _PostCardState extends State<PostCard> {
                     const SizedBox(height: 0),
                   ],
                 ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _openLikesOverlay(
+    String postOwnerId,
+    String postId,
+    Color profileColor,
+    Function(UserProfile, String, String, bool)? onProfileSelected,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return DraggableScrollableSheet(
+          expand: false,
+          builder: (BuildContext context, ScrollController scrollController) {
+            return Container(
+              decoration: const BoxDecoration(
+                color: AppColors.bg,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(24.0),
+                  topRight: Radius.circular(24.0),
+                ),
+              ),
+              child: _LikesOverlay(
+                postOwnerId: postOwnerId,
+                postId: postId,
+                profileColor: profileColor,
+                onProfileSelected: onProfileSelected, // Pass it here
+                fromSingleUserPostPage:
+                    widget.fromSingleUserPostPage, // Add this line
               ),
             );
           },
@@ -1614,6 +1667,359 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
                 ),
                 // Input field and character counter
                 _buildCommentInputArea(context),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _LikesOverlay extends StatefulWidget {
+  final String postOwnerId;
+  final String postId;
+  final Color profileColor;
+  final Function(UserProfile, String, String, bool)? onProfileSelected;
+  final bool fromSingleUserPostPage; // Add this line
+
+  const _LikesOverlay({
+    Key? key,
+    required this.postOwnerId,
+    required this.postId,
+    required this.profileColor,
+    this.onProfileSelected,
+    required this.fromSingleUserPostPage, // Add this line
+  }) : super(key: key);
+
+  @override
+  __LikesOverlayState createState() => __LikesOverlayState();
+}
+
+class __LikesOverlayState extends State<_LikesOverlay>
+    with TickerProviderStateMixin {
+  List<String> _likes = [];
+  bool _isLoadingLikes = true;
+  final Map<String, Map<String, dynamic>> _userProfiles = {};
+  final Map<String, AnimationController> _animationControllers = {};
+  final Map<String, ScrollController> _scrollControllers = {};
+  final PostService _postService = PostService();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLikes();
+  }
+
+  @override
+  void dispose() {
+    // Dispose all animation and scroll controllers
+    for (var controller in _animationControllers.values) {
+      controller.dispose();
+    }
+    for (var controller in _scrollControllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  Future<void> _fetchLikes() async {
+    final likes =
+        await _postService.getPostLikes(widget.postOwnerId, widget.postId);
+    if (mounted) {
+      setState(() {
+        _likes = likes!;
+        _isLoadingLikes = false;
+      });
+    }
+  }
+
+  void _fetchUserProfile(String userId) async {
+    try {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+
+      if (userDoc.exists) {
+        if (mounted) {
+          setState(() {
+            _userProfiles[userId] = userDoc.data() as Map<String, dynamic>;
+          });
+        }
+      }
+    } catch (e) {
+      developer.log('Error fetching user profile: $e');
+    }
+  }
+
+  Widget _buildLikeItem(String userId) {
+    // For profile picture and user data, we need to fetch the user's profile data
+    String profileImageUrl = UserProfileState.placeholderImageUrl;
+    String userName = 'Anonymous';
+    bool isDogOwner = false;
+    String dogName = '';
+
+    if (_userProfiles.containsKey(userId)) {
+      final userProfile = _userProfiles[userId]!;
+      final images = List<String>.from(userProfile['images'] ?? []);
+      if (images.isNotEmpty) {
+        profileImageUrl = images[0];
+      }
+      userName = userProfile['userName'] ?? 'Anonymous';
+      isDogOwner = userProfile['isDogOwner'] ?? false;
+      dogName = userProfile['dogName'] ?? '';
+    } else {
+      // Fetch user profile
+      _fetchUserProfile(userId);
+    }
+
+    // Create unique keys for controllers based on userId
+    final String controllerKey = userId;
+
+    // Initialize controllers if they don't exist
+    if (!_scrollControllers.containsKey(controllerKey)) {
+      _scrollControllers[controllerKey] = ScrollController();
+      _animationControllers[controllerKey] = AnimationController(
+        vsync: this,
+        duration: const Duration(seconds: 5),
+      );
+
+      final Animation<double> animation = Tween<double>(begin: 0.0, end: 1.0)
+          .animate(_animationControllers[controllerKey]!);
+
+      animation.addListener(() {
+        if (_scrollControllers[controllerKey]!.hasClients) {
+          _scrollControllers[controllerKey]!.jumpTo(animation.value *
+              _scrollControllers[controllerKey]!.position.maxScrollExtent);
+        }
+      });
+
+      animation.addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          Future.delayed(const Duration(seconds: 1), () {
+            if (_scrollControllers[controllerKey]!.hasClients) {
+              _scrollControllers[controllerKey]!.jumpTo(0);
+              _animationControllers[controllerKey]!.forward(from: 0.0);
+            }
+          });
+        }
+      });
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _animationControllers[controllerKey]!.forward();
+      });
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      child: Row(
+        crossAxisAlignment:
+            CrossAxisAlignment.center, // Center the content vertically
+        children: [
+          // Profile picture with GestureDetector
+          GestureDetector(
+            onTap: () async {
+              final String? currentUserId = AuthService().getCurrentUserId();
+              if (widget.fromSingleUserPostPage &&
+                  userId != currentUserId &&
+                  userId != widget.postOwnerId) {
+                // Navigate to the main screen and open the profile
+                developer.log('Navigating back to MainScreen');
+                final userProfileState =
+                    Provider.of<UserProfileState>(context, listen: false);
+                userProfileState.setUserIdToOpen(userId);
+
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  '/', // Replace with your main screen route
+                  (Route<dynamic> route) => false,
+                );
+
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    userProfileState
+                        .updateCurrentIndex(0); // Set index to SearchPage
+                  }
+                });
+              } else if (userId != currentUserId &&
+                  widget.onProfileSelected != null &&
+                  _userProfiles.containsKey(userId) &&
+                  userId != widget.postOwnerId) {
+                final userProfileData = _userProfiles[userId]!;
+
+                UserProfile selectedProfile = UserProfile(
+                  uid: userProfileData['uid'],
+                  email: userProfileData['email'],
+                  userName: userProfileData['userName'],
+                  dogName: userProfileData['dogName'],
+                  dogBreed: userProfileData['dogBreed'],
+                  dogAge: userProfileData['dogAge'],
+                  isDogOwner: userProfileData['isDogOwner'],
+                  images: List<String>.from(userProfileData['images']),
+                  profileColor:
+                      Color(userProfileData['profileColor'] ?? 0xFFFFFFFF),
+                  aboutText: userProfileData['aboutText'],
+                  location: userProfileData['location'],
+                  latitude: userProfileData['latitude'].toDouble(),
+                  longitude: userProfileData['longitude'].toDouble(),
+                  filterDistance: userProfileData['filterDistance'],
+                  birthday: userProfileData['birthday'] != null
+                      ? DateTime.parse(userProfileData['birthday'])
+                      : null,
+                  lastOnline: userProfileData['lastOnline'] != null
+                      ? DateTime.parse(userProfileData['lastOnline'])
+                      : null,
+                  filterLastOnline: userProfileData['filterLastOnline'] ?? 3,
+                );
+
+                // Calculate distance and lastOnline
+                final userProfileState =
+                    Provider.of<UserProfileState>(context, listen: false);
+                final mainUserLatitude = userProfileState.userProfile.latitude;
+                final mainUserLongitude =
+                    userProfileState.userProfile.longitude;
+
+                final distance = calculateDistance(
+                  mainUserLatitude,
+                  mainUserLongitude,
+                  userProfileData['latitude'].toDouble(),
+                  userProfileData['longitude'].toDouble(),
+                ).toStringAsFixed(1);
+
+                final lastOnline =
+                    calculateLastOnlineLong(selectedProfile.lastOnline);
+
+                // Fetch the actual saved status
+                final profileService = ProfileService();
+                final isSaved = await profileService.isProfileSaved(userId);
+
+                widget.onProfileSelected!(
+                  selectedProfile,
+                  distance,
+                  lastOnline,
+                  isSaved, // Adjust saved status as needed
+                );
+
+                if (mounted) {
+                  Navigator.pop(context);
+                }
+              }
+            },
+            child: Container(
+              width: 40.0,
+              height: 40.0,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.customBlack, width: 2),
+                image: DecorationImage(
+                  fit: BoxFit.cover,
+                  image: NetworkImage(profileImageUrl),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8.0),
+          // Username and dog name with auto-scrolling
+          Expanded(
+            child: SingleChildScrollView(
+              controller: _scrollControllers[controllerKey],
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  const Icon(Icons.person_rounded,
+                      size: 20, color: AppColors.customBlack),
+                  const SizedBox(width: 4),
+                  Text(
+                    userName,
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: AppColors.customBlack,
+                    ),
+                  ),
+                  if (isDogOwner) ...[
+                    const SizedBox(width: 4),
+                    const Text(
+                      " • ",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: AppColors.customBlack,
+                      ),
+                    ),
+                    const Icon(
+                      Icons.pets_rounded,
+                      size: 18,
+                      color: AppColors.customBlack,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      dogName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: AppColors.customBlack,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Container(
+            decoration: BoxDecoration(
+              color: widget.profileColor,
+              border: Border.all(color: AppColors.customBlack, width: 3),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(18.0),
+                topRight: Radius.circular(18.0),
+              ),
+            ),
+            child: Column(
+              children: [
+                // Draggable notch at the top
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Container(
+                    width: 40,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: AppColors.customBlack,
+                      borderRadius: BorderRadius.circular(2.5),
+                    ),
+                  ),
+                ),
+                // Likes list
+                Expanded(
+                  child: _isLoadingLikes
+                      ? const Center(child: CircularProgressIndicator())
+                      : _likes.isEmpty
+                          ? const Center(
+                              child: Text(
+                                "No likes yet, be the first one",
+                                style: TextStyle(color: AppColors.customBlack),
+                              ),
+                            )
+                          : ListView.builder(
+                              reverse: false,
+                              itemCount: _likes.length,
+                              itemBuilder: (context, index) {
+                                final userId = _likes[index];
+                                return _buildLikeItem(userId);
+                              },
+                            ),
+                ),
               ],
             ),
           );
