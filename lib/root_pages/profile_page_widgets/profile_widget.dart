@@ -388,6 +388,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                           '',
                                   createdAt: DateTime.parse(
                                       _announcementData!['createdAt']),
+                                  isOwnProfile: !widget.clickedOnOtherUser,
                                 ),
                               if (_userPosts.isNotEmpty)
                                 PostsSection(

@@ -130,12 +130,15 @@ class ShoutSection extends StatelessWidget {
   final String announcementTitle;
   final String announcementText;
   final DateTime createdAt;
+  final bool
+      isOwnProfile; // New parameter to indicate if it's the user's own profile
 
   const ShoutSection({
     Key? key,
     required this.announcementTitle,
     required this.announcementText,
     required this.createdAt,
+    required this.isOwnProfile, // Accept the parameter
   }) : super(key: key);
 
   @override
@@ -143,7 +146,8 @@ class ShoutSection extends StatelessWidget {
     String timeAgo = calculateTimeAgo(createdAt);
 
     return _buildInfoContainer(
-      shoutPadding: true,
+      // shout padding true if isOwnProfile is true otherwise false
+      shoutPadding: isOwnProfile ? true : false,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -155,56 +159,62 @@ class ShoutSection extends StatelessWidget {
                 icon: Icons.campaign,
                 title: 'Current Shout',
               ),
-              Transform.translate(
-                offset: const Offset(
-                    14.0, 0.0), // Move the icon further to the right
-                child: PopupMenuButton<String>(
-                  padding: EdgeInsets.zero, // Remove extra padding
-                  constraints:
-                      const BoxConstraints(), // Prevent internal spacing
-                  icon: const Icon(
-                    Icons.more_vert,
-                    color: AppColors.customBlack,
-                  ),
-                  onSelected: (String value) async {
-                    if (value == 'delete') {
-                      bool confirmed = await AnnouncementDialogs
-                          .showDeleteShoutConfirmationDialog(context);
-                      if (confirmed) {
-                        AnnouncementService announcementService =
-                            AnnouncementService();
-                        await announcementService.deleteAnnouncement();
+              if (isOwnProfile) // Show kebab menu only for own profile
+                Transform.translate(
+                  offset: const Offset(
+                      14.0, 0.0), // Move the icon further to the right
+                  child: PopupMenuButton<String>(
+                    padding: EdgeInsets.zero, // Remove extra padding
+                    constraints:
+                        const BoxConstraints(), // Prevent internal spacing
+                    icon: const Icon(
+                      Icons.more_vert,
+                      color: AppColors.customBlack,
+                    ),
+                    onSelected: (String value) async {
+                      if (value == 'delete') {
+                        bool confirmed = await AnnouncementDialogs
+                            .showDeleteShoutConfirmationDialog(context);
+                        if (confirmed) {
+                          AnnouncementService announcementService =
+                              AnnouncementService();
+                          await announcementService.deleteAnnouncement();
+                        }
                       }
-                    }
-                  },
-                  itemBuilder: (BuildContext context) =>
-                      <PopupMenuEntry<String>>[
-                    const PopupMenuItem<String>(
-                      value: 'delete',
-                      child: Center(
-                        child: Text(
-                          'Delete',
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.customRed,
+                    },
+                    itemBuilder: (BuildContext context) =>
+                        <PopupMenuEntry<String>>[
+                      const PopupMenuItem<String>(
+                        value: 'delete',
+                        child: Center(
+                          child: Text(
+                            'Delete',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.customRed,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                  offset: const Offset(-10, 40),
-                  color: AppColors.bg,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16.0),
-                    side: const BorderSide(
-                      color: AppColors.customBlack,
-                      width: 3.0,
+                    ],
+                    offset: const Offset(-10, 40),
+                    color: AppColors.bg,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16.0),
+                      side: const BorderSide(
+                        color: AppColors.customBlack,
+                        width: 3.0,
+                      ),
                     ),
                   ),
                 ),
-              ),
             ],
+          ),
+          SizedBox(
+            height: isOwnProfile
+                ? 0.0
+                : 10.0, // Adjust height based on isOwnProfile
           ),
           Text(
             announcementTitle,
