@@ -1364,13 +1364,14 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
                 final userProfileState =
                     Provider.of<UserProfileState>(context, listen: false);
 
+                /*
                 Navigator.of(context).pushNamedAndRemoveUntil(
                   '/', // Replace with your main screen route
                   (Route<dynamic> route) => false,
                 );
-
+                  */
                 // use this, to allow user to go back:
-                // Navigator.of(context).pushNamed('/');
+                Navigator.of(context).pushNamed('/');
 
                 // Navigator.pop(context);
 
@@ -1384,6 +1385,7 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
                     userProfileState.updateCurrentIndex(
                         currentIndex); // Set index to SearchPage
                     userProfileState.setUserIdToOpen(userId);
+                    userProfileState.openedProfileViaSubpage();
                   }
                 });
               } else if (userId != currentUserId &&
@@ -1852,10 +1854,16 @@ class __LikesOverlayState extends State<_LikesOverlay>
                 final userProfileState =
                     Provider.of<UserProfileState>(context, listen: false);
 
+                /*
                 Navigator.of(context).pushNamedAndRemoveUntil(
                   '/', // Replace with your main screen route
                   (Route<dynamic> route) => false,
                 );
+                  */
+                // use this, to allow user to go back:
+                Navigator.of(context).pushNamed('/');
+
+                // Navigator.pop(context);
 
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   int currentIndex = userProfileState.currentIndex;
@@ -1867,6 +1875,7 @@ class __LikesOverlayState extends State<_LikesOverlay>
                     userProfileState.updateCurrentIndex(
                         currentIndex); // Set index to SearchPage
                     userProfileState.setUserIdToOpen(userId);
+                    userProfileState.openedProfileViaSubpage();
                   }
                 });
               } else if (userId != currentUserId &&

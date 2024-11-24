@@ -27,6 +27,12 @@ class MainScreen extends StatelessWidget {
       onWillPop: () async {
         final userProfileState = context.read<UserProfileState>();
 
+        if (userProfileState.openedProfileViaSubpageBool) {
+          Navigator.pop(context);
+          userProfileState.resetOpenedProfileViaSubpage();
+          return true; // Allow the default back button action
+        }
+
         if (userProfileState.isProfileOpen) {
           userProfileState.closeProfile();
           profileCloseNotifier.triggerCloseProfile(); // Signal to close profile
@@ -81,6 +87,11 @@ class MainScreen extends StatelessWidget {
                     },
                     showCloseButton: userProfileState.isProfileOpen,
                     onCloseButtonTapped: () {
+                      if (userProfileState.openedProfileViaSubpageBool) {
+                        Navigator.pop(context);
+                        userProfileState.resetOpenedProfileViaSubpage();
+                        return;
+                      }
                       log("Close button callback triggered in MainScreen");
                       userProfileState.closeProfile();
                       profileCloseNotifier

@@ -10,6 +10,7 @@ class UserProfileState extends ChangeNotifier {
   final _authProfile = ProfileService();
 
   String? userIdToOpen;
+  bool openedProfileViaSubpageBool = false;
 
   static const String placeholderImageUrl =
       'https://firebasestorage.googleapis.com/v0/b/doggymatch-bb17f.appspot.com/o/placeholder.png?alt=media&token=6c364b4d-0e8b-4b34-b29e-58dc6dadcc65';
@@ -23,6 +24,18 @@ class UserProfileState extends ChangeNotifier {
   void resetUserIdToOpen() {
     log('Reset user id to open');
     userIdToOpen = null;
+  }
+
+  void openedProfileViaSubpage() {
+    log('Opened profile via subpage');
+    openedProfileViaSubpageBool = true;
+    notifyListeners();
+  }
+
+  void resetOpenedProfileViaSubpage() {
+    log('Reset opened profile via subpage');
+    openedProfileViaSubpageBool = false;
+    notifyListeners();
   }
 
   UserProfile _userProfile = UserProfile(
