@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -22,17 +23,17 @@ class CustomBottomNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
+      padding: const EdgeInsets.only(bottom: 10.0),
       child: BottomAppBar(
         color: AppColors.bg,
         shape: const CircularNotchedRectangle(),
         child: Center(
           child: Container(
-            width: MediaQuery.of(context).size.width,
+            width: MediaQuery.of(context).size.width * 1,
             height: 80.0,
             decoration: BoxDecoration(
               color: AppColors.brownLightest,
-              borderRadius: BorderRadius.circular(80.0),
+              borderRadius: BorderRadius.circular(UIConstants.outerRadius),
               border: Border.all(
                 color: Colors.black,
                 width: 3.0,

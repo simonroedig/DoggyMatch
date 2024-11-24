@@ -1,4 +1,5 @@
 import 'dart:developer' as developer;
+import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:doggymatch_flutter/services/friends_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -274,12 +275,12 @@ class _OtherPersonsState extends State<OtherPersons>
       child: GridView.builder(
         padding: const EdgeInsets.symmetric(
           vertical: 0.0, // Set the vertical padding
-          horizontal: 18.0, // Set the horizontal padding
+          horizontal: 16.0, // Set the horizontal padding
         ),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          crossAxisSpacing: 12.0,
-          mainAxisSpacing: 12.0,
+          crossAxisSpacing: 10.0,
+          mainAxisSpacing: 10.0,
           childAspectRatio: 0.68,
         ),
         itemCount: _users.length,
@@ -381,7 +382,8 @@ class _OtherPersonsState extends State<OtherPersons>
               Container(
                 decoration: BoxDecoration(
                   color: profileColor,
-                  borderRadius: BorderRadius.circular(24.0),
+                  borderRadius: BorderRadius.circular(
+                      UIConstants.outerRadius), // before 24
                   border: Border.all(color: AppColors.customBlack, width: 3),
                 ),
                 child: Column(
@@ -390,7 +392,8 @@ class _OtherPersonsState extends State<OtherPersons>
                     Expanded(
                       child: ClipRRect(
                         borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(isDogOwner ? 0 : 21.0),
+                          top: Radius.circular(
+                              isDogOwner ? 0 : UIConstants.outerRadiusClipped),
                         ),
                         child: _buildUserImage(data['images'], isDogOwner),
                       ),
@@ -404,8 +407,8 @@ class _OtherPersonsState extends State<OtherPersons>
               ),
               // Friend status icon (new)
               Positioned(
-                bottom: 42, // Adjust position to place it above the save icon
-                left: 12,
+                bottom: 40, // Adjust position to place it above the save icon
+                left: 10,
                 child: FutureBuilder(
                   future: determineFriendStatus(data['uid']),
                   builder: (context, snapshot) {
@@ -415,10 +418,8 @@ class _OtherPersonsState extends State<OtherPersons>
                     }
 
                     final friendStatus = snapshot.data ?? 'none';
-                    return Transform.scale(
-                        scale: 1.27,
-                        child: iconHelpers.buildFriendStatusIcon(
-                            friendStatus, profileColor));
+                    return iconHelpers.buildFriendStatusIcon(
+                        friendStatus, profileColor, 2);
                   },
                 ),
               ),
@@ -426,7 +427,8 @@ class _OtherPersonsState extends State<OtherPersons>
                 Positioned(
                   bottom: 40,
                   right: 10,
-                  child: iconHelpers.buildSaveIcon(isSaved, profileColor, 24),
+                  child:
+                      iconHelpers.buildSaveIcon(isSaved, profileColor, 2, 24),
                 ),
             ],
           ),

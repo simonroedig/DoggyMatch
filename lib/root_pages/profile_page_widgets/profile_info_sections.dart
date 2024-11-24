@@ -2,6 +2,7 @@
 
 // ignore_for_file: use_super_parameters
 
+import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/announcement_dialogs.dart';
 import 'package:doggymatch_flutter/services/announcement_service.dart';
 import 'package:doggymatch_flutter/shared_helper/shared_and_helper_functions.dart';
@@ -201,7 +202,8 @@ class ShoutSection extends StatelessWidget {
                     offset: const Offset(-10, 40),
                     color: AppColors.bg,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16.0),
+                      borderRadius:
+                          BorderRadius.circular(UIConstants.popUpRadius),
                       side: const BorderSide(
                         color: AppColors.customBlack,
                         width: 3.0,
@@ -279,8 +281,8 @@ class PostsSection extends StatelessWidget {
             itemCount: userPosts.length,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3, // Three images per row
-              crossAxisSpacing: 4.0,
-              mainAxisSpacing: 4.0,
+              crossAxisSpacing: 5.0,
+              mainAxisSpacing: 5.0,
             ),
             itemBuilder: (context, index) {
               final post = userPosts[index];
@@ -293,13 +295,16 @@ class PostsSection extends StatelessWidget {
                 onTap: () {
                   onPostSelected(index);
                 },
+                // small post images preview
                 child: Container(
                   decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.customBlack, width: 2),
-                    borderRadius: BorderRadius.circular(8.0),
+                    border: Border.all(color: AppColors.customBlack, width: 3),
+                    borderRadius:
+                        BorderRadius.circular(UIConstants.innerInnerRadius),
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(6.0),
+                    borderRadius: BorderRadius.circular(
+                        UIConstants.innerInnerRadiusClipped),
                     child: Stack(
                       children: [
                         Image.network(
@@ -308,8 +313,7 @@ class PostsSection extends StatelessWidget {
                           width: double.infinity,
                           height: double.infinity,
                           errorBuilder: (context, error, stackTrace) {
-                            return const Center(
-                                child: Text('Image load error'));
+                            return const Center(child: Text('-'));
                           },
                         ),
                         // Image indicator for multiple images
@@ -322,7 +326,8 @@ class PostsSection extends StatelessWidget {
                                   horizontal: 6.0, vertical: 2.0),
                               decoration: BoxDecoration(
                                 color: AppColors.customBlack,
-                                borderRadius: BorderRadius.circular(4.0),
+                                borderRadius: BorderRadius.circular(UIConstants
+                                    .innerInnerRadiusClipped), // Adjust radius
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -360,13 +365,13 @@ class PostsSection extends StatelessWidget {
 // Shared Components
 Widget _buildInfoContainer({required Widget child, bool shoutPadding = false}) {
   return Container(
-    margin: const EdgeInsets.symmetric(vertical: 8.0),
+    margin: const EdgeInsets.symmetric(vertical: 5.0),
     padding: !shoutPadding
-        ? const EdgeInsets.all(12.0)
-        : const EdgeInsets.only(left: 12.0, right: 12.0, bottom: 12.0),
+        ? const EdgeInsets.all(10.0)
+        : const EdgeInsets.only(left: 10.0, right: 10.0, bottom: 10.0),
     decoration: BoxDecoration(
       color: AppColors.bg,
-      borderRadius: BorderRadius.circular(18.0),
+      borderRadius: BorderRadius.circular(UIConstants.innerRadius),
       border: Border.all(
         color: AppColors.customBlack,
         width: 3.0,

@@ -1,3 +1,4 @@
+import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 
@@ -8,7 +9,7 @@ void showDeleteConfirmationDialog(BuildContext context, String userName) {
       return AlertDialog(
         backgroundColor: AppColors.bg,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.0),
+          borderRadius: BorderRadius.circular(UIConstants.popUpRadius),
           side: const BorderSide(
             color: AppColors.customBlack,
             width: 3.0,
@@ -100,7 +101,7 @@ void showHideConfirmationDialog(BuildContext context, String userName) {
       return AlertDialog(
         backgroundColor: AppColors.bg,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.0),
+          borderRadius: BorderRadius.circular(UIConstants.popUpRadius),
           side: const BorderSide(
             color: AppColors.customBlack,
             width: 3.0,
@@ -194,7 +195,7 @@ void showReportConfirmationDialog(BuildContext context, String userName) {
       return AlertDialog(
         backgroundColor: AppColors.bg,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.0),
+          borderRadius: BorderRadius.circular(UIConstants.popUpRadius),
           side: const BorderSide(
             color: AppColors.customBlack,
             width: 3.0,

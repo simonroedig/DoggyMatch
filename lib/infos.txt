@@ -17,3 +17,8 @@ flutter pub get
 dart run flutter_launcher_icons
 
 Use #AARRGGBB for colors instead of #AABBGGRR, to be compatible with Flutter image class.
+
+border: 18
+padding: 10
+
+inner border: 18-10 = 8

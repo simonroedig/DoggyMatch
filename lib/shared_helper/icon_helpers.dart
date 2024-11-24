@@ -1,4 +1,5 @@
 // File: icon_helpers.dart
+import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:doggymatch_flutter/services/friends_service.dart';
@@ -19,21 +20,23 @@ class IconHelpers {
   }
 
   /// Builds the friend status icon based on the status and profile color.
-  Widget buildFriendStatusIcon(String status, Color profileColor) {
+  Widget buildFriendStatusIcon(
+      String status, Color profileColor, double strokeWidth) {
     Widget buildIconWithBackground(Widget icon) {
       return Stack(
         alignment: Alignment.center,
         children: [
           // Outer circle with profile color and customBlack stroke
           Container(
-            width: 24, // Diameter of the circle
-            height: 24,
+            width: 32, // Width of the rectangle
+            height: 24, // Height of the rectangle
             decoration: BoxDecoration(
-              color: profileColor, // Background color of the circle
-              shape: BoxShape.circle,
+              color: profileColor, // Background color of the rectangle
+              borderRadius: BorderRadius.circular(
+                  UIConstants.innerInnerRadius), // Add border radius here
               border: Border.all(
                 color: AppColors.customBlack, // Stroke color
-                width: 1, // Stroke width
+                width: strokeWidth, // Stroke width
               ),
             ),
           ),
@@ -58,7 +61,7 @@ class IconHelpers {
                 ),
               ),
               Transform.translate(
-                offset: const Offset(5, -3),
+                offset: const Offset(6, -3),
                 child: const Icon(
                   Icons.check_rounded,
                   size: 8,
@@ -85,7 +88,7 @@ class IconHelpers {
                 ),
               ),
               Transform.translate(
-                offset: const Offset(5, -3),
+                offset: const Offset(6, -3),
                 child: const Opacity(
                   opacity: 0.5, // Set the opacity for the smaller icon
                   child: Icon(
@@ -115,7 +118,7 @@ class IconHelpers {
                 ),
               ),
               Transform.translate(
-                offset: const Offset(5, -3),
+                offset: const Offset(6, -3),
                 child: const Opacity(
                   opacity: 0.5, // Set the opacity for the smaller icon
                   child: Icon(
@@ -135,7 +138,8 @@ class IconHelpers {
   }
 
   /// Builds the save icon based on the saved status and profile color.
-  Widget buildSaveIcon(bool isSaved, Color profileColor, double? size) {
+  Widget buildSaveIcon(
+      bool isSaved, Color profileColor, double strokeWidth, double? size) {
     if (!isSaved) {
       return const SizedBox.shrink(); // Return nothing if not saved
     }
@@ -143,16 +147,17 @@ class IconHelpers {
     return Stack(
       alignment: Alignment.center,
       children: [
-        // Outer circle with profile color and customBlack stroke
+        // Outer rectangle with profile color and customBlack stroke
         Container(
-          width: size, // Diameter of the circle
-          height: size,
+          width: size, // Width of the rectangle
+          height: size, // Height of the rectangle
           decoration: BoxDecoration(
-            color: profileColor, // Background color of the circle
-            shape: BoxShape.circle,
+            color: profileColor, // Background color of the rectangle
+            borderRadius: BorderRadius.circular(
+                UIConstants.innerInnerRadius), // Add border radius
             border: Border.all(
               color: AppColors.customBlack, // Stroke color
-              width: 1, // Stroke width
+              width: strokeWidth, // Stroke width
             ),
           ),
         ),

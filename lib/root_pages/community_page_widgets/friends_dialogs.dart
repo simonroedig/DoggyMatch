@@ -1,3 +1,4 @@
+import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 
@@ -10,7 +11,7 @@ class FriendsDialogs {
         return AlertDialog(
           backgroundColor: AppColors.bg,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0),
+            borderRadius: BorderRadius.circular(UIConstants.popUpRadius),
             side: const BorderSide(
               color: AppColors.customBlack,
               width: 3.0,
@@ -88,7 +89,7 @@ class FriendsDialogs {
         return AlertDialog(
           backgroundColor: AppColors.bg,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0),
+            borderRadius: BorderRadius.circular(UIConstants.popUpRadius),
             side: const BorderSide(
               color: AppColors.customBlack,
               width: 3.0,
@@ -166,7 +167,7 @@ class FriendsDialogs {
         return AlertDialog(
           backgroundColor: AppColors.bg,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0),
+            borderRadius: BorderRadius.circular(UIConstants.popUpRadius),
             side: const BorderSide(
               color: AppColors.customBlack,
               width: 3.0,
@@ -244,7 +245,7 @@ class FriendsDialogs {
         return AlertDialog(
           backgroundColor: AppColors.bg,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0),
+            borderRadius: BorderRadius.circular(UIConstants.popUpRadius),
             side: const BorderSide(
               color: AppColors.customBlack,
               width: 3.0,

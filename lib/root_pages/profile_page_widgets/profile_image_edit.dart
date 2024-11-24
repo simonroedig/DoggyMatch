@@ -1,3 +1,4 @@
+import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/classes/profile.dart';
 import 'package:doggymatch_flutter/main/colors.dart'; // Importing the custom colors
@@ -30,11 +31,12 @@ class ProfileImageEdit extends StatelessWidget {
               // If the index is within the number of images, show the image with border and rounded corners
               return Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12.0),
+                  borderRadius: BorderRadius.circular(UIConstants.innerRadius),
                   border: Border.all(color: AppColors.customBlack, width: 3),
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(9.0),
+                  borderRadius:
+                      BorderRadius.circular(UIConstants.innerRadiusClipped),
                   child: Image.asset(
                     profile.images[index],
                     fit: BoxFit.cover,
@@ -50,7 +52,8 @@ class ProfileImageEdit extends StatelessWidget {
                 child: Container(
                   decoration: BoxDecoration(
                     color: AppColors.brownLightest, // Set placeholder color
-                    borderRadius: BorderRadius.circular(12.0),
+                    borderRadius:
+                        BorderRadius.circular(UIConstants.innerRadius),
                     border: Border.all(
                         color: AppColors.customBlack,
                         width: 3), // Set border color and width

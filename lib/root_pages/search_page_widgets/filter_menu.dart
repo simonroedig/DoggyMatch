@@ -1,3 +1,4 @@
+import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/states/user_profile_state.dart';
@@ -72,13 +73,13 @@ class FilterMenuState extends State<FilterMenu> {
         color: AppColors.bg, // Set the background color for the sides
         child: Padding(
           padding: const EdgeInsets.symmetric(
-              horizontal: 17.0), // Adjust padding for left and right
+              horizontal: 16.0), // Adjust padding for left and right
           child: Container(
             width: MediaQuery.of(context).size.width * 0.9,
             height: _calculateHeight(context),
             decoration: BoxDecoration(
               color: AppColors.greyLightest,
-              borderRadius: BorderRadius.circular(24.0),
+              borderRadius: BorderRadius.circular(UIConstants.outerRadius),
               border: Border.all(
                 color: AppColors.customBlack,
                 width: 3.0,
@@ -191,7 +192,8 @@ class FilterMenuState extends State<FilterMenu> {
                           width: MediaQuery.of(context).size.width * 0.9,
                           decoration: BoxDecoration(
                             color: AppColors.greyLightest,
-                            borderRadius: BorderRadius.circular(50.0),
+                            borderRadius:
+                                BorderRadius.circular(UIConstants.outerRadius),
                             border: Border.all(
                               color: AppColors.customBlack,
                               width: 3.0,
@@ -228,8 +230,8 @@ class FilterMenuState extends State<FilterMenu> {
                             vertical: 12.0, // Increase the vertical padding
                           ),
                           shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(8.0), // Curved edges
+                            borderRadius: BorderRadius.circular(
+                                UIConstants.innerRadius), // Curved edges
                             side: const BorderSide(
                               color: AppColors.customBlack, // Border color
                               width: 3.0, // Border width
@@ -274,7 +276,7 @@ class FilterMenuState extends State<FilterMenu> {
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.greyLightest,
-          borderRadius: BorderRadius.circular(50.0),
+          borderRadius: BorderRadius.circular(UIConstants.outerRadius),
           border: Border.all(
             color: isSelected ? AppColors.customBlack : AppColors.grey,
             width: 3.0,

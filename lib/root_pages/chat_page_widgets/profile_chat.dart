@@ -1,3 +1,4 @@
+import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
@@ -304,7 +305,8 @@ class _ProfileChatState extends State<ProfileChat> with WidgetsBindingObserver {
                 -10, 40), // Adjust to position the menu beneath the icon
             color: AppColors.bg, // Custom background color
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16.0), // Curved edges
+              borderRadius: BorderRadius.circular(
+                  UIConstants.popUpRadius), // Curved edges
               side: const BorderSide(
                 color: AppColors.customBlack, // Border color
                 width: 3.0, // Border width
@@ -318,14 +320,14 @@ class _ProfileChatState extends State<ProfileChat> with WidgetsBindingObserver {
 
   Widget _buildMessageInput(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0, top: 14.0),
+      padding: const EdgeInsets.only(bottom: 10.0, top: 14.0),
       child: Center(
         child: Container(
           width: MediaQuery.of(context).size.width * 0.84,
           padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
           decoration: BoxDecoration(
             color: AppColors.bg,
-            borderRadius: BorderRadius.circular(20.0),
+            borderRadius: BorderRadius.circular(UIConstants.innerRadius),
             border: Border.all(
               color: AppColors.customBlack,
               width: 3.0,
@@ -337,7 +339,7 @@ class _ProfileChatState extends State<ProfileChat> with WidgetsBindingObserver {
                 child: TextField(
                   controller: _controller,
                   decoration: const InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16.0),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
                     hintText: 'Send a message..',
                     hintStyle: TextStyle(color: AppColors.grey),
                     border: InputBorder.none,
@@ -380,8 +382,8 @@ class _ProfileChatState extends State<ProfileChat> with WidgetsBindingObserver {
             Padding(
               padding: const EdgeInsets.only(right: 8.0, bottom: 4.0),
               child: Container(
-                width: 35, // Adjust container size if needed
-                height: 35, // Adjust container size if needed
+                width: 40, // Adjust container size if needed
+                height: 40, // Adjust container size if needed
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
@@ -390,7 +392,7 @@ class _ProfileChatState extends State<ProfileChat> with WidgetsBindingObserver {
                   ),
                 ),
                 child: CircleAvatar(
-                  radius: 18.0, // Adjust the size of the profile image
+                  radius: 10.0, // Adjust the size of the profile image
                   backgroundColor: AppColors.customBlack,
                   backgroundImage:
                       widget.otherUserProfile.images.first.startsWith('http')
@@ -408,18 +410,18 @@ class _ProfileChatState extends State<ProfileChat> with WidgetsBindingObserver {
             child: Container(
               margin: const EdgeInsets.symmetric(vertical: 4.0),
               padding:
-                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
               decoration: BoxDecoration(
                 color: isSender ? AppColors.brownLight : AppColors.greyLightest,
                 borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(24.0),
-                  topRight: const Radius.circular(24.0),
+                  topLeft: const Radius.circular(UIConstants.innerRadius),
+                  topRight: const Radius.circular(UIConstants.innerRadius),
                   bottomLeft: isSender
-                      ? const Radius.circular(24.0)
-                      : const Radius.circular(10.0),
+                      ? const Radius.circular(UIConstants.innerRadius)
+                      : const Radius.circular(UIConstants.innerInnerRadius),
                   bottomRight: isSender
-                      ? const Radius.circular(10.0)
-                      : const Radius.circular(24.0),
+                      ? const Radius.circular(UIConstants.innerInnerRadius)
+                      : const Radius.circular(UIConstants.innerRadius),
                 ),
                 border: Border.all(
                   color: AppColors.customBlack,

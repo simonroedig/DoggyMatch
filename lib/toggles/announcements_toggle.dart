@@ -1,5 +1,6 @@
 // ignore_for_file: use_super_parameters, library_private_types_in_public_api
 
+import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:doggymatch_flutter/notifiers/filter_notifier.dart';
@@ -84,10 +85,10 @@ class _OwnAllAnnouncementsToggleState extends State<AnnouncementsToggle> {
     return GestureDetector(
       onTap: toggleSwitch,
       child: Container(
-        width: MediaQuery.of(context).size.width * 0.45,
+        width: MediaQuery.of(context).size.width * 0.55,
         height: 40,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(25),
+          borderRadius: BorderRadius.circular(UIConstants.outerRadius),
           border: Border.all(
             color: AppColors.customBlack,
             width: 3, // Border width of 3

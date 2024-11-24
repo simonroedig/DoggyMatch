@@ -2,6 +2,7 @@
 
 import 'dart:developer';
 import 'package:doggymatch_flutter/classes/profile.dart';
+import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:doggymatch_flutter/services/auth_service.dart';
 import 'package:doggymatch_flutter/states/user_profile_state.dart';
 import 'package:flutter/cupertino.dart';
@@ -442,7 +443,8 @@ class _ProfileImageEditState extends State<ProfileImageEdit> {
                             key: const ValueKey('uploading_indicator'),
                             decoration: BoxDecoration(
                               color: AppColors.customBlack.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(14.0),
+                              borderRadius: BorderRadius.circular(
+                                  UIConstants.innerRadius),
                               border: Border.all(
                                 color: AppColors.customBlack,
                                 width: 3.0,
@@ -460,7 +462,8 @@ class _ProfileImageEditState extends State<ProfileImageEdit> {
                             child: Container(
                               decoration: BoxDecoration(
                                 color: AppColors.customBlack.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(14.0),
+                                borderRadius: BorderRadius.circular(
+                                    UIConstants.innerRadius),
                                 border: Border.all(
                                   color: AppColors.customBlack,
                                   width: 3.0,
@@ -480,14 +483,16 @@ class _ProfileImageEditState extends State<ProfileImageEdit> {
                         Positioned.fill(
                           child: Container(
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(14.0),
+                              borderRadius: BorderRadius.circular(
+                                  UIConstants.innerRadius),
                               border: Border.all(
                                 color: AppColors.customBlack,
                                 width: 3.0,
                               ),
                             ),
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(11.0),
+                              borderRadius: BorderRadius.circular(UIConstants
+                                  .innerRadiusClipped), // Clip rounded corners
                               child: _images[index].startsWith('http')
                                   ? Image.network(
                                       _images[index],

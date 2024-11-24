@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'dart:developer' as developer;
+import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:doggymatch_flutter/root_pages/profile_page_widgets/profile_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/custom_app_bar.dart';
@@ -230,7 +231,7 @@ class _ChatPageState extends State<ChatPage> {
                                   final chatRoom = communicationChats[index];
                                   return Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        vertical: 4.0),
+                                        vertical: 5.0),
                                     child: ChatCard(
                                       otherUserProfile:
                                           chatRoom['profile'] as UserProfile,
@@ -387,7 +388,8 @@ class _ChatPageState extends State<ChatPage> {
                     child: Padding(
                       padding: const EdgeInsets.all(0.0),
                       child: Material(
-                        borderRadius: BorderRadius.circular(16.0),
+                        borderRadius:
+                            BorderRadius.circular(UIConstants.outerRadius),
                         color: Colors.transparent,
                         child: ProfileWidget(
                           profile: _selectedProfile!,

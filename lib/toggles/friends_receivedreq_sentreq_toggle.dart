@@ -1,5 +1,6 @@
 // ignore_for_file: library_private_types_in_public_api
 
+import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 
@@ -27,10 +28,12 @@ class _FriendsReceivedReqSentReqToggleState
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: MediaQuery.of(context).size.width * 0.9,
+      width: MediaQuery.of(context).size.width * 1,
+      margin:
+          const EdgeInsets.only(top: 0.0, left: 16.0, right: 16.0, bottom: 0.0),
       height: 40,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(25),
+        borderRadius: BorderRadius.circular(UIConstants.outerRadius),
         border: Border.all(color: AppColors.customBlack, width: 3),
       ),
       child: Row(
@@ -46,13 +49,14 @@ class _FriendsReceivedReqSentReqToggleState
                   color:
                       currentState == 0 ? AppColors.customBlack : AppColors.bg,
                   borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(25),
-                    bottomLeft: Radius.circular(25),
+                    topLeft: Radius.circular(UIConstants.outerRadiusClipped),
+                    bottomLeft: Radius.circular(UIConstants.outerRadiusClipped),
                   ),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    const SizedBox(width: 10),
                     Icon(
                       Icons.people_alt_rounded,
                       size: 24,
@@ -93,6 +97,7 @@ class _FriendsReceivedReqSentReqToggleState
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    const SizedBox(width: 10),
                     Icon(
                       Icons.people_alt_rounded,
                       size: 24,
@@ -130,13 +135,15 @@ class _FriendsReceivedReqSentReqToggleState
                   color:
                       currentState == 2 ? AppColors.customBlack : AppColors.bg,
                   borderRadius: const BorderRadius.only(
-                    topRight: Radius.circular(25),
-                    bottomRight: Radius.circular(25),
+                    topRight: Radius.circular(UIConstants.outerRadiusClipped),
+                    bottomRight:
+                        Radius.circular(UIConstants.outerRadiusClipped),
                   ),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    const SizedBox(width: 10),
                     Icon(
                       Icons.people_alt_rounded,
                       size: 24,

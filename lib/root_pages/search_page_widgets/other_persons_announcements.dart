@@ -4,6 +4,7 @@
 
 import 'dart:developer' as developer;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:doggymatch_flutter/main/ui_constants.dart';
 //import 'package:doggymatch_flutter/root_pages/search_page_widgets/announcement_dialogs.dart';
 import 'package:doggymatch_flutter/services/friends_service.dart';
 import 'package:doggymatch_flutter/shared_helper/icon_helpers.dart';
@@ -215,24 +216,6 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
     }
   }
 
-  String _calculateTimeAgo(DateTime createdAt) {
-    final now = DateTime.now();
-    final difference = now.difference(createdAt);
-
-    if (difference.inDays >= 30) {
-      final months = (difference.inDays / 30).floor();
-      return '$months ${months == 1 ? 'month' : 'months'} ago';
-    } else if (difference.inDays > 0) {
-      return '${difference.inDays} ${difference.inDays == 1 ? 'day' : 'days'} ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours} ${difference.inHours == 1 ? 'hour' : 'hours'} ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} ${difference.inMinutes == 1 ? 'minute' : 'minutes'} ago';
-    } else {
-      return 'Just now';
-    }
-  }
-
   Future<bool> _isProfileSaved(String userId) async {
     return await _authProfile.isProfileSaved(userId);
   }
@@ -241,7 +224,7 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
     final user = announcementData['user'];
     final announcement = announcementData['announcement'];
     final DateTime createdAt = DateTime.parse(announcement['createdAt']);
-    final String timeAgo = _calculateTimeAgo(createdAt);
+    final String timeAgo = calculateTimeAgo(createdAt);
 
     final String profileImage =
         user['images'].isNotEmpty ? user['images'][0] : '';
@@ -309,12 +292,13 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
                 }
               },
               child: Container(
-                margin: const EdgeInsets.symmetric(vertical: 8.0),
-                padding: const EdgeInsets.all(10.0),
-                width: MediaQuery.of(context).size.width * 0.9,
+                margin: const EdgeInsets.symmetric(vertical: 5.0),
+                padding: const EdgeInsets.only(
+                    left: 10.0, top: 10.0, right: 10.0, bottom: 10.0),
+                width: MediaQuery.of(context).size.width * 0.90,
                 decoration: BoxDecoration(
                   color: profileColor,
-                  borderRadius: BorderRadius.circular(24.0),
+                  borderRadius: BorderRadius.circular(UIConstants.outerRadius),
                   border: Border.all(color: AppColors.customBlack, width: 3),
                 ),
                 child: Stack(
@@ -332,18 +316,19 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
                                   children: [
                                     // Profile Image
                                     ClipRRect(
-                                      borderRadius: BorderRadius.circular(18.0),
+                                      borderRadius: BorderRadius.circular(
+                                          UIConstants.innerRadius),
                                       child: Container(
                                         decoration: BoxDecoration(
                                           border: Border.all(
                                               color: AppColors.customBlack,
                                               width: 3),
-                                          borderRadius:
-                                              BorderRadius.circular(18.0),
+                                          borderRadius: BorderRadius.circular(
+                                              UIConstants.innerRadius),
                                         ),
                                         child: ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(15.0),
+                                          borderRadius: BorderRadius.circular(
+                                              UIConstants.innerRadiusClipped),
                                           child: Image.network(
                                             profileImage,
                                             height: 70,
@@ -355,28 +340,29 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
                                     ),
                                     // Friends Icon
                                     Positioned(
-                                      top: -4,
+                                      bottom: -4,
                                       left: -4,
                                       child: iconHelpers.buildFriendStatusIcon(
-                                          friendStatus, profileColor),
+                                          friendStatus, profileColor, 3),
                                     ),
                                     // Save Icon
                                     Positioned(
-                                      bottom: -4,
+                                      top: -4,
                                       right: -4,
                                       child: iconHelpers.buildSaveIcon(
-                                          isSaved, profileColor, 20),
+                                          isSaved, profileColor, 20, 3),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(width: 8.0),
+                                const SizedBox(width: 10.0),
                                 Expanded(
                                   child: Container(
                                     height: 74,
                                     padding: const EdgeInsets.all(8.0),
                                     decoration: BoxDecoration(
                                       color: AppColors.bg,
-                                      borderRadius: BorderRadius.circular(18.0),
+                                      borderRadius: BorderRadius.circular(
+                                          UIConstants.innerRadius),
                                       border: Border.all(
                                           color: AppColors.customBlack,
                                           width: 3),
@@ -407,11 +393,12 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
                         const SizedBox(height: 10),
                         Center(
                           child: Container(
-                            width: MediaQuery.of(context).size.width * 0.9,
-                            padding: const EdgeInsets.all(8.0),
+                            width: MediaQuery.of(context).size.width * 0.90,
+                            padding: const EdgeInsets.all(10.0),
                             decoration: BoxDecoration(
                               color: AppColors.bg,
-                              borderRadius: BorderRadius.circular(18.0),
+                              borderRadius: BorderRadius.circular(
+                                  UIConstants.innerRadius),
                               border: Border.all(
                                   color: AppColors.customBlack, width: 3),
                             ),
@@ -511,7 +498,7 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
     return RefreshIndicator(
       onRefresh: _loadFilteredUsersAnnouncements,
       child: ListView.builder(
-        padding: const EdgeInsets.only(top: 0, left: 20, right: 20),
+        padding: const EdgeInsets.only(top: 0, left: 16, right: 16),
         itemCount: _announcements.length,
         itemBuilder: (context, index) {
           return _buildAnnouncementCard(_announcements[index]);

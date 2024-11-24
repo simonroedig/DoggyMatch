@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:doggymatch_flutter/main/main.dart';
+import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:doggymatch_flutter/welcome_pages/welcome_page.dart';
@@ -51,7 +52,7 @@ class _SettingsPageState extends State<SettingsPage> {
           child: Container(
             decoration: BoxDecoration(
               color: AppColors.greyLightest,
-              borderRadius: BorderRadius.circular(50.0),
+              borderRadius: BorderRadius.circular(UIConstants.outerRadius),
             ),
             child: IconButton(
               icon: const Icon(Icons.arrow_circle_left_rounded),
@@ -219,7 +220,8 @@ class _SettingsPageState extends State<SettingsPage> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.customBlack,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius:
+                              BorderRadius.circular(UIConstants.innerRadius),
                         ),
                         side: const BorderSide(
                           color: AppColors.customBlack,
@@ -318,7 +320,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.customRed,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius:
+                        BorderRadius.circular(UIConstants.innerRadius),
                   ),
                   side: const BorderSide(
                     color: AppColors.customBlack,
@@ -355,7 +358,7 @@ class _SettingsPageState extends State<SettingsPage> {
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.greyLightest,
-          borderRadius: BorderRadius.circular(50.0),
+          borderRadius: BorderRadius.circular(UIConstants.outerRadius),
           border: Border.all(
             color: isSelected ? AppColors.customBlack : AppColors.grey,
             width: 3.0,

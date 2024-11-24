@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously, deprecated_member_use
 
 import 'dart:io';
+import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/posts_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -282,7 +283,8 @@ class _NewPostPageState extends State<NewPostPage> {
                       child: Container(
                         decoration: BoxDecoration(
                           color: AppColors.customBlack.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(14.0),
+                          borderRadius:
+                              BorderRadius.circular(UIConstants.innerRadius),
                           border: Border.all(
                             color: AppColors.customBlack,
                             width: 3.0,
@@ -303,14 +305,16 @@ class _NewPostPageState extends State<NewPostPage> {
                       Positioned.fill(
                         child: Container(
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(14.0),
+                            borderRadius:
+                                BorderRadius.circular(UIConstants.innerRadius),
                             border: Border.all(
                               color: AppColors.customBlack,
                               width: 3.0,
                             ),
                           ),
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(11.0),
+                            borderRadius: BorderRadius.circular(
+                                UIConstants.innerRadiusClipped),
                             child:
                                 Image.file(_images[index], fit: BoxFit.cover),
                           ),
@@ -357,7 +361,8 @@ class _NewPostPageState extends State<NewPostPage> {
                           : Colors.transparent,
                       padding: const EdgeInsets.symmetric(vertical: 12.0),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0),
+                        borderRadius:
+                            BorderRadius.circular(UIConstants.innerRadius),
                         side: const BorderSide(
                           color: AppColors.customBlack,
                           width: 3.0,

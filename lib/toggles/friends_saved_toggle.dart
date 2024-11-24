@@ -2,6 +2,7 @@
 
 // ignore_for_file: library_private_types_in_public_api
 
+import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 
@@ -29,10 +30,12 @@ class _FriendsSavedToggleState extends State<FriendsSavedToggle> {
     return GestureDetector(
       onTap: toggleSwitch,
       child: Container(
-        width: MediaQuery.of(context).size.width * 0.9,
+        width: MediaQuery.of(context).size.width * 1,
+        margin: const EdgeInsets.only(
+            top: 0.0, left: 16.0, right: 16.0, bottom: 0.0),
         height: 40,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(25),
+          borderRadius: BorderRadius.circular(UIConstants.outerRadius),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -45,8 +48,8 @@ class _FriendsSavedToggleState extends State<FriendsSavedToggle> {
                   color:
                       isFriendsSelected ? AppColors.customBlack : AppColors.bg,
                   borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(25),
-                    bottomLeft: Radius.circular(25),
+                    topLeft: Radius.circular(UIConstants.outerRadius),
+                    bottomLeft: Radius.circular(UIConstants.outerRadius),
                   ),
                   border: Border(
                     left: BorderSide(
@@ -108,8 +111,8 @@ class _FriendsSavedToggleState extends State<FriendsSavedToggle> {
                   color:
                       !isFriendsSelected ? AppColors.customBlack : AppColors.bg,
                   borderRadius: const BorderRadius.only(
-                    topRight: Radius.circular(25),
-                    bottomRight: Radius.circular(25),
+                    topRight: Radius.circular(UIConstants.outerRadius),
+                    bottomRight: Radius.circular(UIConstants.outerRadius),
                   ),
                   border: Border(
                     top: BorderSide(

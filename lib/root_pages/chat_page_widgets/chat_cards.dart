@@ -2,6 +2,7 @@
 
 // ignore_for_file: library_private_types_in_public_api
 
+import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:doggymatch_flutter/classes/profile.dart';
@@ -108,7 +109,7 @@ class _ChatCardState extends State<ChatCard> with TickerProviderStateMixin {
           height: 80,
           decoration: BoxDecoration(
             color: widget.otherUserProfile.profileColor,
-            borderRadius: BorderRadius.circular(24.0),
+            borderRadius: BorderRadius.circular(UIConstants.outerRadius),
             border: Border.all(color: AppColors.customBlack, width: 3),
           ),
           child: Stack(
@@ -119,8 +120,10 @@ class _ChatCardState extends State<ChatCard> with TickerProviderStateMixin {
                     width: 80,
                     decoration: const BoxDecoration(
                       borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(21.0),
-                        bottomLeft: Radius.circular(21.0),
+                        topLeft:
+                            Radius.circular(UIConstants.outerRadiusClipped),
+                        bottomLeft:
+                            Radius.circular(UIConstants.outerRadiusClipped),
                       ),
                       border: Border(
                         right:
@@ -129,8 +132,10 @@ class _ChatCardState extends State<ChatCard> with TickerProviderStateMixin {
                     ),
                     child: ClipRRect(
                       borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(21.0),
-                        bottomLeft: Radius.circular(21.0),
+                        topLeft:
+                            Radius.circular(UIConstants.outerRadiusClipped),
+                        bottomLeft:
+                            Radius.circular(UIConstants.outerRadiusClipped),
                       ),
                       child: firstImage.startsWith('http')
                           ? Image.network(firstImage, fit: BoxFit.cover)

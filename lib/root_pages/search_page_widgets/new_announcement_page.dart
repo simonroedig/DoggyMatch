@@ -1,5 +1,6 @@
 // ignore_for_file: deprecated_member_use
 
+import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -256,7 +257,7 @@ class _NewAnnouncementPageState extends State<NewAnnouncementPage> {
               const SizedBox(height: 32),
               Center(
                 child: SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.9,
+                  width: MediaQuery.of(context).size.width * 1,
                   child: ElevatedButton(
                     onPressed: isButtonEnabled
                         ? () {
@@ -277,8 +278,8 @@ class _NewAnnouncementPageState extends State<NewAnnouncementPage> {
                         vertical: 12.0, // Increase the vertical padding
                       ),
                       shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(8.0), // Curved edges
+                        borderRadius: BorderRadius.circular(
+                            UIConstants.innerRadius), // Curved edges
                         side: const BorderSide(
                           color: AppColors.customBlack, // Border color
                           width: 3.0, // Border width

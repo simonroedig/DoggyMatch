@@ -3,6 +3,7 @@
 
 import 'dart:developer' as developer;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:doggymatch_flutter/notifiers/filter_notifier.dart';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/posts_dialogs.dart';
 import 'package:doggymatch_flutter/services/post_service.dart';
@@ -343,7 +344,7 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
     return RefreshIndicator(
       onRefresh: loadPosts, // Call loadPosts when pulled down
       child: ListView.builder(
-        padding: const EdgeInsets.only(top: 0, left: 20, right: 20),
+        padding: const EdgeInsets.only(top: 0, left: 16, right: 16),
         itemCount: _posts.length,
         itemBuilder: (context, index) {
           return RepaintBoundary(
@@ -459,8 +460,8 @@ class _PostCardState extends State<PostCard> {
               decoration: const BoxDecoration(
                 color: AppColors.bg,
                 borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(24.0),
-                  topRight: Radius.circular(24.0),
+                  topLeft: Radius.circular(UIConstants.outerRadius),
+                  topRight: Radius.circular(UIConstants.outerRadius),
                 ),
               ),
               child: _CommentsOverlay(
@@ -567,12 +568,12 @@ class _PostCardState extends State<PostCard> {
                 }
               },
               child: Container(
-                margin: const EdgeInsets.symmetric(vertical: 8.0),
+                margin: const EdgeInsets.symmetric(vertical: 5.0),
                 padding: const EdgeInsets.all(10.0),
                 width: MediaQuery.of(context).size.width * 0.9,
                 decoration: BoxDecoration(
                   color: profileColor,
-                  borderRadius: BorderRadius.circular(24.0),
+                  borderRadius: BorderRadius.circular(UIConstants.outerRadius),
                   border: Border.all(color: AppColors.customBlack, width: 3),
                 ),
                 child: Column(
@@ -586,16 +587,19 @@ class _PostCardState extends State<PostCard> {
                               alignment: Alignment.topLeft,
                               children: [
                                 ClipRRect(
-                                  borderRadius: BorderRadius.circular(18.0),
+                                  borderRadius: BorderRadius.circular(
+                                      UIConstants.innerRadius),
                                   child: Container(
                                     decoration: BoxDecoration(
                                       border: Border.all(
                                           color: AppColors.customBlack,
                                           width: 3),
-                                      borderRadius: BorderRadius.circular(18.0),
+                                      borderRadius: BorderRadius.circular(
+                                          UIConstants.innerRadius),
                                     ),
                                     child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(15.0),
+                                      borderRadius: BorderRadius.circular(
+                                          UIConstants.innerRadiusClipped),
                                       child: Image.network(
                                         user['images'][0],
                                         height: 70,
@@ -607,17 +611,17 @@ class _PostCardState extends State<PostCard> {
                                 ),
                                 // Friends Icon
                                 Positioned(
-                                  top: -4,
+                                  bottom: -4,
                                   left: -4,
                                   child: iconHelpers.buildFriendStatusIcon(
-                                      friendStatus, profileColor),
+                                      friendStatus, profileColor, 3),
                                 ),
                                 // Save Icon
                                 Positioned(
-                                  bottom: -4,
+                                  top: -4,
                                   right: -4,
                                   child: iconHelpers.buildSaveIcon(
-                                      isProfileSaved, profileColor, 20),
+                                      isProfileSaved, profileColor, 3, 20),
                                 ),
                               ],
                             ),
@@ -625,10 +629,11 @@ class _PostCardState extends State<PostCard> {
                             Expanded(
                               child: Container(
                                 height: 74,
-                                padding: const EdgeInsets.all(8.0),
+                                padding: const EdgeInsets.all(10.0),
                                 decoration: BoxDecoration(
                                   color: AppColors.bg,
-                                  borderRadius: BorderRadius.circular(18.0),
+                                  borderRadius: BorderRadius.circular(
+                                      UIConstants.innerRadius),
                                   border: Border.all(
                                       color: AppColors.customBlack, width: 3),
                                 ),
@@ -667,10 +672,11 @@ class _PostCardState extends State<PostCard> {
                     Center(
                       child: Container(
                         width: MediaQuery.of(context).size.width * 0.9,
-                        padding: const EdgeInsets.all(8.0),
+                        padding: const EdgeInsets.all(10.0),
                         decoration: BoxDecoration(
                           color: AppColors.bg,
-                          borderRadius: BorderRadius.circular(18.0),
+                          borderRadius:
+                              BorderRadius.circular(UIConstants.innerRadius),
                           border: Border.all(
                               color: AppColors.customBlack, width: 3),
                         ),
@@ -688,10 +694,11 @@ class _PostCardState extends State<PostCard> {
                     ),
                     const SizedBox(height: 10),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
                       decoration: BoxDecoration(
                         color: AppColors.bg,
-                        borderRadius: BorderRadius.circular(18.0),
+                        borderRadius:
+                            BorderRadius.circular(UIConstants.innerRadius),
                         border:
                             Border.all(color: AppColors.customBlack, width: 3),
                       ),
@@ -853,7 +860,8 @@ class _PostCardState extends State<PostCard> {
                                     offset: const Offset(0, 40),
                                     color: AppColors.bg,
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16.0),
+                                      borderRadius: BorderRadius.circular(
+                                          UIConstants.innerRadius),
                                       side: const BorderSide(
                                         color: AppColors.customBlack,
                                         width: 3.0,
@@ -866,7 +874,7 @@ class _PostCardState extends State<PostCard> {
                           ),
                           // Separator line
                           Container(
-                            margin: const EdgeInsets.symmetric(vertical: 4.0),
+                            margin: const EdgeInsets.symmetric(vertical: 5.0),
                             height: 3.0,
                             color: AppColors.customBlack,
                           ),
@@ -884,7 +892,7 @@ class _PostCardState extends State<PostCard> {
                             },
                             child: Padding(
                               padding:
-                                  const EdgeInsets.symmetric(vertical: 4.0),
+                                  const EdgeInsets.symmetric(vertical: 5.0),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment
                                     .center, // Center the content
@@ -932,7 +940,7 @@ class _PostCardState extends State<PostCard> {
 
                           // Separator line
                           Container(
-                            margin: const EdgeInsets.symmetric(vertical: 4.0),
+                            margin: const EdgeInsets.symmetric(vertical: 5.0),
                             height: 3.0,
                             color: AppColors.customBlack,
                           ),
@@ -958,7 +966,7 @@ class _PostCardState extends State<PostCard> {
                             },
                             child: Padding(
                               padding:
-                                  const EdgeInsets.symmetric(vertical: 4.0),
+                                  const EdgeInsets.symmetric(vertical: 5.0),
                               child: Column(
                                 children: [
                                   Row(
@@ -1038,8 +1046,8 @@ class _PostCardState extends State<PostCard> {
               decoration: const BoxDecoration(
                 color: AppColors.bg,
                 borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(24.0),
-                  topRight: Radius.circular(24.0),
+                  topLeft: Radius.circular(UIConstants.outerRadius),
+                  topRight: Radius.circular(UIConstants.outerRadius),
                 ),
               ),
               child: _LikesOverlay(
@@ -1061,10 +1069,10 @@ class _PostCardState extends State<PostCard> {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: AppColors.customBlack, width: 3),
-        borderRadius: BorderRadius.circular(18.0),
+        borderRadius: BorderRadius.circular(UIConstants.innerRadius),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(15.0),
+        borderRadius: BorderRadius.circular(UIConstants.innerRadiusClipped),
         child: Stack(
           children: [
             AspectRatio(
@@ -1434,7 +1442,7 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
               height: 40.0,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.customBlack, width: 2),
+                border: Border.all(color: AppColors.customBlack, width: 3),
                 image: DecorationImage(
                   fit: BoxFit.cover,
                   image: NetworkImage(profileImageUrl),
@@ -1555,12 +1563,12 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
             padding: const EdgeInsets.only(bottom: 8.0, top: 14.0),
             child: Center(
               child: Container(
-                width: MediaQuery.of(context).size.width * 0.84,
+                width: MediaQuery.of(context).size.width * 0.9,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
                 decoration: BoxDecoration(
                   color: AppColors.bg,
-                  borderRadius: BorderRadius.circular(20.0),
+                  borderRadius: BorderRadius.circular(UIConstants.innerRadius),
                   border: Border.all(
                     color: AppColors.customBlack,
                     width: 3.0,
@@ -1627,8 +1635,8 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
               color: widget.profileColor,
               border: Border.all(color: AppColors.customBlack, width: 3),
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(18.0),
-                topRight: Radius.circular(18.0),
+                topLeft: Radius.circular(UIConstants.outerRadius),
+                topRight: Radius.circular(UIConstants.outerRadius),
               ),
             ),
             child: Column(
@@ -1641,7 +1649,7 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
                     height: 5,
                     decoration: BoxDecoration(
                       color: AppColors.customBlack,
-                      borderRadius: BorderRadius.circular(2.5),
+                      borderRadius: BorderRadius.circular(3),
                     ),
                   ),
                 ),
@@ -1982,8 +1990,8 @@ class __LikesOverlayState extends State<_LikesOverlay>
               color: widget.profileColor,
               border: Border.all(color: AppColors.customBlack, width: 3),
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(18.0),
-                topRight: Radius.circular(18.0),
+                topLeft: Radius.circular(UIConstants.outerRadius),
+                topRight: Radius.circular(UIConstants.outerRadius),
               ),
             ),
             child: Column(
@@ -1996,7 +2004,7 @@ class __LikesOverlayState extends State<_LikesOverlay>
                     height: 5,
                     decoration: BoxDecoration(
                       color: AppColors.customBlack,
-                      borderRadius: BorderRadius.circular(2.5),
+                      borderRadius: BorderRadius.circular(3),
                     ),
                   ),
                 ),

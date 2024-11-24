@@ -1,6 +1,7 @@
 // search_page.dart
 // ignore_for_file: use_super_parameters, deprecated_member_use
 
+import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:doggymatch_flutter/services/profile_service.dart';
 import 'dart:developer' as developer;
 import 'package:doggymatch_flutter/shared_helper/shared_and_helper_functions.dart';
@@ -243,7 +244,7 @@ class SearchPageState extends State<SearchPage> {
                         ),
                         const SizedBox(width: 16),
                         IconButton(
-                          iconSize: 48,
+                          iconSize: 47,
                           icon: const Icon(
                             Icons.add_circle_outline_rounded,
                             color: AppColors.customBlack,
@@ -270,7 +271,7 @@ class SearchPageState extends State<SearchPage> {
                         ),
                         const SizedBox(width: 16),
                         IconButton(
-                          iconSize: 48,
+                          iconSize: 47,
                           icon: const Icon(
                             Icons.add_circle_outline_rounded,
                             color: AppColors.customBlack,
@@ -320,7 +321,8 @@ class SearchPageState extends State<SearchPage> {
                         child: Padding(
                           padding: const EdgeInsets.all(0.0),
                           child: Material(
-                            borderRadius: BorderRadius.circular(16.0),
+                            borderRadius:
+                                BorderRadius.circular(UIConstants.popUpRadius),
                             color: Colors.transparent,
                             child: ProfileWidget(
                               profile: _selectedProfile!,

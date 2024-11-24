@@ -1,5 +1,6 @@
 // File: custom_app_bar.dart
 
+import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 
@@ -40,17 +41,18 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             clipBehavior: Clip.none,
             children: [
               Container(
-                width: MediaQuery.of(context).size.width * 0.95,
+                width: MediaQuery.of(context).size.width * 1,
                 height: 60.0,
                 decoration: BoxDecoration(
                   color: AppColors.brownLightest,
-                  borderRadius: BorderRadius.circular(80.0),
+                  borderRadius: BorderRadius.circular(
+                      UIConstants.outerRadius), // before 80
                   border: Border.all(
                     color: AppColors.customBlack,
                     width: 3.0,
                   ),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

@@ -2,6 +2,7 @@
 
 // ignore_for_file: use_super_parameters
 
+import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:doggymatch_flutter/services/auth_service.dart';
 import 'package:doggymatch_flutter/root_pages/profile_page_widgets/profile_edit_all.dart';
 import 'package:flutter/material.dart';
@@ -289,7 +290,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
       child: Padding(
         padding: const EdgeInsets.symmetric(
             horizontal:
-                17.0), // Adjust padding to create space on the left and right
+                16.0), // Adjust padding to create space on the left and right
         child: _buildProfileContainer(
           child: Column(
             children: [
@@ -303,7 +304,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                             clickedOnOtherUser: widget.clickedOnOtherUser),
                         Padding(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 16.0, vertical: 8.0),
+                              horizontal: 10.0, vertical: 5.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -366,14 +367,14 @@ class _ProfileWidgetState extends State<ProfileWidget> {
       decoration: BoxDecoration(
         color:
             _isInChat ? AppColors.brownLightest : widget.profile.profileColor,
-        borderRadius: BorderRadius.circular(24.0),
+        borderRadius: BorderRadius.circular(UIConstants.outerRadius),
         border: Border.all(
           color: AppColors.customBlack,
           width: 3.0,
         ),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(21.0),
+        borderRadius: BorderRadius.circular(UIConstants.outerRadiusClipped),
         child: child,
       ),
     );
@@ -385,6 +386,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
       children: [
         Row(
           children: [
+            const SizedBox(width: 4.0),
             Icon(
               widget.profile.isDogOwner
                   ? Icons.pets_rounded
@@ -431,7 +433,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
               ),
               Transform.translate(
                 offset: const Offset(
-                    0, 0), // Move the bookmark icon (adjust 5 as needed)
+                    1, 0), // Move the bookmark icon (adjust 5 as needed)
                 child: IconButton(
                   icon: Icon(
                     _isProfileSaved
@@ -467,7 +469,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
               },
             ),
           ],
-        )
+        ),
       ],
     );
   }
