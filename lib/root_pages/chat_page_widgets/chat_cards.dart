@@ -97,150 +97,151 @@ class _ChatCardState extends State<ChatCard> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final String firstImage = widget.otherUserProfile.images.isNotEmpty
-        ? widget.otherUserProfile.images.first
-        : '';
-
     return GestureDetector(
       onTap: widget.onTap,
-      child: FractionallySizedBox(
-        widthFactor: 0.9,
-        child: Container(
-          height: 80,
-          decoration: BoxDecoration(
-            color: widget.otherUserProfile.profileColor,
-            borderRadius: BorderRadius.circular(UIConstants.outerRadius),
-            border: Border.all(color: AppColors.customBlack, width: 3),
-          ),
-          child: Stack(
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 80,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.only(
-                        topLeft:
-                            Radius.circular(UIConstants.outerRadiusClipped),
-                        bottomLeft:
-                            Radius.circular(UIConstants.outerRadiusClipped),
-                      ),
-                      border: Border(
-                        right:
-                            BorderSide(color: AppColors.customBlack, width: 3),
-                      ),
+      child: Container(
+        width: MediaQuery.of(context).size.width, // Full width of the screen
+        margin:
+            const EdgeInsets.symmetric(horizontal: 16.0), // Margin left & right
+        height: 80, // Card height
+        decoration: BoxDecoration(
+          color: widget.otherUserProfile.profileColor,
+          borderRadius: BorderRadius.circular(UIConstants.outerRadius),
+          border: Border.all(color: AppColors.customBlack, width: 3),
+        ),
+        child: Stack(
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 80,
+                  decoration: const BoxDecoration(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(UIConstants.outerRadiusClipped),
+                      bottomLeft:
+                          Radius.circular(UIConstants.outerRadiusClipped),
                     ),
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                        topLeft:
-                            Radius.circular(UIConstants.outerRadiusClipped),
-                        bottomLeft:
-                            Radius.circular(UIConstants.outerRadiusClipped),
-                      ),
-                      child: firstImage.startsWith('http')
-                          ? Image.network(firstImage, fit: BoxFit.cover)
-                          : Image.asset(firstImage, fit: BoxFit.cover),
+                    border: Border(
+                      right: BorderSide(color: AppColors.customBlack, width: 3),
                     ),
                   ),
-                  const SizedBox(width: 14.0),
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SingleChildScrollView(
-                          controller: _scrollController,
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: [
-                              const Icon(Icons.person_rounded,
-                                  color: AppColors.customBlack, size: 20),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(UIConstants.outerRadiusClipped),
+                      bottomLeft:
+                          Radius.circular(UIConstants.outerRadiusClipped),
+                    ),
+                    child: widget.otherUserProfile.images.isNotEmpty &&
+                            widget.otherUserProfile.images.first
+                                .startsWith('http')
+                        ? Image.network(
+                            widget.otherUserProfile.images.first,
+                            fit: BoxFit.cover,
+                          )
+                        : Image.asset(
+                            widget.otherUserProfile.images.first,
+                            fit: BoxFit.cover,
+                          ),
+                  ),
+                ),
+                const SizedBox(width: 14.0),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SingleChildScrollView(
+                        controller: _scrollController,
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            const Icon(Icons.person_rounded,
+                                color: AppColors.customBlack, size: 20),
+                            const SizedBox(width: 4.0),
+                            Text(
+                              widget.otherUserProfile.userName,
+                              style: const TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.customBlack,
+                              ),
+                            ),
+                            if (widget.otherUserProfile.isDogOwner &&
+                                widget.otherUserProfile.dogName != null) ...[
+                              const Text(
+                                '  •  ',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.customBlack,
+                                  fontSize: 18.0,
+                                ),
+                              ),
+                              const Icon(Icons.pets_rounded,
+                                  color: AppColors.customBlack, size: 18),
                               const SizedBox(width: 4.0),
                               Text(
-                                widget.otherUserProfile.userName,
+                                widget.otherUserProfile.dogName!,
                                 style: const TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.customBlack,
                                 ),
                               ),
-                              if (widget.otherUserProfile.isDogOwner &&
-                                  widget.otherUserProfile.dogName != null) ...[
-                                const Text(
-                                  '  •  ',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.customBlack,
-                                    fontSize: 18.0,
-                                  ),
-                                ),
-                                const Icon(Icons.pets_rounded,
-                                    color: AppColors.customBlack, size: 18),
-                                const SizedBox(width: 4.0),
-                                Text(
-                                  widget.otherUserProfile.dogName!,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.customBlack,
-                                  ),
-                                ),
-                              ],
                             ],
-                          ),
-                        ),
-                        const SizedBox(height: 2.0),
-                        ValueListenableBuilder<String>(
-                          valueListenable: widget.lastMessageNotifier,
-                          builder: (context, lastMessage, child) {
-                            return Text(
-                              lastMessage,
-                              style: const TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 12,
-                                fontWeight: FontWeight.w300,
-                                color: AppColors.grey,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 5.0),
-                  const Icon(Icons.more_vert_rounded,
-                      color: AppColors.customBlack, size: 28),
-                  const SizedBox(width: 15.0),
-                ],
-              ),
-              StreamBuilder<bool>(
-                stream: _chatSeenStatusStream(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData && !snapshot.data!) {
-                    return Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Container(
-                        width: 10,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          color: AppColors.customGreen,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppColors.customBlack,
-                            width: 2,
-                          ),
+                          ],
                         ),
                       ),
-                    );
-                  }
-                  return const SizedBox.shrink();
-                },
-              ),
-            ],
-          ),
+                      const SizedBox(height: 2.0),
+                      ValueListenableBuilder<String>(
+                        valueListenable: widget.lastMessageNotifier,
+                        builder: (context, lastMessage, child) {
+                          return Text(
+                            lastMessage,
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 12,
+                              fontWeight: FontWeight.w300,
+                              color: AppColors.grey,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 5.0),
+                const Icon(Icons.more_vert_rounded,
+                    color: AppColors.customBlack, size: 28),
+                const SizedBox(width: 15.0),
+              ],
+            ),
+            StreamBuilder<bool>(
+              stream: _chatSeenStatusStream(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData && !snapshot.data!) {
+                  return Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: AppColors.customGreen,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.customBlack,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ],
         ),
       ),
     );
