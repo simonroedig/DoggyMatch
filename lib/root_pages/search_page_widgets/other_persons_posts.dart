@@ -501,7 +501,7 @@ class _PostCardState extends State<PostCard> {
     final post = widget.post;
 
     final DateTime createdAt = DateTime.parse(post['createdAt']);
-    final String timeAgo = calculateLastOnlineLong(createdAt);
+    final String timeAgo = calculateTimeAgo(createdAt);
 
     // Get the current user's ID
     final String? currentUserId = _authService.getCurrentUserId();
@@ -1222,24 +1222,6 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
     }
   }
 
-  String _calculateTimeAgo(DateTime createdAt) {
-    final now = DateTime.now();
-    final difference = now.difference(createdAt);
-
-    if (difference.inDays >= 30) {
-      final months = (difference.inDays / 30).floor();
-      return '$months ${months == 1 ? 'month' : 'months'} ago';
-    } else if (difference.inDays > 0) {
-      return '${difference.inDays} ${difference.inDays == 1 ? 'day' : 'days'} ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours} ${difference.inHours == 1 ? 'hour' : 'hours'} ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} ${difference.inMinutes == 1 ? 'minute' : 'minutes'} ago';
-    } else {
-      return 'Just now';
-    }
-  }
-
   void _fetchUserProfile(String userId) async {
     try {
       final userDoc = await FirebaseFirestore.instance
@@ -1263,7 +1245,7 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
     final String userId = commentData['userId'] ?? '';
     final String commentText = commentData['commentText'] ?? '';
     final DateTime createdAt = DateTime.parse(commentData['createdAt']);
-    final String timeAgo = _calculateTimeAgo(createdAt);
+    final String timeAgo = calculateTimeAgoShort(createdAt);
 
     // For profile picture and user data, we need to fetch the user's profile data
     String profileImageUrl = UserProfileState.placeholderImageUrl;

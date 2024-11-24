@@ -200,7 +200,7 @@ class _ChatPageState extends State<ChatPage> {
           );
 
           final String lastOnline =
-              calculateLastOnlineShort(otherUserProfile.lastOnline);
+              calculateLastOnlineLong(otherUserProfile.lastOnline);
 
           bool userSentMessage = false;
           bool otherUserSentMessage = false;

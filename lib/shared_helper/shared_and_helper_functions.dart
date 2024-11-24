@@ -20,12 +20,15 @@ String calculateLastOnlineShort(DateTime? lastOnline) {
   final now = DateTime.now();
   final difference = now.difference(lastOnline!);
 
-  if (difference.inDays > 0) {
-    return '${difference.inDays}d';
+  if (difference.inDays >= 30) {
+    final months = (difference.inDays / 30).floor();
+    return '$months ${months == 1 ? 'mo' : 'mos'}';
+  } else if (difference.inDays > 0) {
+    return '${difference.inDays} ${difference.inDays == 1 ? 'd' : 'd'}';
   } else if (difference.inHours > 0) {
-    return '${difference.inHours}h';
+    return '${difference.inHours} ${difference.inHours == 1 ? 'h' : 'h'}';
   } else if (difference.inMinutes > 0) {
-    return '${difference.inMinutes}m';
+    return '${difference.inMinutes} ${difference.inMinutes == 1 ? 'm' : 'm'}';
   } else {
     return 'Just now';
   }
@@ -62,6 +65,24 @@ String calculateTimeAgo(DateTime createdAt) {
     return '${difference.inHours} ${difference.inHours == 1 ? 'hour' : 'hours'} ago';
   } else if (difference.inMinutes > 0) {
     return '${difference.inMinutes} ${difference.inMinutes == 1 ? 'minute' : 'minutes'} ago';
+  } else {
+    return 'Just now';
+  }
+}
+
+String calculateTimeAgoShort(DateTime createdAt) {
+  final now = DateTime.now();
+  final difference = now.difference(createdAt);
+
+  if (difference.inDays >= 30) {
+    final months = (difference.inDays / 30).floor();
+    return '$months ${months == 1 ? 'mo' : 'mos'}';
+  } else if (difference.inDays > 0) {
+    return '${difference.inDays} ${difference.inDays == 1 ? 'd' : 'd'}';
+  } else if (difference.inHours > 0) {
+    return '${difference.inHours} ${difference.inHours == 1 ? 'h' : 'h'}';
+  } else if (difference.inMinutes > 0) {
+    return '${difference.inMinutes} ${difference.inMinutes == 1 ? 'm' : 'm'}';
   } else {
     return 'Just now';
   }
