@@ -339,7 +339,7 @@ class _ProfileChatState extends State<ProfileChat> with WidgetsBindingObserver {
                 child: TextField(
                   controller: _controller,
                   decoration: const InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 16.0),
                     hintText: 'Send a message..',
                     hintStyle: TextStyle(color: AppColors.grey),
                     border: InputBorder.none,

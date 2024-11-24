@@ -1560,7 +1560,7 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
         children: [
           // Comment input field and character counter
           Padding(
-            padding: const EdgeInsets.only(bottom: 8.0, top: 14.0),
+            padding: const EdgeInsets.only(bottom: 4.0, top: 14.0),
             child: Center(
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.9,

@@ -386,7 +386,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
       children: [
         Row(
           children: [
-            const SizedBox(width: 4.0),
+            const SizedBox(width: 8.0),
             Icon(
               widget.profile.isDogOwner
                   ? Icons.pets_rounded

@@ -27,6 +27,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double statusBarHeight = MediaQuery.of(context).padding.top;
+    const double additionalPadding =
+        8.0; // Adjust this as needed for your design
     return AppBar(
       backgroundColor: AppColors.bg,
       elevation: 0,
@@ -34,8 +37,11 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       surfaceTintColor: Colors.transparent,
       automaticallyImplyLeading: false,
       flexibleSpace: Padding(
-        padding: const EdgeInsets.only(
-            top: 40.0, left: 16.0, right: 16.0, bottom: 10.0),
+        padding: EdgeInsets.only(
+            top: statusBarHeight + additionalPadding,
+            left: 16.0,
+            right: 16.0,
+            bottom: 10.0),
         child: Center(
           child: Stack(
             clipBehavior: Clip.none,

@@ -75,7 +75,7 @@ class FilterMenuState extends State<FilterMenu> {
           padding: const EdgeInsets.symmetric(
               horizontal: 16.0), // Adjust padding for left and right
           child: Container(
-            width: MediaQuery.of(context).size.width * 0.9,
+            width: MediaQuery.of(context).size.width * 1,
             height: _calculateHeight(context),
             decoration: BoxDecoration(
               color: AppColors.greyLightest,
