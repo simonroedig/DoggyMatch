@@ -322,6 +322,15 @@ class _OtherPersonsState extends State<OtherPersons>
     );
   }
 
+  Future<Map<String, dynamic>> _getUserStatus(String uid) async {
+    bool isSaved = await _authProfile.isProfileSaved(uid);
+    String friendStatus = await determineFriendStatus(uid);
+    return {
+      'isSaved': isSaved,
+      'friendStatus': friendStatus,
+    };
+  }
+
   Widget _buildUserCard(Map<String, dynamic> data, bool isDogOwner,
       Color profileColor, String filterDistance) {
     // Calculate the distance
@@ -336,10 +345,15 @@ class _OtherPersonsState extends State<OtherPersons>
       data['longitude'].toDouble(),
     ).toStringAsFixed(1);
 
-    return FutureBuilder<bool>(
-      future: _authProfile.isProfileSaved(data['uid']),
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _getUserStatus(data['uid']),
       builder: (context, snapshot) {
-        bool isSaved = snapshot.data ?? false;
+        if (!snapshot.hasData) {
+          return const SizedBox.shrink(); // or a loading placeholder
+        }
+
+        bool isSaved = snapshot.data!['isSaved'];
+        String friendStatus = snapshot.data!['friendStatus'];
 
         return GestureDetector(
           onTap: () async {
@@ -355,7 +369,7 @@ class _OtherPersonsState extends State<OtherPersons>
                   child: CircularProgressIndicator(),
                 );
               },
-              useRootNavigator: true, // Add this line
+              useRootNavigator: true,
             );
 
             try {
@@ -384,7 +398,7 @@ class _OtherPersonsState extends State<OtherPersons>
                 filterLastOnline: data['filterLastOnline'] ?? 3,
               );
 
-              // log the selected profiles userName
+              // Log the selected profile's userName
               developer.log(
                   'PERSONS Selected Profile UserName: ${selectedProfile.userName}');
 
@@ -404,8 +418,7 @@ class _OtherPersonsState extends State<OtherPersons>
               Container(
                 decoration: BoxDecoration(
                   color: profileColor,
-                  borderRadius: BorderRadius.circular(
-                      UIConstants.outerRadius), // before 24
+                  borderRadius: BorderRadius.circular(UIConstants.outerRadius),
                   border: Border.all(color: AppColors.customBlack, width: 3),
                 ),
                 child: Column(
@@ -427,24 +440,15 @@ class _OtherPersonsState extends State<OtherPersons>
                   ],
                 ),
               ),
-              // Friend status icon (new)
-              Positioned(
-                bottom: 40, // Adjust position to place it above the save icon
-                left: 10,
-                child: FutureBuilder(
-                  future: determineFriendStatus(data['uid']),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const SizedBox
-                          .shrink(); // Placeholder while loading
-                    }
-
-                    final friendStatus = snapshot.data ?? 'none';
-                    return iconHelpers.buildFriendStatusIcon(
-                        friendStatus, profileColor, 2);
-                  },
+              // Friend status icon
+              if (friendStatus != 'none')
+                Positioned(
+                  bottom: 40, // Adjust position as needed
+                  left: 10,
+                  child: iconHelpers.buildFriendStatusIcon(
+                      friendStatus, profileColor, 2),
                 ),
-              ),
+              // Save icon
               if (isSaved)
                 Positioned(
                   bottom: 40,
