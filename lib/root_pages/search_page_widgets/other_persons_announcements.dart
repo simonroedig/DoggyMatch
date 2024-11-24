@@ -226,6 +226,15 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
     return await _authProfile.isProfileSaved(userId);
   }
 
+  Future<Map<String, dynamic>> _getUserStatus(String userId) async {
+    bool isSaved = await _isProfileSaved(userId);
+    String friendStatus = await iconHelpers.determineFriendStatus(userId);
+    return {
+      'isSaved': isSaved,
+      'friendStatus': friendStatus,
+    };
+  }
+
   Widget _buildAnnouncementCard(Map<String, dynamic> announcementData) {
     final user = announcementData['user'];
     final announcement = announcementData['announcement'];
@@ -253,194 +262,191 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
       user['longitude'].toDouble(),
     ).toStringAsFixed(1);
 
-    return FutureBuilder<String>(
-      future: iconHelpers.determineFriendStatus(user['uid']),
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _getUserStatus(user['uid']),
       builder: (context, snapshot) {
-        final friendStatus = snapshot.data ?? 'none';
+        if (!snapshot.hasData) {
+          return const SizedBox.shrink(); // or a loading placeholder
+        }
 
-        return FutureBuilder<bool>(
-          future: _isProfileSaved(user['uid']),
-          builder: (context, snapshot) {
-            bool isSaved = snapshot.data ?? false;
+        bool isSaved = snapshot.data!['isSaved'];
+        String friendStatus = snapshot.data!['friendStatus'];
 
-            return GestureDetector(
-              onTap: () {
-                if (user['uid'] != _currentUserId) {
-                  UserProfile selectedProfile = UserProfile(
-                    uid: user['uid'],
-                    email: user['email'],
-                    userName: user['userName'],
-                    dogName: user['dogName'],
-                    dogBreed: user['dogBreed'],
-                    dogAge: user['dogAge'],
-                    isDogOwner: user['isDogOwner'],
-                    images: List<String>.from(user['images']),
-                    profileColor: profileColor,
-                    aboutText: user['aboutText'],
-                    location: user['location'],
-                    latitude: user['latitude'].toDouble(),
-                    longitude: user['longitude'].toDouble(),
-                    filterDistance: user['filterDistance'],
-                    birthday: user['birthday'] != null
-                        ? DateTime.parse(user['birthday'])
-                        : null,
-                    lastOnline: user['lastOnline'] != null
-                        ? DateTime.parse(user['lastOnline'])
-                        : null,
-                    filterLastOnline: user['filterLastOnline'] ?? 3,
-                  );
+        return GestureDetector(
+          onTap: () {
+            if (user['uid'] != _currentUserId) {
+              UserProfile selectedProfile = UserProfile(
+                uid: user['uid'],
+                email: user['email'],
+                userName: user['userName'],
+                dogName: user['dogName'],
+                dogBreed: user['dogBreed'],
+                dogAge: user['dogAge'],
+                isDogOwner: user['isDogOwner'],
+                images: List<String>.from(user['images']),
+                profileColor: profileColor,
+                aboutText: user['aboutText'],
+                location: user['location'],
+                latitude: user['latitude'].toDouble(),
+                longitude: user['longitude'].toDouble(),
+                filterDistance: user['filterDistance'],
+                birthday: user['birthday'] != null
+                    ? DateTime.parse(user['birthday'])
+                    : null,
+                lastOnline: user['lastOnline'] != null
+                    ? DateTime.parse(user['lastOnline'])
+                    : null,
+                filterLastOnline: user['filterLastOnline'] ?? 3,
+              );
 
-                  final lastOnline =
-                      calculateLastOnlineLong(selectedProfile.lastOnline);
+              final lastOnline =
+                  calculateLastOnlineLong(selectedProfile.lastOnline);
 
-                  widget.onProfileSelected(
-                      selectedProfile, distance, lastOnline, isSaved);
-                }
-              },
-              child: Container(
-                margin: const EdgeInsets.symmetric(vertical: 5.0),
-                padding: const EdgeInsets.only(
-                    left: 10.0, top: 10.0, right: 10.0, bottom: 10.0),
-                width: MediaQuery.of(context).size.width * 0.90,
-                decoration: BoxDecoration(
-                  color: profileColor,
-                  borderRadius: BorderRadius.circular(UIConstants.outerRadius),
-                  border: Border.all(color: AppColors.customBlack, width: 3),
-                ),
-                child: Stack(
+              widget.onProfileSelected(
+                  selectedProfile, distance, lastOnline, isSaved);
+            }
+          },
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 5.0),
+            padding: const EdgeInsets.only(
+                left: 10.0, top: 10.0, right: 10.0, bottom: 10.0),
+            width: MediaQuery.of(context).size.width * 0.90,
+            decoration: BoxDecoration(
+              color: profileColor,
+              borderRadius: BorderRadius.circular(UIConstants.outerRadius),
+              border: Border.all(color: AppColors.customBlack, width: 3),
+            ),
+            child: Stack(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    Stack(
+                      alignment: Alignment.topLeft,
                       children: [
-                        Stack(
-                          alignment: Alignment.topLeft,
+                        Row(
                           children: [
-                            Row(
+                            Stack(
+                              alignment: Alignment.topLeft,
                               children: [
-                                Stack(
-                                  alignment: Alignment.topLeft,
-                                  children: [
-                                    // Profile Image
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(
-                                          UIConstants.innerRadius),
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
-                                              color: AppColors.customBlack,
-                                              width: 3),
-                                          borderRadius: BorderRadius.circular(
-                                              UIConstants.innerRadius),
-                                        ),
-                                        child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                              UIConstants.innerRadiusClipped),
-                                          child: Image.network(
-                                            profileImage,
-                                            height: 70,
-                                            width: 70,
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    // Friends Icon
-                                    Positioned(
-                                      bottom: -4,
-                                      left: -4,
-                                      child: iconHelpers.buildFriendStatusIcon(
-                                          friendStatus, profileColor, 3),
-                                    ),
-                                    // Save Icon
-                                    Positioned(
-                                      top: -4,
-                                      right: -4,
-                                      child: iconHelpers.buildSaveIcon(
-                                          isSaved, profileColor, 20, 3),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(width: 10.0),
-                                Expanded(
+                                // Profile Image
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(
+                                      UIConstants.innerRadius),
                                   child: Container(
-                                    height: 74,
-                                    padding: const EdgeInsets.all(8.0),
                                     decoration: BoxDecoration(
-                                      color: AppColors.bg,
-                                      borderRadius: BorderRadius.circular(
-                                          UIConstants.innerRadius),
                                       border: Border.all(
                                           color: AppColors.customBlack,
                                           width: 3),
+                                      borderRadius: BorderRadius.circular(
+                                          UIConstants.innerRadius),
                                     ),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        AutoScrollingRow(
-                                          userName: userName,
-                                          isDogOwner: isDogOwner,
-                                          dogName: dogName,
-                                        ),
-                                        const SizedBox(height: 4),
-                                        AutoScrollingTitleRow(
-                                          title: announcementTitle,
-                                        ),
-                                      ],
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(
+                                          UIConstants.innerRadiusClipped),
+                                      child: Image.network(
+                                        profileImage,
+                                        height: 70,
+                                        width: 70,
+                                        fit: BoxFit.cover,
+                                      ),
                                     ),
                                   ),
                                 ),
+                                // Friend Icon
+                                if (friendStatus != 'none')
+                                  Positioned(
+                                    bottom: -4,
+                                    left: -4,
+                                    child: iconHelpers.buildFriendStatusIcon(
+                                        friendStatus, profileColor, 3),
+                                  ),
+                                // Save Icon
+                                if (isSaved)
+                                  Positioned(
+                                    top: -4,
+                                    right: -4,
+                                    child: iconHelpers.buildSaveIcon(
+                                        true, profileColor, 3, 20),
+                                  ),
                               ],
+                            ),
+                            const SizedBox(width: 10.0),
+                            Expanded(
+                              child: Container(
+                                height: 74,
+                                padding: const EdgeInsets.all(8.0),
+                                decoration: BoxDecoration(
+                                  color: AppColors.bg,
+                                  borderRadius: BorderRadius.circular(
+                                      UIConstants.innerRadius),
+                                  border: Border.all(
+                                      color: AppColors.customBlack, width: 3),
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    AutoScrollingRow(
+                                      userName: userName,
+                                      isDogOwner: isDogOwner,
+                                      dogName: dogName,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    AutoScrollingTitleRow(
+                                      title: announcementTitle,
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 10),
-                        Center(
-                          child: Container(
-                            width: MediaQuery.of(context).size.width * 0.90,
-                            padding: const EdgeInsets.all(10.0),
-                            decoration: BoxDecoration(
-                              color: AppColors.bg,
-                              borderRadius: BorderRadius.circular(
-                                  UIConstants.innerRadius),
-                              border: Border.all(
-                                  color: AppColors.customBlack, width: 3),
-                            ),
-                            child: Text(
-                              announcementText,
-                              textAlign: TextAlign.left,
-                              style: const TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 12,
-                                fontWeight: FontWeight.w300,
-                                color: AppColors.customBlack,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Center(
-                          child: Text(
-                            user['uid'] == _currentUserId
-                                ? timeAgo
-                                : '$timeAgo • $distance km',
-                            style: const TextStyle(
-                              color: AppColors.grey,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.bold,
-                              fontSize: 10,
-                            ),
-                          ),
-                        ),
                       ],
+                    ),
+                    const SizedBox(height: 10),
+                    Center(
+                      child: Container(
+                        width: MediaQuery.of(context).size.width * 0.90,
+                        padding: const EdgeInsets.all(10.0),
+                        decoration: BoxDecoration(
+                          color: AppColors.bg,
+                          borderRadius:
+                              BorderRadius.circular(UIConstants.innerRadius),
+                          border: Border.all(
+                              color: AppColors.customBlack, width: 3),
+                        ),
+                        child: Text(
+                          announcementText,
+                          textAlign: TextAlign.left,
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 12,
+                            fontWeight: FontWeight.w300,
+                            color: AppColors.customBlack,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Center(
+                      child: Text(
+                        user['uid'] == _currentUserId
+                            ? timeAgo
+                            : '$timeAgo • $distance km',
+                        style: const TextStyle(
+                          color: AppColors.grey,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                        ),
+                      ),
                     ),
                   ],
                 ),
-              ),
-            );
-          },
+              ],
+            ),
+          ),
         );
       },
     );
