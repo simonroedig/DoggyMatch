@@ -265,8 +265,58 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
     return FutureBuilder<Map<String, dynamic>>(
       future: _getUserStatus(user['uid']),
       builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          // Show a loading indicator for the entire announcement card
+          return Container(
+            margin: const EdgeInsets.symmetric(vertical: 5.0),
+            padding: const EdgeInsets.all(20.0),
+            width: MediaQuery.of(context).size.width * 0.90,
+            decoration: BoxDecoration(
+              color: profileColor.withOpacity(0.5), // Slightly transparent
+              borderRadius: BorderRadius.circular(UIConstants.outerRadius),
+              border: Border.all(color: AppColors.customBlack, width: 3),
+            ),
+            child: const Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        if (snapshot.hasError) {
+          // Optionally handle errors by showing an error message
+          return Container(
+            margin: const EdgeInsets.symmetric(vertical: 5.0),
+            padding: const EdgeInsets.all(20.0),
+            width: MediaQuery.of(context).size.width * 0.90,
+            decoration: BoxDecoration(
+              color: profileColor.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(UIConstants.outerRadius),
+              border: Border.all(color: AppColors.customBlack, width: 3),
+            ),
+            child: const Center(
+              child: Icon(
+                Icons.error,
+                color: Colors.red,
+              ),
+            ),
+          );
+        }
+
         if (!snapshot.hasData) {
-          return const SizedBox.shrink(); // or a loading placeholder
+          // Handle the case where snapshot has no data
+          return Container(
+            margin: const EdgeInsets.symmetric(vertical: 5.0),
+            padding: const EdgeInsets.all(20.0),
+            width: MediaQuery.of(context).size.width * 0.90,
+            decoration: BoxDecoration(
+              color: profileColor.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(UIConstants.outerRadius),
+              border: Border.all(color: AppColors.customBlack, width: 3),
+            ),
+            child: const Center(
+              child: Text('No data available'),
+            ),
+          );
         }
 
         bool isSaved = snapshot.data!['isSaved'];
