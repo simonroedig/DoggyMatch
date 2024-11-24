@@ -18,9 +18,12 @@ class _ChatRequestToggleState extends State<ChatRequestToggle> {
   bool isChatSelected = true;
 
   void toggleSwitch() {
-    setState(() {
-      isChatSelected = !isChatSelected;
-    });
+    if (mounted) {
+      setState(() {
+        isChatSelected = !isChatSelected;
+      });
+    }
+
     widget.onToggle(isChatSelected);
   }
 

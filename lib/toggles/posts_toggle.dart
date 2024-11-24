@@ -18,11 +18,13 @@ class _OwnAllPostsToggleState extends State<PostsToggle> {
   PostFilterOption _currentOption = PostFilterOption.allPosts;
 
   void toggleSwitch() {
-    setState(() {
-      // Cycle to the next option
-      _currentOption = PostFilterOption
-          .values[(_currentOption.index + 1) % PostFilterOption.values.length];
-    });
+    if (mounted) {
+      setState(() {
+        _currentOption = PostFilterOption.values[
+            (_currentOption.index + 1) % PostFilterOption.values.length];
+      });
+    }
+
     widget.onToggle(_currentOption);
   }
 

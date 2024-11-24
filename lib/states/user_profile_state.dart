@@ -15,11 +15,13 @@ class UserProfileState extends ChangeNotifier {
       'https://firebasestorage.googleapis.com/v0/b/doggymatch-bb17f.appspot.com/o/placeholder.png?alt=media&token=6c364b4d-0e8b-4b34-b29e-58dc6dadcc65';
 
   void setUserIdToOpen(String? id) {
+    log('Set user id to open: $id');
     userIdToOpen = id;
     notifyListeners();
   }
 
   void resetUserIdToOpen() {
+    log('Reset user id to open');
     userIdToOpen = null;
   }
 

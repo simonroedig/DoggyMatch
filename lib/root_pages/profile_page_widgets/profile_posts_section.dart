@@ -2,6 +2,8 @@
 
 // ignore_for_file: use_super_parameters, library_private_types_in_public_api
 
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/other_persons_posts.dart';
@@ -31,11 +33,19 @@ class _UserPostsPageState extends State<UserPostsPage> {
   @override
   void initState() {
     super.initState();
+    log('Widget Initialized: $runtimeType');
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_itemScrollController.isAttached) {
         _itemScrollController.jumpTo(index: widget.initialIndex);
       }
     });
+  }
+
+  // create dispose method
+  @override
+  void dispose() {
+    log('Widget Disposed: $runtimeType');
+    super.dispose();
   }
 
   @override

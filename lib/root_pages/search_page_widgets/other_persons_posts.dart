@@ -2,6 +2,7 @@
 // ignore_for_file: use_super_parameters, library_private_types_in_public_api
 
 import 'dart:developer' as developer;
+import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:doggymatch_flutter/notifiers/filter_notifier.dart';
@@ -59,6 +60,7 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
   void dispose() {
     // Remove the listener when the widget is disposed
     _filterNotifier.removeListener(_onFilterChanged);
+    log('Widget Disposed: $runtimeType');
     super.dispose();
   }
 
@@ -437,6 +439,7 @@ class _PostCardState extends State<PostCard> {
   @override
   void dispose() {
     _pageController.dispose();
+    log('Widget Disposed: $runtimeType');
     super.dispose();
   }
 
@@ -1211,6 +1214,8 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
   void dispose() {
     _commentController.removeListener(_handleTextChange);
     _commentController.dispose();
+    log('Widget Disposed: $runtimeType');
+
     // Dispose all animation and scroll controllers
     for (var controller in _animationControllers.values) {
       controller.dispose();
@@ -1358,19 +1363,22 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
                 // Set the userId in UserProfileState
                 final userProfileState =
                     Provider.of<UserProfileState>(context, listen: false);
-                userProfileState.setUserIdToOpen(userId);
 
-// Navigate back to the MainScreen without arguments
                 Navigator.of(context).pushNamedAndRemoveUntil(
                   '/', // Replace with your main screen route
                   (Route<dynamic> route) => false,
                 );
 
-// Update the current index to show SearchPage
                 WidgetsBinding.instance.addPostFrameCallback((_) {
+                  int currentIndex = userProfileState.currentIndex;
+                  developer.log(currentIndex.toString());
+                  if (currentIndex == 2) {
+                    currentIndex = 0;
+                  }
                   if (mounted) {
-                    userProfileState
-                        .updateCurrentIndex(0); // Set index to SearchPage
+                    userProfileState.updateCurrentIndex(
+                        currentIndex); // Set index to SearchPage
+                    userProfileState.setUserIdToOpen(userId);
                   }
                 });
               } else if (userId != currentUserId &&
@@ -1722,12 +1730,14 @@ class __LikesOverlayState extends State<_LikesOverlay>
   @override
   void dispose() {
     // Dispose all animation and scroll controllers
+    log('Widget Disposed: $runtimeType');
     for (var controller in _animationControllers.values) {
       controller.dispose();
     }
     for (var controller in _scrollControllers.values) {
       controller.dispose();
     }
+    log('Widget Disposed: $runtimeType');
     super.dispose();
   }
 
@@ -1836,7 +1846,6 @@ class __LikesOverlayState extends State<_LikesOverlay>
                 developer.log('Navigating back to MainScreen');
                 final userProfileState =
                     Provider.of<UserProfileState>(context, listen: false);
-                userProfileState.setUserIdToOpen(userId);
 
                 Navigator.of(context).pushNamedAndRemoveUntil(
                   '/', // Replace with your main screen route
@@ -1844,9 +1853,15 @@ class __LikesOverlayState extends State<_LikesOverlay>
                 );
 
                 WidgetsBinding.instance.addPostFrameCallback((_) {
+                  int currentIndex = userProfileState.currentIndex;
+                  developer.log(currentIndex.toString());
+                  if (currentIndex == 2) {
+                    currentIndex = 0;
+                  }
                   if (mounted) {
-                    userProfileState
-                        .updateCurrentIndex(0); // Set index to SearchPage
+                    userProfileState.updateCurrentIndex(
+                        currentIndex); // Set index to SearchPage
+                    userProfileState.setUserIdToOpen(userId);
                   }
                 });
               } else if (userId != currentUserId &&

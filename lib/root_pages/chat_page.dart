@@ -31,11 +31,13 @@ class _ChatPageState extends State<ChatPage> {
   final _authProfile = ProfileService();
   final String _currentUserId = FirebaseAuth.instance.currentUser!.uid;
   bool isChatSelected = true;
+  bool _startInChat = true;
   UserProfile? _selectedProfile;
   bool _isProfileOpen = false;
   double? _selectedDistance;
   String? _lastOnline;
   bool? _isSaved;
+  bool _hasOpenedProfileFromUserId = false;
 
   StreamSubscription<QuerySnapshot>? _chatRoomsSubscription;
   List<Map<String, dynamic>> _chatRooms = [];
@@ -55,6 +57,53 @@ class _ChatPageState extends State<ChatPage> {
     super.dispose();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_hasOpenedProfileFromUserId) {
+      final userProfileState =
+          Provider.of<UserProfileState>(context, listen: false);
+      final userId = userProfileState.userIdToOpen;
+      if (userId != null) {
+        developer.log('Opening profile from user id: $userId');
+        _openProfileById(userId);
+        _hasOpenedProfileFromUserId = true;
+        userProfileState.resetUserIdToOpen();
+      }
+    }
+  }
+
+  void _openProfileById(String userId) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      try {
+        final profileData =
+            await ProfileService().fetchOtherUserProfile(userId);
+        if (profileData != null && mounted) {
+          final userProfile = profileData;
+          final userProfileState =
+              Provider.of<UserProfileState>(context, listen: false);
+          final distance = calculateDistance(
+            userProfileState.userProfile.latitude,
+            userProfileState.userProfile.longitude,
+            userProfile.latitude,
+            userProfile.longitude,
+          ).toStringAsFixed(1);
+          final lastOnline = calculateLastOnlineLong(userProfile.lastOnline);
+          final isSaved = await ProfileService().isProfileSaved(userId);
+
+          // Open profile automatically
+          _openProfile(userProfile, distance, lastOnline, isSaved,
+              startInChat: false);
+        }
+      } catch (e) {
+        if (mounted) {
+          developer.log('Error loading profile: $e');
+        }
+      }
+    });
+  }
+
   void _onProfileClose() {
     if (widget.profileCloseNotifier.shouldCloseProfile) {
       _closeProfile();
@@ -70,13 +119,15 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _openProfile(
-      UserProfile profile, String distance, String lastOnline, bool isSaved) {
+      UserProfile profile, String distance, String lastOnline, bool isSaved,
+      {bool startInChat = true}) {
     setState(() {
       _selectedProfile = profile;
       _isProfileOpen = true;
       _selectedDistance = double.parse(distance);
       _lastOnline = lastOnline;
       _isSaved = isSaved;
+      _startInChat = startInChat;
       Provider.of<UserProfileState>(context, listen: false).openProfile();
     });
   }
@@ -397,7 +448,7 @@ class _ChatPageState extends State<ChatPage> {
                           distance: _selectedDistance ?? 0.0,
                           lastOnline: _lastOnline ?? '',
                           isProfileSaved: _isSaved ?? false,
-                          startInChat: true,
+                          startInChat: _startInChat,
                         ),
                       ),
                     ),

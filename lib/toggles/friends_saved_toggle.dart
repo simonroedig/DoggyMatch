@@ -19,9 +19,12 @@ class _FriendsSavedToggleState extends State<FriendsSavedToggle> {
   bool isFriendsSelected = true;
 
   void toggleSwitch() {
-    setState(() {
-      isFriendsSelected = !isFriendsSelected;
-    });
+    if (mounted) {
+      setState(() {
+        isFriendsSelected = !isFriendsSelected;
+      });
+    }
+
     widget.onToggle(isFriendsSelected);
   }
 

@@ -61,6 +61,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     super.initState();
     _isInChat = widget.startInChat;
     _isProfileSaved = widget.isProfileSaved;
+    log('Widget Init: $runtimeType');
     // Log the UID of the profile
     log('Profile uid: ${widget.profile.uid}');
     // Log the UID of the own user
@@ -74,6 +75,13 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     if (!widget.clickedOnOtherUser) {
       //_fetchSavedPosts();
     }
+  }
+
+  @override
+  void dispose() {
+    log('Widget Disposed: $runtimeType');
+    // Add any cleanup logic here if necessary
+    super.dispose();
   }
 
   // Method to fetch the user's posts

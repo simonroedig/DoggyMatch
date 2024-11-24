@@ -18,9 +18,11 @@ class _ProfileAnnouncementPostsToggleState
   int selectedIndex = 0; // 0 - Profiles, 1 - Announcements (Shouts), 2 - Posts
 
   void toggleSwitch(int index) {
-    setState(() {
-      selectedIndex = index;
-    });
+    if (mounted) {
+      setState(() {
+        selectedIndex = index;
+      });
+    }
     widget.onToggle(selectedIndex);
   }
 

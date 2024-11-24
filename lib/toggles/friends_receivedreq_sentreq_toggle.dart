@@ -19,9 +19,12 @@ class _FriendsReceivedReqSentReqToggleState
   int currentState = 0; // 0 = Friends, 1 = Received, 2 = Sent
 
   void toggleSwitch(int index) {
-    setState(() {
-      currentState = index;
-    });
+    if (mounted) {
+      setState(() {
+        currentState = index;
+      });
+    }
+
     widget.onToggle(currentState);
   }
 

@@ -80,9 +80,11 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
   }
 
   Future<void> _loadFilteredUsersAnnouncements() async {
-    setState(() {
-      _isLoading = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
 
     if (widget.selectedOption == ShoutsFilterOption.friendsShouts) {
       // Load friends' announcements
@@ -136,9 +138,11 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
         }
       } catch (e) {
         developer.log('Error loading filtered users and announcements: $e');
-        setState(() {
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     }
   }
@@ -187,9 +191,11 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
       }
     } catch (e) {
       developer.log('Error loading friends announcements: $e');
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -449,9 +455,11 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
           .collection('user_announcements')
           .doc(announcementId)
           .delete();
-      setState(() {
-        _loadFilteredUsersAnnouncements();
-      });
+      if (mounted) {
+        setState(() {
+          _loadFilteredUsersAnnouncements();
+        });
+      }
     } catch (e) {
       developer.log('Error deleting announcement: $e');
     }

@@ -3,6 +3,8 @@
 import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:doggymatch_flutter/notifiers/profile_close_notifier.dart';
 import 'package:doggymatch_flutter/root_pages/profile_page_widgets/profile_widget.dart';
+import 'package:doggymatch_flutter/services/profile_service.dart';
+import 'package:doggymatch_flutter/shared_helper/shared_and_helper_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/custom_app_bar.dart';
 import 'package:doggymatch_flutter/toggles/friends_saved_toggle.dart';
@@ -12,6 +14,7 @@ import 'package:doggymatch_flutter/root_pages/search_page_widgets/other_persons.
 import 'package:doggymatch_flutter/classes/profile.dart';
 import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/states/user_profile_state.dart';
+import 'dart:developer' as developer;
 
 class CommunityPage extends StatefulWidget {
   final ProfileCloseNotifier profileCloseNotifier;
@@ -29,6 +32,8 @@ class _CommunityPageState extends State<CommunityPage> {
   String? _lastOnline;
   bool? _isSaved;
 
+  bool _hasOpenedProfileFromUserId = false;
+
   @override
   void initState() {
     super.initState();
@@ -39,6 +44,52 @@ class _CommunityPageState extends State<CommunityPage> {
   void dispose() {
     widget.profileCloseNotifier.removeListener(_onProfileClose);
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_hasOpenedProfileFromUserId) {
+      final userProfileState =
+          Provider.of<UserProfileState>(context, listen: false);
+      final userId = userProfileState.userIdToOpen;
+      if (userId != null) {
+        developer.log('Opening profile from user id: $userId');
+        _openProfileById(userId);
+        _hasOpenedProfileFromUserId = true;
+        userProfileState.resetUserIdToOpen();
+      }
+    }
+  }
+
+  void _openProfileById(String userId) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      try {
+        final profileData =
+            await ProfileService().fetchOtherUserProfile(userId);
+        if (profileData != null && mounted) {
+          final userProfile = profileData;
+          final userProfileState =
+              Provider.of<UserProfileState>(context, listen: false);
+          final distance = calculateDistance(
+            userProfileState.userProfile.latitude,
+            userProfileState.userProfile.longitude,
+            userProfile.latitude,
+            userProfile.longitude,
+          ).toStringAsFixed(1);
+          final lastOnline = calculateLastOnlineLong(userProfile.lastOnline);
+          final isSaved = await ProfileService().isProfileSaved(userId);
+
+          // Open profile automatically
+          _openProfile(userProfile, distance, lastOnline, isSaved);
+        }
+      } catch (e) {
+        if (mounted) {
+          developer.log('Error loading profile: $e');
+        }
+      }
+    });
   }
 
   void _onProfileClose() {

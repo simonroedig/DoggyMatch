@@ -22,11 +22,14 @@ class _OwnAllAnnouncementsToggleState extends State<AnnouncementsToggle> {
   ShoutsFilterOption _currentOption = ShoutsFilterOption.allShouts;
 
   void toggleSwitch() {
-    setState(() {
-      _currentOption = ShoutsFilterOption.values[
-          (_currentOption.index + 1) % ShoutsFilterOption.values.length];
-      Provider.of<FilterNotifier>(context, listen: false).notifyFilterChanged();
-    });
+    if (mounted) {
+      setState(() {
+        _currentOption = ShoutsFilterOption.values[
+            (_currentOption.index + 1) % ShoutsFilterOption.values.length];
+        Provider.of<FilterNotifier>(context, listen: false)
+            .notifyFilterChanged();
+      });
+    }
     widget.onToggle(_currentOption);
   }
 

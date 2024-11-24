@@ -76,9 +76,11 @@ class _OtherPersonsState extends State<OtherPersons>
   }
 
   Future<void> _loadFilteredUsers() async {
-    setState(() {
-      _isLoading = true; // Show progress indicator
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = true; // Show progress indicator
+      });
+    }
     final userProfileState =
         Provider.of<UserProfileState>(context, listen: false);
     final String? currentUserId =
@@ -105,18 +107,23 @@ class _OtherPersonsState extends State<OtherPersons>
         });
       }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+
       developer.log('Error fetching filtered users: $e');
     }
   }
 
   // load saved users
   Future<void> _loadSavedUsers() async {
-    setState(() {
-      _isLoading = true; // Show progress indicator
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = true; // Show progress indicator
+      });
+    }
 
     try {
       List<Map<String, dynamic>> users =
@@ -129,19 +136,23 @@ class _OtherPersonsState extends State<OtherPersons>
         });
       }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+
       developer.log('Error fetching saved users: $e');
     }
   }
 
   // load friend profiles
   Future<void> _loadFriendProfiles() async {
-    setState(() {
-      _isLoading = true; // Show progress indicator
-    });
-
+    if (mounted) {
+      setState(() {
+        _isLoading = true; // Show progress indicator
+      });
+    }
     try {
       List<Map<String, dynamic>> users =
           await _friendsService.fetchAllFriends();
@@ -153,18 +164,22 @@ class _OtherPersonsState extends State<OtherPersons>
         });
       }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
       developer.log('Error fetching friend profiles: $e');
     }
   }
 
   // load received friend request profiles
   Future<void> _loadReceivedFriendRequestProfiles() async {
-    setState(() {
-      _isLoading = true; // Show progress indicator
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = true; // Show progress indicator
+      });
+    }
 
     try {
       List<Map<String, dynamic>> users =
@@ -177,18 +192,23 @@ class _OtherPersonsState extends State<OtherPersons>
         });
       }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+
       developer.log('Error fetching received friend request profiles: $e');
     }
   }
 
   // load sent friend request profiles
   Future<void> _loadSentFriendRequestProfiles() async {
-    setState(() {
-      _isLoading = true; // Show progress indicator
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = true; // Show progress indicator
+      });
+    }
 
     try {
       List<Map<String, dynamic>> users =
@@ -201,9 +221,11 @@ class _OtherPersonsState extends State<OtherPersons>
         });
       }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
       developer.log('Error fetching sent friend request profiles: $e');
     }
   }

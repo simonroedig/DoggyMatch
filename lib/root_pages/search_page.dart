@@ -53,6 +53,7 @@ class SearchPageState extends State<SearchPage> {
   @override
   void initState() {
     super.initState();
+    developer.log('Widget Initialized: $runtimeType');
     widget.profileCloseNotifier.addListener(_onProfileClose);
   }
 
@@ -64,6 +65,7 @@ class SearchPageState extends State<SearchPage> {
           Provider.of<UserProfileState>(context, listen: false);
       final userId = userProfileState.userIdToOpen;
       if (userId != null) {
+        developer.log('Opening profile from user id: $userId');
         _openProfileById(userId);
         _hasOpenedProfileFromUserId = true;
         userProfileState.resetUserIdToOpen();
@@ -71,41 +73,40 @@ class SearchPageState extends State<SearchPage> {
     }
   }
 
-  void _openProfileById(String userId) async {
-    // Simulate a delay to ensure routing is complete before fetching and opening the profile
-    await Future.delayed(const Duration(milliseconds: 250));
-    if (!mounted) return;
+  void _openProfileById(String userId) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      try {
+        final profileData =
+            await ProfileService().fetchOtherUserProfile(userId);
+        if (profileData != null && mounted) {
+          final userProfile = profileData;
+          final userProfileState =
+              Provider.of<UserProfileState>(context, listen: false);
+          final distance = calculateDistance(
+            userProfileState.userProfile.latitude,
+            userProfileState.userProfile.longitude,
+            userProfile.latitude,
+            userProfile.longitude,
+          ).toStringAsFixed(1);
+          final lastOnline = calculateLastOnlineLong(userProfile.lastOnline);
+          final isSaved = await ProfileService().isProfileSaved(userId);
 
-    try {
-      final profileData = await ProfileService().fetchOtherUserProfile(userId);
-      if (profileData != null && mounted) {
-        // Re-check mounted before setState
-        final userProfile = profileData;
-        final userProfileState =
-            Provider.of<UserProfileState>(context, listen: false);
-        final distance = calculateDistance(
-          userProfileState.userProfile.latitude,
-          userProfileState.userProfile.longitude,
-          userProfile.latitude,
-          userProfile.longitude,
-        ).toStringAsFixed(1);
-        final lastOnline = calculateLastOnlineLong(userProfile.lastOnline);
-        final isSaved = await ProfileService().isProfileSaved(userId);
-
-        // Open profile automatically
-        _openProfile(userProfile, distance, lastOnline, isSaved);
+          // Open profile automatically
+          _openProfile(userProfile, distance, lastOnline, isSaved);
+        }
+      } catch (e) {
+        if (mounted) {
+          developer.log('Error loading profile: $e');
+        }
       }
-    } catch (e) {
-      // Handle error safely, without state changes if disposed
-      if (mounted) {
-        developer.log('Error loading profile: $e');
-      }
-    }
+    });
   }
 
   @override
   void dispose() {
     widget.profileCloseNotifier.removeListener(_onProfileClose);
+    developer.log('Widget Disposed: $runtimeType');
     super.dispose();
   }
 
@@ -131,6 +132,7 @@ class SearchPageState extends State<SearchPage> {
 
   void _openProfile(
       UserProfile profile, String distance, String lastOnline, bool isSaved) {
+    if (!mounted) return;
     setState(() {
       _selectedProfile = profile;
       _selectedDistance = distance;

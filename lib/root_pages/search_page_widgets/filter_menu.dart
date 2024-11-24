@@ -119,10 +119,12 @@ class FilterMenuState extends State<FilterMenu> {
                       text: "Dog Owner",
                       isSelected: _isDogOwnerSelected,
                       onTap: () {
-                        setState(() {
-                          _isDogOwnerSelected = !_isDogOwnerSelected;
-                          _ensureAtLeastOneSelected();
-                        });
+                        if (mounted) {
+                          setState(() {
+                            _isDogOwnerSelected = !_isDogOwnerSelected;
+                            _ensureAtLeastOneSelected();
+                          });
+                        }
                       },
                     ),
                     const SizedBox(height: 10.0),
@@ -131,10 +133,12 @@ class FilterMenuState extends State<FilterMenu> {
                       text: "Dog Sitter",
                       isSelected: _isDogSitterSelected,
                       onTap: () {
-                        setState(() {
-                          _isDogSitterSelected = !_isDogSitterSelected;
-                          _ensureAtLeastOneSelected();
-                        });
+                        if (mounted) {
+                          setState(() {
+                            _isDogSitterSelected = !_isDogSitterSelected;
+                            _ensureAtLeastOneSelected();
+                          });
+                        }
                       },
                     ),
                     const SizedBox(height: 26),
@@ -166,9 +170,11 @@ class FilterMenuState extends State<FilterMenu> {
                             max: 30.0,
                             divisions: 300,
                             onChanged: (double value) {
-                              setState(() {
-                                _currentDistanceValue = value;
-                              });
+                              if (mounted) {
+                                setState(() {
+                                  _currentDistanceValue = value;
+                                });
+                              }
                             },
                           ),
                         ),
