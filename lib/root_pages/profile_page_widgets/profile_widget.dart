@@ -46,15 +46,16 @@ class _ProfileWidgetState extends State<ProfileWidget> {
   final _authProfile = ProfileService();
   bool _isInChat = false;
   bool _isProfileSaved = false; // Track if profile is saved
-  bool _isProfileFriendRequestSent =
-      false; // Track if friend request is sent to other person
-  bool _isProfileFriendRequestReceived =
-      false; // Track if friend request is received from other person
-  bool _isProfileFriend = false; // Track if profile is a friend
+
+  // Initialize friend status variables to null
+  bool? _isProfileFriendRequestSent;
+  bool? _isProfileFriendRequestReceived;
+  bool? _isProfileFriend;
+
   Map<String, dynamic>? _announcementData; // Holds the announcement data
 
   List<Map<String, dynamic>> _userPosts = []; // Holds the user's posts
-  List<Map<String, dynamic>> _savedPosts = [];
+  final List<Map<String, dynamic>> _savedPosts = [];
 
   @override
   void initState() {
@@ -67,9 +68,9 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     // Log the UID of the own user
     log('Own uid: ${AuthService().getCurrentUserId()}');
 
-    _checkIfISentFriendRequest();
-    _checkIfIReceivedFriendRequest();
-    _checkIfProfileFriend();
+    // Fetch friend statuses asynchronously
+    _fetchFriendStatuses();
+
     _fetchAnnouncementData(); // Fetch the announcement data
     _fetchUserPosts(); // Fetch the user's posts
     if (!widget.clickedOnOtherUser) {
@@ -111,33 +112,31 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     });
   }
 
-  Future<void> _checkIfISentFriendRequest() async {
+  // Fetch friend statuses asynchronously in initState
+  void _fetchFriendStatuses() async {
     bool isFriendRequestSent =
         await FriendsService().isFriendRequestSent(widget.profile.uid);
-    setState(() {
-      _isProfileFriendRequestSent = isFriendRequestSent;
-    });
-  }
-
-  Future<void> _checkIfIReceivedFriendRequest() async {
     bool isFriendRequestReceived =
         await FriendsService().isFriendRequestReceived(widget.profile.uid);
-    setState(() {
-      _isProfileFriendRequestReceived = isFriendRequestReceived;
-    });
-  }
-
-  Future<void> _checkIfProfileFriend() async {
     bool isFriend = await FriendsService().areFriends(widget.profile.uid);
+
+    // Update the state when data is fetched
     setState(() {
+      _isProfileFriendRequestSent = isFriendRequestSent;
+      _isProfileFriendRequestReceived = isFriendRequestReceived;
       _isProfileFriend = isFriend;
     });
   }
 
   Future<void> toggleFriendStatus() async {
-    if (!_isProfileFriend &&
-        !_isProfileFriendRequestSent &&
-        !_isProfileFriendRequestReceived) {
+    if (!_isFriendStatusLoaded()) {
+      // Data is still loading
+      return;
+    }
+
+    if (!_isProfileFriend! &&
+        !_isProfileFriendRequestSent! &&
+        !_isProfileFriendRequestReceived!) {
       bool? confirmed = await FriendsDialogs.showSendFriendRequestDialog(
           context, widget.profile.userName);
       if (confirmed == true) {
@@ -146,9 +145,9 @@ class _ProfileWidgetState extends State<ProfileWidget> {
           _isProfileFriendRequestSent = true;
         });
       }
-    } else if (!_isProfileFriend &&
-        _isProfileFriendRequestSent &&
-        !_isProfileFriendRequestReceived) {
+    } else if (!_isProfileFriend! &&
+        _isProfileFriendRequestSent! &&
+        !_isProfileFriendRequestReceived!) {
       bool? confirmed = await FriendsDialogs.showCancelFriendRequestDialog(
           context, widget.profile.userName);
       if (confirmed == true) {
@@ -157,9 +156,9 @@ class _ProfileWidgetState extends State<ProfileWidget> {
           _isProfileFriendRequestSent = false;
         });
       }
-    } else if (_isProfileFriend &&
-        !_isProfileFriendRequestSent &&
-        !_isProfileFriendRequestReceived) {
+    } else if (_isProfileFriend! &&
+        !_isProfileFriendRequestSent! &&
+        !_isProfileFriendRequestReceived!) {
       bool? confirmed = await FriendsDialogs.showUnfriendDialog(
           context, widget.profile.userName);
       if (confirmed == true) {
@@ -168,9 +167,9 @@ class _ProfileWidgetState extends State<ProfileWidget> {
           _isProfileFriend = false;
         });
       }
-    } else if (!_isProfileFriend &&
-        !_isProfileFriendRequestSent &&
-        _isProfileFriendRequestReceived) {
+    } else if (!_isProfileFriend! &&
+        !_isProfileFriendRequestSent! &&
+        _isProfileFriendRequestReceived!) {
       bool? confirmed = await FriendsDialogs.showAcceptFriendRequestDialog(
           context, widget.profile.userName);
       if (confirmed == true) {
@@ -188,73 +187,65 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     }
   }
 
-  Icon? getIcon1BasedOnState() {
+  Widget getIcon1BasedOnState() {
     Color color = AppColors.customBlack;
 
-    if (!_isProfileFriend &&
-        !_isProfileFriendRequestSent &&
-        !_isProfileFriendRequestReceived) {
+    if (!_isFriendStatusLoaded()) {
+      // Should not reach here as we handle loading separately
+      return const SizedBox();
+    }
+
+    if (!_isProfileFriend! &&
+        !_isProfileFriendRequestSent! &&
+        !_isProfileFriendRequestReceived!) {
       return Icon(
         Icons.people_alt_outlined,
         color: color,
       );
-    } else if (!_isProfileFriend &&
-        !_isProfileFriendRequestSent &&
-        _isProfileFriendRequestReceived) {
-      return Icon(
-        Icons.people_alt_rounded,
-        color: color,
-      );
-    } else if (!_isProfileFriend &&
-        _isProfileFriendRequestSent &&
-        !_isProfileFriendRequestReceived) {
-      return Icon(
-        Icons.people_alt_rounded,
-        color: color,
-      );
-    } else if (_isProfileFriend &&
-        !_isProfileFriendRequestSent &&
-        !_isProfileFriendRequestReceived) {
-      return Icon(
-        Icons.people_alt_rounded,
-        color: color,
-      );
     } else {
-      return null;
+      return Icon(
+        Icons.people_alt_rounded,
+        color: color,
+      );
     }
   }
 
-  Icon? getIcon2BasedOnState() {
+  Widget? getIcon2BasedOnState() {
     double size = 16.0;
     Color color = AppColors.customBlack;
 
-    if (!_isProfileFriend &&
-        !_isProfileFriendRequestSent &&
-        !_isProfileFriendRequestReceived) {
+    if (!_isFriendStatusLoaded()) {
+      // Should not reach here as we handle loading separately
+      return null;
+    }
+
+    if (!_isProfileFriend! &&
+        !_isProfileFriendRequestSent! &&
+        !_isProfileFriendRequestReceived!) {
       return Icon(
         Icons.add_rounded,
         color: color,
         size: size,
       );
-    } else if (!_isProfileFriend &&
-        !_isProfileFriendRequestSent &&
-        _isProfileFriendRequestReceived) {
+    } else if (!_isProfileFriend! &&
+        !_isProfileFriendRequestSent! &&
+        _isProfileFriendRequestReceived!) {
       return Icon(
         Icons.call_received_rounded,
         color: color,
         size: size,
       );
-    } else if (!_isProfileFriend &&
-        _isProfileFriendRequestSent &&
-        !_isProfileFriendRequestReceived) {
+    } else if (!_isProfileFriend! &&
+        _isProfileFriendRequestSent! &&
+        !_isProfileFriendRequestReceived!) {
       return Icon(
         Icons.call_made_rounded,
         color: color,
         size: size,
       );
-    } else if (_isProfileFriend &&
-        !_isProfileFriendRequestSent &&
-        !_isProfileFriendRequestReceived) {
+    } else if (_isProfileFriend! &&
+        !_isProfileFriendRequestSent! &&
+        !_isProfileFriendRequestReceived!) {
       return Icon(
         Icons.check_rounded,
         color: color,
@@ -263,6 +254,12 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     } else {
       return null;
     }
+  }
+
+  bool _isFriendStatusLoaded() {
+    return _isProfileFriend != null &&
+        _isProfileFriendRequestSent != null &&
+        _isProfileFriendRequestReceived != null;
   }
 
   Future<void> _toggleSavedStatus() async {
@@ -296,9 +293,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     return Container(
       color: AppColors.bg, // Set the background color here
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-            horizontal:
-                16.0), // Adjust padding to create space on the left and right
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: _buildProfileContainer(
           child: Column(
             children: [
@@ -421,22 +416,34 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                     const Offset(7, 0), // Move the first button to the right
                 child: IconButton(
                   padding: EdgeInsets.zero, // Remove default padding
-                  onPressed: () {
-                    // Handle add friend action here
-                    toggleFriendStatus();
-                  },
-                  icon: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(child: getIcon1BasedOnState()),
-                      const SizedBox(width: 4),
-                      Transform.translate(
-                        offset: const Offset(
-                            -6, -3), // Adjust icon position as needed
-                        child: getIcon2BasedOnState(),
-                      ),
-                    ],
-                  ),
+                  onPressed: _isFriendStatusLoaded()
+                      ? () {
+                          // Handle add friend action here
+                          toggleFriendStatus();
+                        }
+                      : null, // Disable the button when data is loading
+                  icon: _isFriendStatusLoaded()
+                      ? Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            getIcon1BasedOnState(),
+                            const SizedBox(width: 4),
+                            Transform.translate(
+                              offset: const Offset(
+                                  -6, -3), // Adjust icon position as needed
+                              child: getIcon2BasedOnState(),
+                            ),
+                          ],
+                        )
+                      : const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.0,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                AppColors.customBlack),
+                          ),
+                        ),
                 ),
               ),
               Transform.translate(
