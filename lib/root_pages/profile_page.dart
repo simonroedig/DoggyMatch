@@ -38,9 +38,6 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    final userProfileState =
-        Provider.of<UserProfileState>(context, listen: false);
-    userProfileState.closeProfile();
     widget.profileCloseNotifier.addListener(_onProfileClose);
   }
 
