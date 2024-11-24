@@ -1379,7 +1379,7 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
                   int currentIndex = userProfileState.currentIndex;
                   developer.log(currentIndex.toString());
                   if (currentIndex == 2) {
-                    currentIndex = 0;
+                    //currentIndex = 0;
                   }
                   if (mounted) {
                     userProfileState.updateCurrentIndex(
@@ -1869,7 +1869,7 @@ class __LikesOverlayState extends State<_LikesOverlay>
                   int currentIndex = userProfileState.currentIndex;
                   developer.log(currentIndex.toString());
                   if (currentIndex == 2) {
-                    currentIndex = 0;
+                    //currentIndex = 0;
                   }
                   if (mounted) {
                     userProfileState.updateCurrentIndex(

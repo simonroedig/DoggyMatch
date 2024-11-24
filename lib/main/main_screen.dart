@@ -54,7 +54,8 @@ class MainScreen extends StatelessWidget {
             List<Widget> pages = [
               SearchPage(profileCloseNotifier: profileCloseNotifier),
               ChatPage(profileCloseNotifier: profileCloseNotifier),
-              ProfilePage(profile: profile),
+              ProfilePage(
+                  profile: profile, profileCloseNotifier: profileCloseNotifier),
               CommunityPage(
                   profileCloseNotifier:
                       profileCloseNotifier), // Add CommunityPage here (index 3)
@@ -90,6 +91,12 @@ class MainScreen extends StatelessWidget {
                       if (userProfileState.openedProfileViaSubpageBool) {
                         Navigator.pop(context);
                         userProfileState.resetOpenedProfileViaSubpage();
+
+                        // only close profile (hide the X in the bottom nav bar) if the profile was opened from
+                        // the profile page itself
+                        if (userProfileState.currentIndex == 2) {
+                          userProfileState.closeProfile();
+                        }
                         return;
                       }
                       log("Close button callback triggered in MainScreen");
