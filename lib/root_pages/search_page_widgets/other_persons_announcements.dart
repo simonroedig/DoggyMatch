@@ -375,7 +375,8 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
                             Expanded(
                               child: Container(
                                 height: 74,
-                                padding: const EdgeInsets.all(8.0),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10.0, vertical: 0.0),
                                 decoration: BoxDecoration(
                                   color: AppColors.bg,
                                   borderRadius: BorderRadius.circular(

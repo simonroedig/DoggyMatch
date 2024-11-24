@@ -17,6 +17,7 @@ import 'package:doggymatch_flutter/states/user_profile_state.dart';
 import 'package:doggymatch_flutter/notifiers/profile_close_notifier.dart';
 import 'package:doggymatch_flutter/shared_helper/shared_and_helper_functions.dart';
 import 'package:doggymatch_flutter/services/profile_service.dart';
+import 'package:doggymatch_flutter/classes/last_message.dart';
 
 class ChatPage extends StatefulWidget {
   final ProfileCloseNotifier profileCloseNotifier;
@@ -168,8 +169,14 @@ class _ChatPageState extends State<ChatPage> {
             .get();
 
         if (otherUserProfile != null && messagesSnapshot.docs.isNotEmpty) {
-          final ValueNotifier<String> lastMessageNotifier =
-              ValueNotifier<String>(messagesSnapshot.docs.first['message']);
+          // Create a ValueNotifier<LastMessage>
+          final ValueNotifier<LastMessage> lastMessageNotifier =
+              ValueNotifier<LastMessage>(
+            LastMessage(
+              text: messagesSnapshot.docs.first['message'],
+              senderId: messagesSnapshot.docs.first['senderId'],
+            ),
+          );
 
           // Listen to updates on the messages collection for real-time updates
           chatRoom.reference
@@ -178,7 +185,10 @@ class _ChatPageState extends State<ChatPage> {
               .snapshots()
               .listen((messageSnapshot) {
             if (messageSnapshot.docs.isNotEmpty) {
-              lastMessageNotifier.value = messageSnapshot.docs.first['message'];
+              lastMessageNotifier.value = LastMessage(
+                text: messageSnapshot.docs.first['message'],
+                senderId: messageSnapshot.docs.first['senderId'],
+              );
             }
           });
 
@@ -288,7 +298,7 @@ class _ChatPageState extends State<ChatPage> {
                                           chatRoom['profile'] as UserProfile,
                                       lastMessageNotifier:
                                           chatRoom['lastMessageNotifier']
-                                              as ValueNotifier<String>,
+                                              as ValueNotifier<LastMessage>,
                                       onTap: () {
                                         _openProfile(
                                             chatRoom['profile'] as UserProfile,
@@ -350,7 +360,7 @@ class _ChatPageState extends State<ChatPage> {
                                             chatRoom['profile'] as UserProfile,
                                         lastMessageNotifier:
                                             chatRoom['lastMessageNotifier']
-                                                as ValueNotifier<String>,
+                                                as ValueNotifier<LastMessage>,
                                         onTap: () {
                                           _openProfile(
                                               chatRoom['profile']
@@ -408,7 +418,7 @@ class _ChatPageState extends State<ChatPage> {
                                             chatRoom['profile'] as UserProfile,
                                         lastMessageNotifier:
                                             chatRoom['lastMessageNotifier']
-                                                as ValueNotifier<String>,
+                                                as ValueNotifier<LastMessage>,
                                         onTap: () {
                                           _openProfile(
                                               chatRoom['profile']

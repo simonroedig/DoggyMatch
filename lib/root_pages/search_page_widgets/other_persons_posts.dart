@@ -638,7 +638,8 @@ class _PostCardState extends State<PostCard> {
                         Expanded(
                           child: Container(
                             height: 74,
-                            padding: const EdgeInsets.all(10.0),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10.0, vertical: 0.0),
                             decoration: BoxDecoration(
                               color: AppColors.bg,
                               borderRadius: BorderRadius.circular(
@@ -680,7 +681,7 @@ class _PostCardState extends State<PostCard> {
                 const SizedBox(height: 10),
                 Center(
                   child: Container(
-                    width: MediaQuery.of(context).size.width * 0.9,
+                    width: MediaQuery.of(context).size.width * 1,
                     padding: const EdgeInsets.all(10.0),
                     decoration: BoxDecoration(
                       color: AppColors.bg,
@@ -694,7 +695,7 @@ class _PostCardState extends State<PostCard> {
                       textAlign: TextAlign.left,
                       style: const TextStyle(
                         fontFamily: 'Poppins',
-                        fontSize: 12,
+                        fontSize: 14,
                         fontWeight: FontWeight.w300,
                         color: AppColors.customBlack,
                       ),
@@ -907,14 +908,14 @@ class _PostCardState extends State<PostCard> {
                               const SizedBox(width: 4),
                               Text(
                                 _likesCount == 0
-                                    ? 'no likes yet'
+                                    ? 'No Likes'
                                     : _likesCount == 1
-                                        ? 'liked by 1 person'
-                                        : 'liked by $_likesCount people',
+                                        ? '1 Like'
+                                        : '$_likesCount Likes',
                                 textAlign: TextAlign.center,
                                 style: const TextStyle(
                                   fontFamily: 'Poppins',
-                                  fontSize: 12,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.w300,
                                   color: AppColors.customBlack,
                                 ),
@@ -970,14 +971,14 @@ class _PostCardState extends State<PostCard> {
                                   const SizedBox(width: 4),
                                   Text(
                                     commentsCount == 0
-                                        ? 'Write the first comment'
+                                        ? 'No Comments'
                                         : commentsCount == 1
-                                            ? 'View $commentsCount comment'
-                                            : 'View all $commentsCount comments',
+                                            ? '1 $commentsCount Comment'
+                                            : '$commentsCount Comments',
                                     textAlign: TextAlign.center,
                                     style: const TextStyle(
                                       fontFamily: 'Poppins',
-                                      fontSize: 12,
+                                      fontSize: 14,
                                       fontWeight: FontWeight.w300,
                                       color: AppColors.customBlack,
                                     ),
