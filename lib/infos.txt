@@ -1,3 +1,4 @@
+------TERMINAL:
 flutter clean
 flutter pub get
 flutter run -t lib/main/main.dart
@@ -18,7 +19,19 @@ dart run flutter_launcher_icons
 
 Use #AARRGGBB for colors instead of #AABBGGRR, to be compatible with Flutter image class.
 
+
+
+------IMPORTANT INFOS:
+Summary of Page Indices:
+0: Search Page
+1: Chat Page
+2: Profile Page
+3: Community Page
+
+
+------NOTES:
 border: 18
 padding: 10
 
 inner border: 18-10 = 8
+
