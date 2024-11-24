@@ -1004,7 +1004,7 @@ class _PostCardState extends State<PostCard> {
                                       const Icon(
                                         Icons
                                             .open_in_browser_rounded, // Choose an appropriate icon
-                                        size: 14, // Adjust size to match text
+                                        size: 16, // Adjust size to match text
                                         color: AppColors
                                             .customBlack, // Same color as the text
                                       ),
@@ -1368,6 +1368,11 @@ class __CommentsOverlayState extends State<_CommentsOverlay>
                   '/', // Replace with your main screen route
                   (Route<dynamic> route) => false,
                 );
+
+                // use this, to allow user to go back:
+                // Navigator.of(context).pushNamed('/');
+
+                // Navigator.pop(context);
 
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   int currentIndex = userProfileState.currentIndex;
