@@ -30,6 +30,10 @@ class MainScreen extends StatelessWidget {
         if (userProfileState.openedProfileViaSubpageBool) {
           Navigator.pop(context);
           userProfileState.resetOpenedProfileViaSubpage();
+          if (userProfileState.currentIndex == 2) {
+            userProfileState.closeProfile();
+          }
+
           return true; // Allow the default back button action
         }
 

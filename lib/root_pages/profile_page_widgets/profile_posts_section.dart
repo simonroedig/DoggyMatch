@@ -80,7 +80,7 @@ class _UserPostsPageState extends State<UserPostsPage> {
       body: ScrollablePositionedList.builder(
         itemScrollController: _itemScrollController,
         padding:
-            const EdgeInsets.only(top: 0.0, left: 20, right: 20, bottom: 10),
+            const EdgeInsets.only(top: 0.0, left: 16, right: 16, bottom: 10),
         itemCount: posts.length,
         itemBuilder: (context, index) {
           Map<String, dynamic> post;
