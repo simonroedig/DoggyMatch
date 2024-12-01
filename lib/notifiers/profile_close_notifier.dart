@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 
 class ProfileCloseNotifier extends ChangeNotifier {
@@ -6,6 +8,8 @@ class ProfileCloseNotifier extends ChangeNotifier {
   bool get shouldCloseProfile => _shouldCloseProfile;
 
   void triggerCloseProfile() {
+    log('ProfileCloseNotifier: triggerCloseProfile called');
+
     _shouldCloseProfile = true;
     notifyListeners();
   }

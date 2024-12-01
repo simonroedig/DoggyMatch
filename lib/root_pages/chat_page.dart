@@ -274,10 +274,11 @@ class _ChatPageState extends State<ChatPage>
 
     return Scaffold(
       backgroundColor: AppColors.bg,
-      appBar: const CustomAppBar(
+      appBar: CustomAppBar(
         showSearchIcon: true,
         showFilterIcon: false,
         onSettingsPressed: null,
+        isProfileOpen: Provider.of<UserProfileState>(context).isProfileOpen,
       ),
       body: Stack(
         children: [

@@ -1,5 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
+import 'dart:developer';
+
 import 'package:doggymatch_flutter/classes/profile.dart';
 import 'package:doggymatch_flutter/notifiers/profile_close_notifier.dart';
 import 'package:flutter/material.dart';
@@ -18,13 +20,10 @@ class MainScreen extends StatelessWidget {
 
   MainScreen({super.key, this.fromRegister = false});
 
-  final ProfileCloseNotifier profileCloseNotifier = ProfileCloseNotifier();
-
-  bool _isProfileIncomplete(UserProfile profile) {
-    return profile.userName.isEmpty ||
-        profile.aboutText.isEmpty ||
-        profile.birthday == null;
-  }
+  final ProfileCloseNotifier profileCloseNotifier1 = ProfileCloseNotifier();
+  final ProfileCloseNotifier profileCloseNotifier2 = ProfileCloseNotifier();
+  final ProfileCloseNotifier profileCloseNotifier3 = ProfileCloseNotifier();
+  final ProfileCloseNotifier profileCloseNotifier4 = ProfileCloseNotifier();
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +43,14 @@ class MainScreen extends StatelessWidget {
 
         if (userProfileState.isProfileOpen) {
           userProfileState.closeProfile();
-          profileCloseNotifier.triggerCloseProfile(); // Signal to close profile
+          profileCloseNotifier1
+              .triggerCloseProfile(); // Signal to close profile
+          profileCloseNotifier2
+              .triggerCloseProfile(); // Signal to close profile
+          profileCloseNotifier3
+              .triggerCloseProfile(); // Signal to close profile
+          profileCloseNotifier4
+              .triggerCloseProfile(); // Signal to close profile
           return false; // Prevent the default back button action
         }
 
@@ -56,17 +62,23 @@ class MainScreen extends StatelessWidget {
           builder: (context, userProfileState, child) {
             final profile = userProfileState.userProfile;
 
+            if (profile.uid.isEmpty) {
+              // Profile is not ready, show a loading indicator
+              return const Center(child: CircularProgressIndicator());
+            }
+
             // Redirect to RegisterPage2 if profile is incomplete
             if (fromRegister) {
               return RegisterPage2(profile: profile);
             }
 
             List<Widget> pages = [
-              SearchPage(profileCloseNotifier: profileCloseNotifier),
-              ChatPage(profileCloseNotifier: profileCloseNotifier),
+              SearchPage(profileCloseNotifier: profileCloseNotifier1),
+              ChatPage(profileCloseNotifier: profileCloseNotifier2),
               ProfilePage(
-                  profile: profile, profileCloseNotifier: profileCloseNotifier),
-              CommunityPage(profileCloseNotifier: profileCloseNotifier),
+                  profile: profile,
+                  profileCloseNotifier: profileCloseNotifier3),
+              CommunityPage(profileCloseNotifier: profileCloseNotifier4),
             ];
 
             // Use IndexedStack instead of AnimatedSwitcher
@@ -85,7 +97,10 @@ class MainScreen extends StatelessWidget {
                     onTabTapped: (index) {
                       if (userProfileState.isProfileOpen) {
                         userProfileState.closeProfile();
-                        profileCloseNotifier.triggerCloseProfile();
+                        profileCloseNotifier1.triggerCloseProfile();
+                        profileCloseNotifier2.triggerCloseProfile();
+                        profileCloseNotifier3.triggerCloseProfile();
+                        profileCloseNotifier4.triggerCloseProfile();
                       } else {
                         userProfileState.updateCurrentIndex(index);
                       }
@@ -101,8 +116,13 @@ class MainScreen extends StatelessWidget {
                         }
                         return;
                       }
+                      log('HHHHHHHHHHHHHHHHHHHHH');
+
                       userProfileState.closeProfile();
-                      profileCloseNotifier.triggerCloseProfile();
+                      profileCloseNotifier1.triggerCloseProfile();
+                      profileCloseNotifier2.triggerCloseProfile();
+                      profileCloseNotifier3.triggerCloseProfile();
+                      profileCloseNotifier4.triggerCloseProfile();
                     },
                   );
                 },

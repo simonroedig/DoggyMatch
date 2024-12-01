@@ -1,4 +1,5 @@
 // ignore_for_file: library_private_types_in_public_api
+// community_page.dart
 
 import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:doggymatch_flutter/notifiers/profile_close_notifier.dart';
@@ -142,10 +143,11 @@ class _CommunityPageState extends State<CommunityPage>
         context); // Important: call super.build when using AutomaticKeepAliveClientMixin
     return Scaffold(
       backgroundColor: AppColors.bg,
-      appBar: const CustomAppBar(
+      appBar: CustomAppBar(
         showSearchIcon: true,
         showFilterIcon: false,
         onSettingsPressed: null,
+        isProfileOpen: Provider.of<UserProfileState>(context).isProfileOpen,
       ),
       body: Stack(
         children: [
