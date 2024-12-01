@@ -1,3 +1,4 @@
+import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:doggymatch_flutter/welcome_pages/register_page.dart';
@@ -33,7 +34,7 @@ class WelcomePage extends StatelessWidget {
   // Extract foreground content into a separate function
   Widget _buildContent(BuildContext context, double screenWidth) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 60.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 60.0),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -107,14 +108,14 @@ class WelcomePage extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return SizedBox(
-      width: screenWidth * 0.8,
+      width: screenWidth * 1,
       height: 50.0,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: BorderRadius.circular(UIConstants.outerRadius),
           ),
           side: const BorderSide(
             color: AppColors.customBlack,

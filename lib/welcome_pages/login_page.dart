@@ -1,3 +1,4 @@
+import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/main_screen.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
@@ -149,21 +150,21 @@ class _LoginPageState extends State<LoginPage> {
         fillColor: AppColors.bg.withOpacity(0.9),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20.0),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(UIConstants.outerRadius),
           borderSide: const BorderSide(
             color: AppColors.customBlack,
             width: 3,
           ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(UIConstants.outerRadius),
           borderSide: const BorderSide(
             color: AppColors.customBlack,
             width: 3,
           ),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(UIConstants.outerRadius),
           borderSide: const BorderSide(
             color: AppColors.customBlack,
             width: 3,
@@ -195,7 +196,7 @@ class _LoginPageState extends State<LoginPage> {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.lightPurple,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: BorderRadius.circular(UIConstants.outerRadius),
           ),
           side: const BorderSide(
             color: AppColors.customBlack,

@@ -2,6 +2,7 @@
 
 import 'dart:developer';
 
+import 'package:doggymatch_flutter/classes/profile.dart';
 import 'package:doggymatch_flutter/notifiers/profile_close_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
@@ -20,6 +21,12 @@ class MainScreen extends StatelessWidget {
   MainScreen({super.key, this.fromRegister = false});
 
   final ProfileCloseNotifier profileCloseNotifier = ProfileCloseNotifier();
+
+  bool _isProfileIncomplete(UserProfile profile) {
+    return profile.userName.isEmpty ||
+        profile.aboutText.isEmpty ||
+        profile.birthday == null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +57,8 @@ class MainScreen extends StatelessWidget {
         body: Consumer<UserProfileState>(
           builder: (context, userProfileState, child) {
             final profile = userProfileState.userProfile;
+
+            // Redirect to RegisterPage2 if profile is incomplete
 
             if (fromRegister) {
               return RegisterPage2(profile: profile);
