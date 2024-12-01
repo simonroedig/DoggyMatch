@@ -1,11 +1,11 @@
-// file: other_persons_announcements.dart
+// other_persons_announcements.dart
 
 // ignore_for_file: use_super_parameters, library_private_types_in_public_api
 
 import 'dart:developer' as developer;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:doggymatch_flutter/main/ui_constants.dart';
-//import 'package:doggymatch_flutter/root_pages/search_page_widgets/announcement_dialogs.dart';
+import 'package:doggymatch_flutter/root_pages/search_page_widgets/friend_and_save_icon.dart';
 import 'package:doggymatch_flutter/services/friends_service.dart';
 import 'package:doggymatch_flutter/shared_helper/icon_helpers.dart';
 import 'package:flutter/material.dart';
@@ -39,7 +39,6 @@ class OtherPersonsAnnouncements extends StatefulWidget {
 class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
   final AuthService _authService = AuthService();
   final _authProfile = ProfileService();
-  String? _currentUserId;
 
   bool _isLoading = true;
 
@@ -56,7 +55,6 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
     _filterNotifier = Provider.of<FilterNotifier>(context, listen: false);
 
     _filterNotifier.addListener(_loadFilteredUsersAnnouncements);
-    _currentUserId = _authService.getCurrentUserId();
 
     _loadFilteredUsersAnnouncements();
   }
@@ -222,306 +220,6 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
     }
   }
 
-  Future<bool> _isProfileSaved(String userId) async {
-    return await _authProfile.isProfileSaved(userId);
-  }
-
-  Future<Map<String, dynamic>> _getUserStatus(String userId) async {
-    bool isSaved = await _isProfileSaved(userId);
-    String friendStatus = await iconHelpers.determineFriendStatus(userId);
-    return {
-      'isSaved': isSaved,
-      'friendStatus': friendStatus,
-    };
-  }
-
-  Widget _buildAnnouncementCard(Map<String, dynamic> announcementData) {
-    final user = announcementData['user'];
-    final announcement = announcementData['announcement'];
-    final DateTime createdAt = DateTime.parse(announcement['createdAt']);
-    final String timeAgo = calculateTimeAgo(createdAt);
-
-    final String profileImage =
-        user['images'].isNotEmpty ? user['images'][0] : '';
-    final Color profileColor = Color(user['profileColor'] ?? 0xFFFFFFFF);
-    final bool isDogOwner = user['isDogOwner'] == true;
-    final String dogName = user['dogName'] ?? '';
-    final String userName = user['userName'] ?? '';
-    final String announcementTitle = announcement['announcementTitle'] ?? '';
-    final String announcementText = announcement['announcementText'] ?? '';
-
-    final userProfileState =
-        Provider.of<UserProfileState>(context, listen: false);
-    final mainUserLatitude = userProfileState.userProfile.latitude;
-    final mainUserLongitude = userProfileState.userProfile.longitude;
-
-    final distance = calculateDistance(
-      mainUserLatitude,
-      mainUserLongitude,
-      user['latitude'].toDouble(),
-      user['longitude'].toDouble(),
-    ).toStringAsFixed(1);
-
-    return FutureBuilder<Map<String, dynamic>>(
-      future: _getUserStatus(user['uid']),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          // Show a loading indicator for the entire announcement card
-          return Container(
-            margin: const EdgeInsets.symmetric(vertical: 5.0),
-            padding: const EdgeInsets.all(20.0),
-            width: MediaQuery.of(context).size.width * 0.90,
-            decoration: BoxDecoration(
-              color: profileColor.withOpacity(0.5), // Slightly transparent
-              borderRadius: BorderRadius.circular(UIConstants.outerRadius),
-              border: Border.all(color: AppColors.customBlack, width: 3),
-            ),
-            child: const Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
-
-        if (snapshot.hasError) {
-          // Optionally handle errors by showing an error message
-          return Container(
-            margin: const EdgeInsets.symmetric(vertical: 5.0),
-            padding: const EdgeInsets.all(20.0),
-            width: MediaQuery.of(context).size.width * 0.90,
-            decoration: BoxDecoration(
-              color: profileColor.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(UIConstants.outerRadius),
-              border: Border.all(color: AppColors.customBlack, width: 3),
-            ),
-            child: const Center(
-              child: Icon(
-                Icons.error,
-                color: Colors.red,
-              ),
-            ),
-          );
-        }
-
-        if (!snapshot.hasData) {
-          // Handle the case where snapshot has no data
-          return Container(
-            margin: const EdgeInsets.symmetric(vertical: 5.0),
-            padding: const EdgeInsets.all(20.0),
-            width: MediaQuery.of(context).size.width * 0.90,
-            decoration: BoxDecoration(
-              color: profileColor.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(UIConstants.outerRadius),
-              border: Border.all(color: AppColors.customBlack, width: 3),
-            ),
-            child: const Center(
-              child: Text('No data available'),
-            ),
-          );
-        }
-
-        bool isSaved = snapshot.data!['isSaved'];
-        String friendStatus = snapshot.data!['friendStatus'];
-
-        return GestureDetector(
-          onTap: () {
-            if (user['uid'] != _currentUserId) {
-              UserProfile selectedProfile = UserProfile(
-                uid: user['uid'],
-                email: user['email'],
-                userName: user['userName'],
-                dogName: user['dogName'],
-                dogBreed: user['dogBreed'],
-                dogAge: user['dogAge'],
-                isDogOwner: user['isDogOwner'],
-                images: List<String>.from(user['images']),
-                profileColor: profileColor,
-                aboutText: user['aboutText'],
-                location: user['location'],
-                latitude: user['latitude'].toDouble(),
-                longitude: user['longitude'].toDouble(),
-                filterDistance: user['filterDistance'],
-                birthday: user['birthday'] != null
-                    ? DateTime.parse(user['birthday'])
-                    : null,
-                lastOnline: user['lastOnline'] != null
-                    ? DateTime.parse(user['lastOnline'])
-                    : null,
-                filterLastOnline: user['filterLastOnline'] ?? 3,
-              );
-
-              final lastOnline =
-                  calculateLastOnlineLong(selectedProfile.lastOnline);
-
-              widget.onProfileSelected(
-                  selectedProfile, distance, lastOnline, isSaved);
-            }
-          },
-          child: Container(
-            margin: const EdgeInsets.symmetric(vertical: 5.0),
-            padding: const EdgeInsets.only(
-                left: 10.0, top: 10.0, right: 10.0, bottom: 10.0),
-            width: MediaQuery.of(context).size.width * 0.90,
-            decoration: BoxDecoration(
-              color: profileColor,
-              borderRadius: BorderRadius.circular(UIConstants.outerRadius),
-              border: Border.all(color: AppColors.customBlack, width: 3),
-            ),
-            child: Stack(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Stack(
-                      alignment: Alignment.topLeft,
-                      children: [
-                        Row(
-                          children: [
-                            Stack(
-                              alignment: Alignment.topLeft,
-                              children: [
-                                // Profile Image
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(
-                                      UIConstants.innerRadius),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                          color: AppColors.customBlack,
-                                          width: 3),
-                                      borderRadius: BorderRadius.circular(
-                                          UIConstants.innerRadius),
-                                    ),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(
-                                          UIConstants.innerRadiusClipped),
-                                      child: Image.network(
-                                        profileImage,
-                                        height: 70,
-                                        width: 70,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                // Friend Icon
-                                if (friendStatus != 'none')
-                                  Positioned(
-                                    bottom: -4,
-                                    left: -4,
-                                    child: iconHelpers.buildFriendStatusIcon(
-                                        friendStatus, profileColor, 3),
-                                  ),
-                                // Save Icon
-                                if (isSaved)
-                                  Positioned(
-                                    top: -4,
-                                    right: -4,
-                                    child: iconHelpers.buildSaveIcon(
-                                        true, profileColor, 3, 20),
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(width: 10.0),
-                            Expanded(
-                              child: Container(
-                                height: 74,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10.0, vertical: 0.0),
-                                decoration: BoxDecoration(
-                                  color: AppColors.bg,
-                                  borderRadius: BorderRadius.circular(
-                                      UIConstants.innerRadius),
-                                  border: Border.all(
-                                      color: AppColors.customBlack, width: 3),
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    AutoScrollingRow(
-                                      userName: userName,
-                                      isDogOwner: isDogOwner,
-                                      dogName: dogName,
-                                    ),
-                                    const SizedBox(height: 4),
-                                    AutoScrollingTitleRow(
-                                      title: announcementTitle,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Center(
-                      child: Container(
-                        width: MediaQuery.of(context).size.width * 0.90,
-                        padding: const EdgeInsets.all(10.0),
-                        decoration: BoxDecoration(
-                          color: AppColors.bg,
-                          borderRadius:
-                              BorderRadius.circular(UIConstants.innerRadius),
-                          border: Border.all(
-                              color: AppColors.customBlack, width: 3),
-                        ),
-                        child: Text(
-                          announcementText,
-                          textAlign: TextAlign.left,
-                          style: const TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 12,
-                            fontWeight: FontWeight.w300,
-                            color: AppColors.customBlack,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Center(
-                      child: Text(
-                        user['uid'] == _currentUserId
-                            ? timeAgo
-                            : '$timeAgo • $distance km',
-                        style: const TextStyle(
-                          color: AppColors.grey,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Future<void> _deleteAnnouncement(String announcementId) async {
-    try {
-      final currentUserId = _authService.getCurrentUserId();
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(currentUserId)
-          .collection('user_announcements')
-          .doc(announcementId)
-          .delete();
-      if (mounted) {
-        setState(() {
-          _loadFilteredUsersAnnouncements();
-        });
-      }
-    } catch (e) {
-      developer.log('Error deleting announcement: $e');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -566,8 +264,230 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
         padding: const EdgeInsets.only(top: 0, left: 16, right: 16),
         itemCount: _announcements.length,
         itemBuilder: (context, index) {
-          return _buildAnnouncementCard(_announcements[index]);
+          return AnnouncementCard(
+            announcementData: _announcements[index],
+            onProfileSelected: widget.onProfileSelected,
+          );
         },
+      ),
+    );
+  }
+}
+
+// New AnnouncementCard Widget
+class AnnouncementCard extends StatelessWidget {
+  final Map<String, dynamic> announcementData;
+  final Function(UserProfile, String, String, bool) onProfileSelected;
+
+  const AnnouncementCard({
+    Key? key,
+    required this.announcementData,
+    required this.onProfileSelected,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final user = announcementData['user'];
+    final announcement = announcementData['announcement'];
+    final DateTime createdAt = DateTime.parse(announcement['createdAt']);
+    final String timeAgo = calculateTimeAgo(createdAt);
+
+    final String profileImage =
+        user['images'].isNotEmpty ? user['images'][0] : '';
+    final Color profileColor = Color(user['profileColor'] ?? 0xFFFFFFFF);
+    final bool isDogOwner = user['isDogOwner'] == true;
+    final String dogName = user['dogName'] ?? '';
+    final String userName = user['userName'] ?? '';
+    final String announcementTitle = announcement['announcementTitle'] ?? '';
+    final String announcementText = announcement['announcementText'] ?? '';
+
+    final userProfileState =
+        Provider.of<UserProfileState>(context, listen: false);
+    final mainUserLatitude = userProfileState.userProfile.latitude;
+    final mainUserLongitude = userProfileState.userProfile.longitude;
+
+    final distance = calculateDistance(
+      mainUserLatitude,
+      mainUserLongitude,
+      user['latitude'].toDouble(),
+      user['longitude'].toDouble(),
+    ).toStringAsFixed(1);
+
+    final String currentUserId = AuthService().getCurrentUserId() ?? '';
+
+    return GestureDetector(
+      onTap: () {
+        if (user['uid'] != currentUserId) {
+          UserProfile selectedProfile = UserProfile(
+            uid: user['uid'],
+            email: user['email'],
+            userName: user['userName'],
+            dogName: user['dogName'],
+            dogBreed: user['dogBreed'],
+            dogAge: user['dogAge'],
+            isDogOwner: user['isDogOwner'],
+            images: List<String>.from(user['images']),
+            profileColor: profileColor,
+            aboutText: user['aboutText'],
+            location: user['location'],
+            latitude: user['latitude'].toDouble(),
+            longitude: user['longitude'].toDouble(),
+            filterDistance: user['filterDistance'],
+            birthday: user['birthday'] != null
+                ? DateTime.parse(user['birthday'])
+                : null,
+            lastOnline: user['lastOnline'] != null
+                ? DateTime.parse(user['lastOnline'])
+                : null,
+            filterLastOnline: user['filterLastOnline'] ?? 3,
+          );
+
+          final lastOnline =
+              calculateLastOnlineLong(selectedProfile.lastOnline);
+
+          // Fetch the actual saved status
+          final profileService = ProfileService();
+          profileService.isProfileSaved(user['uid']).then((isSaved) {
+            onProfileSelected(selectedProfile, distance, lastOnline, isSaved);
+          });
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 5.0),
+        padding: const EdgeInsets.only(
+            left: 10.0, top: 10.0, right: 10.0, bottom: 10.0),
+        width: MediaQuery.of(context).size.width * 0.90,
+        decoration: BoxDecoration(
+          color: profileColor,
+          borderRadius: BorderRadius.circular(UIConstants.outerRadius),
+          border: Border.all(color: AppColors.customBlack, width: 3),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              alignment: Alignment.topLeft,
+              children: [
+                Row(
+                  children: [
+                    Stack(
+                      alignment: Alignment.topLeft,
+                      children: [
+                        // Profile Image
+                        ClipRRect(
+                          borderRadius:
+                              BorderRadius.circular(UIConstants.innerRadius),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                  color: AppColors.customBlack, width: 3),
+                              borderRadius: BorderRadius.circular(
+                                  UIConstants.innerRadius),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(
+                                  UIConstants.innerRadiusClipped),
+                              child: Image.network(
+                                profileImage,
+                                height: 70,
+                                width: 70,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Friend Icon
+                        Positioned(
+                          bottom: -4,
+                          left: -4,
+                          child: FriendIconWidget(
+                            userId: user['uid'],
+                            profileColor: profileColor,
+                          ),
+                        ),
+                        // Save Icon
+                        Positioned(
+                          top: -4,
+                          right: -4,
+                          child: SaveIconWidget(
+                            userId: user['uid'],
+                            profileColor: profileColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(width: 10.0),
+                    Expanded(
+                      child: Container(
+                        height: 74,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10.0, vertical: 0.0),
+                        decoration: BoxDecoration(
+                          color: AppColors.bg,
+                          borderRadius:
+                              BorderRadius.circular(UIConstants.innerRadius),
+                          border: Border.all(
+                              color: AppColors.customBlack, width: 3),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            AutoScrollingRow(
+                              userName: userName,
+                              isDogOwner: isDogOwner,
+                              dogName: dogName,
+                            ),
+                            const SizedBox(height: 4),
+                            AutoScrollingTitleRow(
+                              title: announcementTitle,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Center(
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.90,
+                padding: const EdgeInsets.all(10.0),
+                decoration: BoxDecoration(
+                  color: AppColors.bg,
+                  borderRadius: BorderRadius.circular(UIConstants.innerRadius),
+                  border: Border.all(color: AppColors.customBlack, width: 3),
+                ),
+                child: Text(
+                  announcementText,
+                  textAlign: TextAlign.left,
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 12,
+                    fontWeight: FontWeight.w300,
+                    color: AppColors.customBlack,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Center(
+              child: Text(
+                user['uid'] == currentUserId
+                    ? timeAgo
+                    : '$timeAgo • $distance km',
+                style: const TextStyle(
+                  color: AppColors.grey,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.bold,
+                  fontSize: 10,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'dart:developer' as developer;
 import 'package:doggymatch_flutter/main/ui_constants.dart';
+import 'package:doggymatch_flutter/root_pages/search_page_widgets/friend_and_save_icon.dart';
 import 'package:doggymatch_flutter/services/friends_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -345,121 +346,113 @@ class _OtherPersonsState extends State<OtherPersons>
       data['longitude'].toDouble(),
     ).toStringAsFixed(1);
 
-    return FutureBuilder<Map<String, dynamic>>(
-      future: _getUserStatus(data['uid']),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const SizedBox.shrink(); // or a loading placeholder
-        }
+    return GestureDetector(
+      onTap: () async {
+        developer.log('PERSONS Selected Profile UID: ${data['uid']}');
+        developer.log('PERSONS Selected Profile Data: $data');
+        developer.log('Own UID: ${_authService.getCurrentUserId()}');
 
-        bool isSaved = snapshot.data!['isSaved'];
-        String friendStatus = snapshot.data!['friendStatus'];
-
-        return GestureDetector(
-          onTap: () async {
-            developer.log('PERSONS Selected Profile UID: ${data['uid']}');
-            developer.log('PERSONS Selected Profile Data: $data');
-            developer.log('Own UID: ${_authService.getCurrentUserId()}');
-
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (BuildContext context) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              },
-              useRootNavigator: true,
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return const Center(
+              child: CircularProgressIndicator(),
             );
-
-            try {
-              // Create a UserProfile instance from the data map
-              UserProfile selectedProfile = UserProfile(
-                uid: data['uid'],
-                email: data['email'],
-                userName: data['userName'],
-                dogName: data['dogName'],
-                dogBreed: data['dogBreed'],
-                dogAge: data['dogAge'],
-                isDogOwner: data['isDogOwner'],
-                images: List<String>.from(data['images']),
-                profileColor: Color(data['profileColor']),
-                aboutText: data['aboutText'],
-                location: data['location'],
-                latitude: data['latitude'].toDouble(),
-                longitude: data['longitude'].toDouble(),
-                filterDistance: data['filterDistance'],
-                birthday: data['birthday'] != null
-                    ? DateTime.parse(data['birthday'])
-                    : null,
-                lastOnline: data['lastOnline'] != null
-                    ? DateTime.parse(data['lastOnline'])
-                    : null,
-                filterLastOnline: data['filterLastOnline'] ?? 3,
-              );
-
-              // Log the selected profile's userName
-              developer.log(
-                  'PERSONS Selected Profile UserName: ${selectedProfile.userName}');
-
-              final lastOnline =
-                  calculateLastOnlineLong(selectedProfile.lastOnline);
-
-              // Call the callback to notify SearchPage
-              widget.onProfileSelected(
-                  selectedProfile, distance, lastOnline, isSaved);
-            } finally {
-              Navigator.of(context, rootNavigator: true)
-                  .pop(); // Pop the dialog
-            }
           },
-          child: Stack(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: profileColor,
-                  borderRadius: BorderRadius.circular(UIConstants.outerRadius),
-                  border: Border.all(color: AppColors.customBlack, width: 3),
-                ),
-                child: Column(
-                  children: [
-                    if (isDogOwner) _buildDogOwnerHeader(data['dogName']),
-                    Expanded(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(
-                              isDogOwner ? 0 : UIConstants.outerRadiusClipped),
-                        ),
-                        child: _buildUserImage(data['images'], isDogOwner),
-                      ),
-                    ),
-                    _buildUserFooter(
-                        data['userName'],
-                        data['latitude'].toDouble(),
-                        data['longitude'].toDouble()),
-                  ],
-                ),
-              ),
-              // Friend status icon
-              if (friendStatus != 'none')
-                Positioned(
-                  bottom: 40, // Adjust position as needed
-                  left: 10,
-                  child: iconHelpers.buildFriendStatusIcon(
-                      friendStatus, profileColor, 2),
-                ),
-              // Save icon
-              if (isSaved)
-                Positioned(
-                  bottom: 40,
-                  right: 10,
-                  child:
-                      iconHelpers.buildSaveIcon(isSaved, profileColor, 2, 24),
-                ),
-            ],
-          ),
+          useRootNavigator: true,
         );
+
+        try {
+          // Create a UserProfile instance from the data map
+          UserProfile selectedProfile = UserProfile(
+            uid: data['uid'],
+            email: data['email'],
+            userName: data['userName'],
+            dogName: data['dogName'],
+            dogBreed: data['dogBreed'],
+            dogAge: data['dogAge'],
+            isDogOwner: data['isDogOwner'],
+            images: List<String>.from(data['images']),
+            profileColor: Color(data['profileColor']),
+            aboutText: data['aboutText'],
+            location: data['location'],
+            latitude: data['latitude'].toDouble(),
+            longitude: data['longitude'].toDouble(),
+            filterDistance: data['filterDistance'],
+            birthday: data['birthday'] != null
+                ? DateTime.parse(data['birthday'])
+                : null,
+            lastOnline: data['lastOnline'] != null
+                ? DateTime.parse(data['lastOnline'])
+                : null,
+            filterLastOnline: data['filterLastOnline'] ?? 3,
+          );
+
+          // Log the selected profile's userName
+          developer.log(
+              'PERSONS Selected Profile UserName: ${selectedProfile.userName}');
+
+          final lastOnline =
+              calculateLastOnlineLong(selectedProfile.lastOnline);
+
+          // Fetch the actual saved status
+          bool isSaved = await _authProfile.isProfileSaved(data['uid']);
+
+          // Call the callback to notify SearchPage
+          widget.onProfileSelected(
+              selectedProfile, distance, lastOnline, isSaved);
+        } finally {
+          if (mounted) {
+            Navigator.of(context, rootNavigator: true).pop(); // Pop the dialog
+          }
+        }
       },
+      child: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: profileColor,
+              borderRadius: BorderRadius.circular(UIConstants.outerRadius),
+              border: Border.all(color: AppColors.customBlack, width: 3),
+            ),
+            child: Column(
+              children: [
+                if (isDogOwner) _buildDogOwnerHeader(data['dogName']),
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(
+                          isDogOwner ? 0 : UIConstants.outerRadiusClipped),
+                    ),
+                    child: _buildUserImage(data['images'], isDogOwner),
+                  ),
+                ),
+                _buildUserFooter(data['userName'], data['latitude'].toDouble(),
+                    data['longitude'].toDouble()),
+              ],
+            ),
+          ),
+          // Friend status icon using FriendIconWidget
+          Positioned(
+            bottom: 40, // Adjust position as needed
+            left: 10,
+            child: FriendIconWidget(
+              userId: data['uid'],
+              profileColor: profileColor,
+            ),
+          ),
+          // Save icon using SaveIconWidget
+          Positioned(
+            bottom: 40,
+            right: 10,
+            child: SaveIconWidget(
+              userId: data['uid'],
+              profileColor: profileColor,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

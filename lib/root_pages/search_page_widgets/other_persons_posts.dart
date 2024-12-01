@@ -6,6 +6,7 @@ import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:doggymatch_flutter/notifiers/filter_notifier.dart';
+import 'package:doggymatch_flutter/root_pages/search_page_widgets/friend_and_save_icon.dart';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/posts_dialogs.dart';
 import 'package:doggymatch_flutter/services/post_service.dart';
 import 'package:doggymatch_flutter/services/friends_service.dart'; // Add this import
@@ -531,387 +532,433 @@ class _PostCardState extends State<PostCard> {
     final String postId = post['postId'] ?? '';
     final int commentsCount = post['commentsCount'] ?? 0;
 
-    return FutureBuilder<Map<String, dynamic>>(
-      future: _getUserStatus(user['uid']),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const SizedBox.shrink(); // Or a loading placeholder
+    return GestureDetector(
+      onTap: () async {
+        if (!isOwnPost && widget.onProfileSelected != null) {
+          UserProfile selectedProfile = UserProfile(
+            uid: user['uid'],
+            email: user['email'],
+            userName: user['userName'],
+            dogName: user['dogName'],
+            dogBreed: user['dogBreed'],
+            dogAge: user['dogAge'],
+            isDogOwner: user['isDogOwner'],
+            images: List<String>.from(user['images']),
+            profileColor: profileColor,
+            aboutText: user['aboutText'],
+            location: user['location'],
+            latitude: user['latitude'].toDouble(),
+            longitude: user['longitude'].toDouble(),
+            filterDistance: user['filterDistance'],
+            birthday: user['birthday'] != null
+                ? DateTime.parse(user['birthday'])
+                : null,
+            lastOnline: user['lastOnline'] != null
+                ? DateTime.parse(user['lastOnline'])
+                : null,
+            filterLastOnline: user['filterLastOnline'] ?? 3,
+          );
+          final lastOnline =
+              calculateLastOnlineLong(selectedProfile.lastOnline);
+
+          // Fetch the actual saved status
+          final profileService = ProfileService();
+          final isSaved = await profileService.isProfileSaved(user['uid']);
+
+          widget.onProfileSelected!(
+              selectedProfile, distance, lastOnline, isSaved);
         }
-
-        // Extract isProfileSaved and friendStatus from the snapshot
-        bool isProfileSaved = snapshot.data!['isProfileSaved'];
-        String friendStatus = snapshot.data!['friendStatus'];
-
-        return GestureDetector(
-          onTap: () async {
-            if (!isOwnPost && widget.onProfileSelected != null) {
-              UserProfile selectedProfile = UserProfile(
-                uid: user['uid'],
-                email: user['email'],
-                userName: user['userName'],
-                dogName: user['dogName'],
-                dogBreed: user['dogBreed'],
-                dogAge: user['dogAge'],
-                isDogOwner: user['isDogOwner'],
-                images: List<String>.from(user['images']),
-                profileColor: profileColor,
-                aboutText: user['aboutText'],
-                location: user['location'],
-                latitude: user['latitude'].toDouble(),
-                longitude: user['longitude'].toDouble(),
-                filterDistance: user['filterDistance'],
-                birthday: user['birthday'] != null
-                    ? DateTime.parse(user['birthday'])
-                    : null,
-                lastOnline: user['lastOnline'] != null
-                    ? DateTime.parse(user['lastOnline'])
-                    : null,
-                filterLastOnline: user['filterLastOnline'] ?? 3,
-              );
-              final lastOnline =
-                  calculateLastOnlineLong(selectedProfile.lastOnline);
-
-              widget.onProfileSelected!(
-                  selectedProfile, distance, lastOnline, isProfileSaved);
-            }
-          },
-          child: Container(
-            margin: const EdgeInsets.symmetric(vertical: 5.0),
-            padding: const EdgeInsets.all(10.0),
-            width: MediaQuery.of(context).size.width * 0.9,
-            decoration: BoxDecoration(
-              color: profileColor,
-              borderRadius: BorderRadius.circular(UIConstants.outerRadius),
-              border: Border.all(color: AppColors.customBlack, width: 3),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 5.0),
+        padding: const EdgeInsets.all(10.0),
+        width: MediaQuery.of(context).size.width * 0.9,
+        decoration: BoxDecoration(
+          color: profileColor,
+          borderRadius: BorderRadius.circular(UIConstants.outerRadius),
+          border: Border.all(color: AppColors.customBlack, width: 3),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
               children: [
-                Stack(
+                Row(
                   children: [
-                    Row(
+                    Stack(
+                      alignment: Alignment.topLeft,
                       children: [
-                        Stack(
-                          alignment: Alignment.topLeft,
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(
-                                  UIConstants.innerRadius),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                      color: AppColors.customBlack, width: 3),
-                                  borderRadius: BorderRadius.circular(
-                                      UIConstants.innerRadius),
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(
-                                      UIConstants.innerRadiusClipped),
-                                  child: Image.network(
-                                    user['images'][0],
-                                    height: 70,
-                                    width: 70,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            // Friend Icon
-                            if (friendStatus != 'none')
-                              Positioned(
-                                bottom: -4,
-                                left: -4,
-                                child: iconHelpers.buildFriendStatusIcon(
-                                    friendStatus, profileColor, 3),
-                              ),
-                            // Save Icon (Profile Save Icon)
-                            if (isProfileSaved)
-                              Positioned(
-                                top: -4,
-                                right: -4,
-                                child: iconHelpers.buildSaveIcon(
-                                    true, profileColor, 3, 20),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(width: 8.0),
-                        Expanded(
+                        ClipRRect(
+                          borderRadius:
+                              BorderRadius.circular(UIConstants.innerRadius),
                           child: Container(
-                            height: 74,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10.0, vertical: 0.0),
                             decoration: BoxDecoration(
-                              color: AppColors.bg,
-                              borderRadius: BorderRadius.circular(
-                                  UIConstants.innerRadius),
                               border: Border.all(
                                   color: AppColors.customBlack, width: 3),
+                              borderRadius: BorderRadius.circular(
+                                  UIConstants.innerRadius),
                             ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                AutoScrollingRow(
-                                  userName: userName,
-                                  isDogOwner: isDogOwner,
-                                  dogName: dogName,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  isOwnPost
-                                      ? timeAgo
-                                      : '$timeAgo • $distance km',
-                                  style: const TextStyle(
-                                    fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 10,
-                                    color: AppColors.grey,
-                                  ),
-                                ),
-                              ],
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(
+                                  UIConstants.innerRadiusClipped),
+                              child: Image.network(
+                                user['images'][0],
+                                height: 70,
+                                width: 70,
+                                fit: BoxFit.cover,
+                              ),
                             ),
+                          ),
+                        ),
+                        // Friend Icon with FutureBuilder
+                        Positioned(
+                          bottom: -4,
+                          left: -4,
+                          child: FriendIconWidget(
+                            userId: user['uid'],
+                            profileColor: profileColor,
+                          ),
+                        ),
+                        // Save Icon (Profile Save Icon) with FutureBuilder
+                        Positioned(
+                          top: -4,
+                          right: -4,
+                          child: SaveIconWidget(
+                            userId: user['uid'],
+                            profileColor: profileColor,
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                _buildPostImages(postImages),
-                const SizedBox(height: 10),
-                Center(
-                  child: Container(
-                    width: MediaQuery.of(context).size.width * 1,
-                    padding: const EdgeInsets.all(10.0),
-                    decoration: BoxDecoration(
-                      color: AppColors.bg,
-                      borderRadius:
-                          BorderRadius.circular(UIConstants.innerRadius),
-                      border:
-                          Border.all(color: AppColors.customBlack, width: 3),
-                    ),
-                    child: Text(
-                      postDescription,
-                      textAlign: TextAlign.left,
-                      style: const TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w300,
-                        color: AppColors.customBlack,
+                    const SizedBox(width: 8.0),
+                    Expanded(
+                      child: Container(
+                        height: 74,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10.0, vertical: 0.0),
+                        decoration: BoxDecoration(
+                          color: AppColors.bg,
+                          borderRadius:
+                              BorderRadius.circular(UIConstants.innerRadius),
+                          border: Border.all(
+                              color: AppColors.customBlack, width: 3),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            AutoScrollingRow(
+                              userName: userName,
+                              isDogOwner: isDogOwner,
+                              dogName: dogName,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              isOwnPost ? timeAgo : '$timeAgo • $distance km',
+                              style: const TextStyle(
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.bold,
+                                fontSize: 10,
+                                color: AppColors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            _buildPostImages(postImages),
+            const SizedBox(height: 10),
+            Center(
+              child: Container(
+                width: MediaQuery.of(context).size.width * 1,
+                padding: const EdgeInsets.all(10.0),
+                decoration: BoxDecoration(
+                  color: AppColors.bg,
+                  borderRadius: BorderRadius.circular(UIConstants.innerRadius),
+                  border: Border.all(color: AppColors.customBlack, width: 3),
+                ),
+                child: Text(
+                  postDescription,
+                  textAlign: TextAlign.left,
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w300,
+                    color: AppColors.customBlack,
                   ),
                 ),
-                const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  decoration: BoxDecoration(
-                    color: AppColors.bg,
-                    borderRadius:
-                        BorderRadius.circular(UIConstants.innerRadius),
-                    border: Border.all(color: AppColors.customBlack, width: 3),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              decoration: BoxDecoration(
+                color: AppColors.bg,
+                borderRadius: BorderRadius.circular(UIConstants.innerRadius),
+                border: Border.all(color: AppColors.customBlack, width: 3),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Button row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Button row
+                      // Left side icons (heart and comment)
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // Left side icons (heart and comment)
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: Icon(
-                                  _isLiked
-                                      ? Icons.favorite
-                                      : Icons.favorite_border,
-                                  color: AppColors.customBlack,
-                                ),
-                                onPressed: () {
-                                  if (currentUserId == null) {
-                                    // Handle user not signed in
-                                    return;
-                                  }
-                                  if (mounted) {
-                                    setState(() {
-                                      _isLiked = !_isLiked;
+                          IconButton(
+                            icon: Icon(
+                              _isLiked ? Icons.favorite : Icons.favorite_border,
+                              color: AppColors.customBlack,
+                            ),
+                            onPressed: () {
+                              if (currentUserId == null) {
+                                // Handle user not signed in
+                                return;
+                              }
+                              if (mounted) {
+                                setState(() {
+                                  _isLiked = !_isLiked;
 
-                                      if (_isLiked) {
-                                        // Like the post
-                                        _postService.likePost(
-                                            postOwner, postId);
-                                        _likesCount += 1;
-                                      } else {
-                                        // Unlike the post
-                                        _postService.unlikePost(
-                                            postOwner, postId);
-                                        _likesCount = _likesCount > 0
-                                            ? _likesCount - 1
-                                            : 0;
-                                      }
-                                    });
+                                  if (_isLiked) {
+                                    // Like the post
+                                    _postService.likePost(postOwner, postId);
+                                    _likesCount += 1;
+                                  } else {
+                                    // Unlike the post
+                                    _postService.unlikePost(postOwner, postId);
+                                    _likesCount =
+                                        _likesCount > 0 ? _likesCount - 1 : 0;
                                   }
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.comment_outlined,
-                                  color: AppColors.customBlack,
-                                ),
-                                onPressed: () {
-                                  _openCommentsOverlay(
-                                    postOwner,
-                                    postId,
-                                    profileColor,
-                                    () {
-                                      if (mounted) {
-                                        setState(() {
-                                          post['commentsCount'] =
-                                              (post['commentsCount'] ?? 0) + 1;
-                                        });
-                                      }
-                                    },
-                                    widget.onProfileSelected,
-                                  );
-                                },
-                              ),
-                            ],
+                                });
+                              }
+                            },
                           ),
-                          // Right side icon (save post and menu)
-                          Row(
-                            children: [
-                              // Save Icon (Post Save Icon)
-                              IconButton(
-                                icon: Icon(
-                                  _isPostSaved
-                                      ? Icons.bookmark
-                                      : Icons.bookmark_border,
-                                  color: AppColors.customBlack,
-                                ),
-                                onPressed: () {
-                                  if (currentUserId == null) {
-                                    // Handle user not signed in
-                                    return;
-                                  }
+                          IconButton(
+                            icon: const Icon(
+                              Icons.comment_outlined,
+                              color: AppColors.customBlack,
+                            ),
+                            onPressed: () {
+                              _openCommentsOverlay(
+                                postOwner,
+                                postId,
+                                profileColor,
+                                () {
                                   if (mounted) {
                                     setState(() {
-                                      _isPostSaved = !_isPostSaved;
-
-                                      if (_isPostSaved) {
-                                        // Save the post
-                                        _postService.savePost(postId);
-                                      } else {
-                                        // Unsave the post
-                                        _postService.unsavePost(postId);
-                                      }
+                                      post['commentsCount'] =
+                                          (post['commentsCount'] ?? 0) + 1;
                                     });
                                   }
                                 },
-                              ),
-                              // Kebab Menu Icon
-                              PopupMenuButton<String>(
-                                icon: const Icon(Icons.more_vert,
-                                    color: AppColors.customBlack),
-                                onSelected: (String value) async {
-                                  if (value == 'delete') {
-                                    bool confirmed = await PostsDialogs
-                                        .showDeletePostConfirmationDialog(
-                                            context);
-                                    if (confirmed) {
-                                      _postService.deletePost(postId);
-                                    }
-                                  } else if (value == 'report') {
-                                    bool confirmed = await PostsDialogs
-                                        .showReportPostConfirmationDialog(
-                                            context,
-                                            user['userName'] ?? 'User');
-                                    if (confirmed) {
-                                      // Add logic for reporting the post
-                                    }
-                                  }
-                                },
-                                itemBuilder: (BuildContext context) =>
-                                    <PopupMenuEntry<String>>[
-                                  if (isOwnPost)
-                                    const PopupMenuItem<String>(
-                                      value: 'delete',
-                                      child: Center(
-                                        child: Text(
-                                          'Delete',
-                                          style: TextStyle(
-                                            fontFamily: 'Poppins',
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.customRed,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  if (!isOwnPost)
-                                    const PopupMenuItem<String>(
-                                      value: 'report',
-                                      child: Center(
-                                        child: Text(
-                                          'Report',
-                                          style: TextStyle(
-                                            fontFamily: 'Poppins',
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.customRed,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                                offset: const Offset(0, 40),
-                                color: AppColors.bg,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                      UIConstants.innerRadius),
-                                  side: const BorderSide(
-                                    color: AppColors.customBlack,
-                                    width: 3.0,
-                                  ),
-                                ),
-                              ),
-                            ],
+                                widget.onProfileSelected,
+                              );
+                            },
                           ),
                         ],
                       ),
-                      // Separator line
-                      Container(
-                        margin: const EdgeInsets.symmetric(vertical: 5.0),
-                        height: 3.0,
-                        color: AppColors.customBlack,
+                      // Right side icon (save post and menu)
+                      Row(
+                        children: [
+                          // Save Icon (Post Save Icon)
+                          IconButton(
+                            icon: Icon(
+                              _isPostSaved
+                                  ? Icons.bookmark
+                                  : Icons.bookmark_border,
+                              color: AppColors.customBlack,
+                            ),
+                            onPressed: () {
+                              if (currentUserId == null) {
+                                // Handle user not signed in
+                                return;
+                              }
+                              if (mounted) {
+                                setState(() {
+                                  _isPostSaved = !_isPostSaved;
+
+                                  if (_isPostSaved) {
+                                    // Save the post
+                                    _postService.savePost(postId);
+                                  } else {
+                                    // Unsave the post
+                                    _postService.unsavePost(postId);
+                                  }
+                                });
+                              }
+                            },
+                          ),
+                          // Kebab Menu Icon
+                          PopupMenuButton<String>(
+                            icon: const Icon(Icons.more_vert,
+                                color: AppColors.customBlack),
+                            onSelected: (String value) async {
+                              if (value == 'delete') {
+                                bool confirmed = await PostsDialogs
+                                    .showDeletePostConfirmationDialog(context);
+                                if (confirmed) {
+                                  _postService.deletePost(postId);
+                                }
+                              } else if (value == 'report') {
+                                bool confirmed = await PostsDialogs
+                                    .showReportPostConfirmationDialog(
+                                        context, user['userName'] ?? 'User');
+                                if (confirmed) {
+                                  // Add logic for reporting the post
+                                }
+                              }
+                            },
+                            itemBuilder: (BuildContext context) =>
+                                <PopupMenuEntry<String>>[
+                              if (isOwnPost)
+                                const PopupMenuItem<String>(
+                                  value: 'delete',
+                                  child: Center(
+                                    child: Text(
+                                      'Delete',
+                                      style: TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.customRed,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              if (!isOwnPost)
+                                const PopupMenuItem<String>(
+                                  value: 'report',
+                                  child: Center(
+                                    child: Text(
+                                      'Report',
+                                      style: TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.customRed,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                            offset: const Offset(0, 40),
+                            color: AppColors.bg,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                  UIConstants.innerRadius),
+                              side: const BorderSide(
+                                color: AppColors.customBlack,
+                                width: 3.0,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      // Likes row
-                      GestureDetector(
-                        onTap: () {
-                          // Open likes overlay
-                          _openLikesOverlay(
-                            postOwner,
-                            postId,
-                            profileColor,
-                            widget.onProfileSelected,
-                          );
+                    ],
+                  ),
+                  // Separator line
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 5.0),
+                    height: 3.0,
+                    color: AppColors.customBlack,
+                  ),
+                  // Likes row
+                  GestureDetector(
+                    onTap: () {
+                      // Open likes overlay
+                      _openLikesOverlay(
+                        postOwner,
+                        postId,
+                        profileColor,
+                        widget.onProfileSelected,
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 5.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.favorite_border,
+                            color: AppColors.customBlack,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _likesCount == 0
+                                ? 'No Likes'
+                                : _likesCount == 1
+                                    ? '1 Like'
+                                    : '$_likesCount Likes',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 14,
+                              fontWeight: FontWeight.w300,
+                              color: AppColors.customBlack,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.open_in_browser_rounded,
+                            color: AppColors.customBlack,
+                            size: 16,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Separator line
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 5.0),
+                    height: 3.0,
+                    color: AppColors.customBlack,
+                  ),
+                  // Comments text
+                  GestureDetector(
+                    onTap: () {
+                      // Open comments overlay
+                      _openCommentsOverlay(
+                        postOwner,
+                        postId,
+                        profileColor,
+                        () {
+                          if (mounted) {
+                            setState(() {
+                              // Update the commentsCount in the post data
+                              post['commentsCount'] =
+                                  (post['commentsCount'] ?? 0) + 1;
+                            });
+                          }
                         },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 5.0),
-                          child: Row(
+                        widget.onProfileSelected,
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 5.0),
+                      child: Column(
+                        children: [
+                          Row(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               const Icon(
-                                Icons.favorite_border,
+                                Icons.comment_outlined,
+                                size: 14,
                                 color: AppColors.customBlack,
-                                size: 16,
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                _likesCount == 0
-                                    ? 'No Likes'
-                                    : _likesCount == 1
-                                        ? '1 Like'
-                                        : '$_likesCount Likes',
+                                commentsCount == 0
+                                    ? 'No Comments'
+                                    : commentsCount == 1
+                                        ? '1 $commentsCount Comment'
+                                        : '$commentsCount Comments',
                                 textAlign: TextAlign.center,
                                 style: const TextStyle(
                                   fontFamily: 'Poppins',
@@ -923,88 +970,23 @@ class _PostCardState extends State<PostCard> {
                               const SizedBox(width: 4),
                               const Icon(
                                 Icons.open_in_browser_rounded,
-                                color: AppColors.customBlack,
                                 size: 16,
+                                color: AppColors.customBlack,
                               ),
                             ],
                           ),
-                        ),
+                          const SizedBox(height: 4),
+                        ],
                       ),
-                      // Separator line
-                      Container(
-                        margin: const EdgeInsets.symmetric(vertical: 5.0),
-                        height: 3.0,
-                        color: AppColors.customBlack,
-                      ),
-                      // Comments text
-                      GestureDetector(
-                        onTap: () {
-                          // Open comments overlay
-                          _openCommentsOverlay(
-                            postOwner,
-                            postId,
-                            profileColor,
-                            () {
-                              if (mounted) {
-                                setState(() {
-                                  // Update the commentsCount in the post data
-                                  post['commentsCount'] =
-                                      (post['commentsCount'] ?? 0) + 1;
-                                });
-                              }
-                            },
-                            widget.onProfileSelected,
-                          );
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 5.0),
-                          child: Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(
-                                    Icons.comment_outlined,
-                                    size: 14,
-                                    color: AppColors.customBlack,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    commentsCount == 0
-                                        ? 'No Comments'
-                                        : commentsCount == 1
-                                            ? '1 $commentsCount Comment'
-                                            : '$commentsCount Comments',
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w300,
-                                      color: AppColors.customBlack,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  const Icon(
-                                    Icons.open_in_browser_rounded,
-                                    size: 16,
-                                    color: AppColors.customBlack,
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 0),
-              ],
+                ],
+              ),
             ),
-          ),
-        );
-      },
+            const SizedBox(height: 0),
+          ],
+        ),
+      ),
     );
   }
 
