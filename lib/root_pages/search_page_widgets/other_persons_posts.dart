@@ -38,7 +38,8 @@ class OtherPersonsPosts extends StatefulWidget {
   _OtherPersonsPostsState createState() => _OtherPersonsPostsState();
 }
 
-class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
+class _OtherPersonsPostsState extends State<OtherPersonsPosts>
+    with AutomaticKeepAliveClientMixin {
   final AuthService _authService = AuthService();
   final _authProfile = ProfileService();
   bool _isLoading = true;
@@ -47,6 +48,9 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
   late FilterNotifier _filterNotifier;
 
   final iconHelpers = IconHelpers();
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -312,6 +316,8 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Important to call super.build
+
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }

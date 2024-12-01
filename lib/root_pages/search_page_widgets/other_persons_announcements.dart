@@ -36,7 +36,8 @@ class OtherPersonsAnnouncements extends StatefulWidget {
       _OtherPersonsAnnouncementsState();
 }
 
-class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
+class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements>
+    with AutomaticKeepAliveClientMixin {
   final AuthService _authService = AuthService();
   final _authProfile = ProfileService();
 
@@ -47,6 +48,9 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
   List<Map<String, dynamic>> _announcements = [];
 
   late FilterNotifier _filterNotifier;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -222,6 +226,8 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Important to call super.build
+
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
