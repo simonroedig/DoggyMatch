@@ -1,8 +1,6 @@
+// community_page.dart
 // ignore_for_file: library_private_types_in_public_api
 
-import 'package:doggymatch_flutter/main/ui_constants.dart';
-import 'package:doggymatch_flutter/notifiers/profile_close_notifier.dart';
-import 'package:doggymatch_flutter/root_pages/profile_page_widgets/profile_widget.dart';
 import 'package:doggymatch_flutter/services/profile_service.dart';
 import 'package:doggymatch_flutter/shared_helper/shared_and_helper_functions.dart';
 import 'package:flutter/material.dart';
@@ -17,8 +15,10 @@ import 'package:doggymatch_flutter/states/user_profile_state.dart';
 import 'dart:developer' as developer;
 
 class CommunityPage extends StatefulWidget {
-  final ProfileCloseNotifier profileCloseNotifier;
-  const CommunityPage({super.key, required this.profileCloseNotifier});
+  final Function(UserProfile, String, String, bool) onProfileSelected;
+
+  const CommunityPage({Key? key, required this.onProfileSelected})
+      : super(key: key);
 
   @override
   _CommunityPageState createState() => _CommunityPageState();
@@ -28,10 +28,6 @@ class _CommunityPageState extends State<CommunityPage>
     with AutomaticKeepAliveClientMixin {
   bool isFriendsSelected = true;
   int selectedFriendsOption = 0; // 0 = Friends, 1 = Received, 2 = Sent
-  UserProfile? _selectedProfile;
-  String? _selectedDistance;
-  String? _lastOnline;
-  bool? _isSaved;
 
   bool _hasOpenedProfileFromUserId = false;
 
@@ -41,13 +37,7 @@ class _CommunityPageState extends State<CommunityPage>
   @override
   void initState() {
     super.initState();
-    widget.profileCloseNotifier.addListener(_onProfileClose);
-  }
-
-  @override
-  void dispose() {
-    widget.profileCloseNotifier.removeListener(_onProfileClose);
-    super.dispose();
+    developer.log('CommunityPage initialized');
   }
 
   @override
@@ -85,7 +75,7 @@ class _CommunityPageState extends State<CommunityPage>
           final lastOnline = calculateLastOnlineLong(userProfile.lastOnline);
           final isSaved = await ProfileService().isProfileSaved(userId);
 
-          // Open profile automatically
+          // Open profile using the callback
           _openProfile(userProfile, distance, lastOnline, isSaved);
         }
       } catch (e) {
@@ -94,13 +84,6 @@ class _CommunityPageState extends State<CommunityPage>
         }
       }
     });
-  }
-
-  void _onProfileClose() {
-    if (widget.profileCloseNotifier.shouldCloseProfile) {
-      closeProfile();
-      widget.profileCloseNotifier.reset();
-    }
   }
 
   // Toggle between Friends and Saved
@@ -120,20 +103,7 @@ class _CommunityPageState extends State<CommunityPage>
 
   void _openProfile(
       UserProfile profile, String distance, String lastOnline, bool isSaved) {
-    setState(() {
-      _selectedProfile = profile;
-      _selectedDistance = distance;
-      _lastOnline = lastOnline;
-      _isSaved = isSaved;
-    });
-    Provider.of<UserProfileState>(context, listen: false).openProfile();
-  }
-
-  void closeProfile() {
-    setState(() {
-      _selectedProfile = null;
-    });
-    Provider.of<UserProfileState>(context, listen: false).closeProfile();
+    widget.onProfileSelected(profile, distance, lastOnline, isSaved);
   }
 
   @override
@@ -147,84 +117,47 @@ class _CommunityPageState extends State<CommunityPage>
         showFilterIcon: false,
         onSettingsPressed: null,
       ),
-      body: Stack(
+      body: Column(
         children: [
-          Column(
-            children: [
-              const SizedBox(height: 5),
-              FriendsSavedToggle(onToggle: handleToggle),
-              if (isFriendsSelected) ...[
-                const SizedBox(height: 15),
-                FriendsReceivedReqSentReqToggle(
-                    onToggle: handleFriendsOptionToggle),
-              ],
-              const SizedBox(height: 15),
-              Expanded(
-                // Use ValueKey to force rebuild based on the toggle state
-                child: isFriendsSelected
-                    ? selectedFriendsOption == 0
-                        ? OtherPersons(
-                            key: const ValueKey(
-                                "friends"), // Unique key for Friends
-                            onProfileSelected: _openProfile,
-                            showAllProfiles: false,
-                            showFriendProfiles: true,
-                          )
-                        : selectedFriendsOption == 1
-                            ? OtherPersons(
-                                key: const ValueKey(
-                                    "received_requests"), // Unique key for Received Requests
-                                onProfileSelected: _openProfile,
-                                showAllProfiles: false,
-                                showReceivedFriendRequestProfiles: true,
-                              )
-                            : OtherPersons(
-                                key: const ValueKey(
-                                    "sent_requests"), // Unique key for Sent Requests
-                                onProfileSelected: _openProfile,
-                                showAllProfiles: false,
-                                showSentFriendRequestProfiles: true,
-                              )
-                    : OtherPersons(
-                        key: const ValueKey(
-                            "saved_profiles"), // Unique key for Saved Profiles
+          const SizedBox(height: 5),
+          FriendsSavedToggle(onToggle: handleToggle),
+          if (isFriendsSelected) ...[
+            const SizedBox(height: 15),
+            FriendsReceivedReqSentReqToggle(
+                onToggle: handleFriendsOptionToggle),
+          ],
+          const SizedBox(height: 15),
+          Expanded(
+            // Use ValueKey to force rebuild based on the toggle state
+            child: isFriendsSelected
+                ? selectedFriendsOption == 0
+                    ? OtherPersons(
+                        key:
+                            const ValueKey("friends"), // Unique key for Friends
                         onProfileSelected: _openProfile,
                         showAllProfiles: false,
-                        showSavedProfiles: true,
-                      ),
-              ),
-            ],
+                        showFriendProfiles: true,
+                      )
+                    : selectedFriendsOption == 1
+                        ? OtherPersons(
+                            key: const ValueKey("received_requests"),
+                            onProfileSelected: _openProfile,
+                            showAllProfiles: false,
+                            showReceivedFriendRequestProfiles: true,
+                          )
+                        : OtherPersons(
+                            key: const ValueKey("sent_requests"),
+                            onProfileSelected: _openProfile,
+                            showAllProfiles: false,
+                            showSentFriendRequestProfiles: true,
+                          )
+                : OtherPersons(
+                    key: const ValueKey("saved_profiles"),
+                    onProfileSelected: _openProfile,
+                    showAllProfiles: false,
+                    showSavedProfiles: true,
+                  ),
           ),
-          if (_selectedProfile != null)
-            Positioned.fill(
-              child: Stack(
-                children: [
-                  GestureDetector(
-                    onTap: closeProfile,
-                    child: Container(
-                      color: Colors.black.withOpacity(0),
-                    ),
-                  ),
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(0.0),
-                      child: Material(
-                        borderRadius:
-                            BorderRadius.circular(UIConstants.popUpRadius),
-                        color: Colors.transparent,
-                        child: ProfileWidget(
-                          profile: _selectedProfile!,
-                          clickedOnOtherUser: true,
-                          distance: double.parse(_selectedDistance ?? '0'),
-                          lastOnline: _lastOnline ?? '',
-                          isProfileSaved: _isSaved ?? false,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
         ],
       ),
     );

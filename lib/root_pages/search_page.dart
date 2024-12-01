@@ -1,7 +1,6 @@
 // search_page.dart
 // ignore_for_file: use_super_parameters, deprecated_member_use
 
-import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:doggymatch_flutter/services/profile_service.dart';
 import 'dart:developer' as developer;
 import 'package:doggymatch_flutter/shared_helper/shared_and_helper_functions.dart';
@@ -11,10 +10,8 @@ import 'package:doggymatch_flutter/main/custom_app_bar.dart';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/filter_menu.dart';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/other_persons.dart';
 import 'package:doggymatch_flutter/classes/profile.dart';
-import 'package:doggymatch_flutter/root_pages/profile_page_widgets/profile_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/states/user_profile_state.dart';
-import 'package:doggymatch_flutter/notifiers/profile_close_notifier.dart';
 import 'package:doggymatch_flutter/notifiers/filter_notifier.dart';
 import 'package:doggymatch_flutter/toggles/profile_announcement_posts_toggle.dart';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/new_announcement_page.dart';
@@ -27,9 +24,9 @@ import 'package:doggymatch_flutter/root_pages/search_page_widgets/ENUM_post_filt
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/ENUM_shouts_filter_option.dart';
 
 class SearchPage extends StatefulWidget {
-  final ProfileCloseNotifier profileCloseNotifier;
+  final Function(UserProfile, String, String, bool) onProfileSelected;
 
-  const SearchPage({Key? key, required this.profileCloseNotifier})
+  const SearchPage({Key? key, required this.onProfileSelected})
       : super(key: key);
 
   @override
@@ -40,10 +37,6 @@ class SearchPageState extends State<SearchPage>
     with AutomaticKeepAliveClientMixin {
   bool _isFilterOpen = false;
   int _selectedToggleIndex = 0; // 0 - Profiles, 1 - Announcements, 2 - Posts
-  UserProfile? _selectedProfile;
-  String? _selectedDistance;
-  String? _lastOnline;
-  bool? _isSaved;
 
   bool _hasOpenedProfileFromUserId = false;
 
@@ -58,7 +51,7 @@ class SearchPageState extends State<SearchPage>
   void initState() {
     super.initState();
     developer.log('Widget Initialized: $runtimeType');
-    widget.profileCloseNotifier.addListener(_onProfileClose);
+    // Removed profileCloseNotifier listener
   }
 
   @override
@@ -109,16 +102,9 @@ class SearchPageState extends State<SearchPage>
 
   @override
   void dispose() {
-    widget.profileCloseNotifier.removeListener(_onProfileClose);
+    // Removed profileCloseNotifier listener
     developer.log('Widget Disposed: $runtimeType');
     super.dispose();
-  }
-
-  void _onProfileClose() {
-    if (widget.profileCloseNotifier.shouldCloseProfile) {
-      closeProfile();
-      widget.profileCloseNotifier.reset();
-    }
   }
 
   void _toggleFilter() {
@@ -127,30 +113,15 @@ class SearchPageState extends State<SearchPage>
     });
   }
 
-  void closeProfile() {
-    setState(() {
-      _selectedProfile = null;
-    });
-    Provider.of<UserProfileState>(context, listen: false).closeProfile();
-  }
-
   void _openProfile(
       UserProfile profile, String distance, String lastOnline, bool isSaved) {
-    if (!mounted) return;
-    setState(() {
-      _selectedProfile = profile;
-      _selectedDistance = distance;
-      _lastOnline = lastOnline;
-      _isSaved = isSaved;
-    });
-    Provider.of<UserProfileState>(context, listen: false).openProfile();
+    widget.onProfileSelected(profile, distance, lastOnline, isSaved);
   }
 
   void _applyFilterChanges() {
     setState(() {
       _isFilterOpen = false;
     });
-    //Provider.of<UserProfileState>(context, listen: false).refreshUserProfile();
   }
 
   void _onToggle(int selectedIndex) {
@@ -190,7 +161,6 @@ class SearchPageState extends State<SearchPage>
       _selectedPostFilterOption = selectedOption;
       _loadFilteredUsersContent();
     });
-    //Provider.of<UserProfileState>(context, listen: false).refreshUserProfile();
   }
 
   // Update this function to accept ShoutsFilterOption instead of bool
@@ -199,11 +169,10 @@ class SearchPageState extends State<SearchPage>
       _selectedShoutFilterOption = selectedOption;
       _loadFilteredUsersContent();
     });
-    //Provider.of<UserProfileState>(context, listen: false).refreshUserProfile();
   }
 
   void _loadFilteredUsersContent() {
-    //Provider.of<UserProfileState>(context, listen: false).refreshUserProfile();
+    // Implement filtering logic if needed
   }
 
   Future<bool> _onWillPop() async {
@@ -218,8 +187,7 @@ class SearchPageState extends State<SearchPage>
 
   @override
   Widget build(BuildContext context) {
-    super.build(
-        context); // Important: call super.build when using AutomaticKeepAliveClientMixin
+    super.build(context); // Important when using AutomaticKeepAliveClientMixin
     return WillPopScope(
       onWillPop: _onWillPop,
       child: ChangeNotifierProvider(
@@ -315,36 +283,7 @@ class SearchPageState extends State<SearchPage>
                     onClose: _applyFilterChanges,
                   ),
                 ),
-              if (_selectedProfile != null)
-                Positioned.fill(
-                  child: Stack(
-                    children: [
-                      GestureDetector(
-                        onTap: () {},
-                        child: Container(
-                          color: Colors.black.withOpacity(0),
-                        ),
-                      ),
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(0.0),
-                          child: Material(
-                            borderRadius:
-                                BorderRadius.circular(UIConstants.popUpRadius),
-                            color: Colors.transparent,
-                            child: ProfileWidget(
-                              profile: _selectedProfile!,
-                              clickedOnOtherUser: true,
-                              distance: double.parse(_selectedDistance ?? '0'),
-                              lastOnline: _lastOnline ?? '',
-                              isProfileSaved: _isSaved ?? false,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              // Removed the profile overlay code
             ],
           ),
         ),

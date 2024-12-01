@@ -1,9 +1,8 @@
+// chat_page.dart
 // ignore_for_file: library_private_types_in_public_api
 
 import 'dart:async';
 import 'dart:developer' as developer;
-import 'package:doggymatch_flutter/main/ui_constants.dart';
-import 'package:doggymatch_flutter/root_pages/profile_page_widgets/profile_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/custom_app_bar.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
@@ -14,15 +13,15 @@ import 'package:doggymatch_flutter/classes/profile.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/states/user_profile_state.dart';
-import 'package:doggymatch_flutter/notifiers/profile_close_notifier.dart';
 import 'package:doggymatch_flutter/shared_helper/shared_and_helper_functions.dart';
 import 'package:doggymatch_flutter/services/profile_service.dart';
 import 'package:doggymatch_flutter/classes/last_message.dart';
 
 class ChatPage extends StatefulWidget {
-  final ProfileCloseNotifier profileCloseNotifier;
+  final Function(UserProfile, String, String, bool, {bool startInChat})
+      onProfileSelected;
 
-  const ChatPage({super.key, required this.profileCloseNotifier});
+  const ChatPage({Key? key, required this.onProfileSelected}) : super(key: key);
 
   @override
   _ChatPageState createState() => _ChatPageState();
@@ -33,12 +32,7 @@ class _ChatPageState extends State<ChatPage>
   final _authProfile = ProfileService();
   final String _currentUserId = FirebaseAuth.instance.currentUser!.uid;
   bool isChatSelected = true;
-  bool _startInChat = true;
-  UserProfile? _selectedProfile;
-  bool _isProfileOpen = false;
-  double? _selectedDistance;
-  String? _lastOnline;
-  bool? _isSaved;
+
   bool _hasOpenedProfileFromUserId = false;
 
   StreamSubscription<QuerySnapshot>? _chatRoomsSubscription;
@@ -51,13 +45,11 @@ class _ChatPageState extends State<ChatPage>
   @override
   void initState() {
     super.initState();
-    widget.profileCloseNotifier.addListener(_onProfileClose);
     _listenToChatRooms();
   }
 
   @override
   void dispose() {
-    widget.profileCloseNotifier.removeListener(_onProfileClose);
     _chatRoomsSubscription?.cancel();
     super.dispose();
   }
@@ -109,14 +101,6 @@ class _ChatPageState extends State<ChatPage>
     });
   }
 
-  void _onProfileClose() {
-    if (widget.profileCloseNotifier.shouldCloseProfile) {
-      _closeProfile();
-      widget.profileCloseNotifier.reset();
-      _listenToChatRooms(); // Re-fetch chat rooms after profile closes
-    }
-  }
-
   void handleToggle(bool isChat) {
     setState(() {
       isChatSelected = isChat;
@@ -126,23 +110,13 @@ class _ChatPageState extends State<ChatPage>
   void _openProfile(
       UserProfile profile, String distance, String lastOnline, bool isSaved,
       {bool startInChat = true}) {
-    setState(() {
-      _selectedProfile = profile;
-      _isProfileOpen = true;
-      _selectedDistance = double.parse(distance);
-      _lastOnline = lastOnline;
-      _isSaved = isSaved;
-      _startInChat = startInChat;
-      Provider.of<UserProfileState>(context, listen: false).openProfile();
-    });
-  }
-
-  void _closeProfile() {
-    setState(() {
-      _isProfileOpen = false;
-      _selectedProfile = null;
-    });
-    Provider.of<UserProfileState>(context, listen: false).closeProfile();
+    widget.onProfileSelected(
+      profile,
+      distance,
+      lastOnline,
+      isSaved,
+      startInChat: startInChat,
+    );
   }
 
   void _listenToChatRooms() {
@@ -260,6 +234,7 @@ class _ChatPageState extends State<ChatPage>
   Widget build(BuildContext context) {
     super.build(
         context); // Important: call super.build when using AutomaticKeepAliveClientMixin
+
     final List<Map<String, dynamic>> incomingRequests = _chatRooms
         .where((chatRoom) => chatRoom['chatRoomState'] == "INCOMING")
         .toList();
@@ -279,199 +254,160 @@ class _ChatPageState extends State<ChatPage>
         showFilterIcon: false,
         onSettingsPressed: null,
       ),
-      body: Stack(
+      body: Column(
         children: [
-          Column(
-            children: [
-              const SizedBox(height: 5),
-              ChatRequestToggle(onToggle: handleToggle),
-              const SizedBox(height: 15),
-              Expanded(
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : isChatSelected
-                        ? communicationChats.isEmpty
-                            ? const Center(child: Text('No chats available'))
-                            : ListView.builder(
-                                itemCount: communicationChats.length,
-                                itemBuilder: (context, index) {
-                                  final chatRoom = communicationChats[index];
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 5.0),
-                                    child: ChatCard(
-                                      otherUserProfile:
-                                          chatRoom['profile'] as UserProfile,
-                                      lastMessageNotifier:
-                                          chatRoom['lastMessageNotifier']
-                                              as ValueNotifier<LastMessage>,
-                                      onTap: () {
-                                        _openProfile(
-                                            chatRoom['profile'] as UserProfile,
-                                            chatRoom['distance'] as String,
-                                            chatRoom['lastOnline'] as String,
-                                            chatRoom['isSaved'] as bool? ??
-                                                false);
-                                      },
-                                    ),
-                                  );
-                                },
-                              )
-                        : ListView(
+          const SizedBox(height: 5),
+          ChatRequestToggle(onToggle: handleToggle),
+          const SizedBox(height: 15),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : isChatSelected
+                    ? communicationChats.isEmpty
+                        ? const Center(child: Text('No chats available'))
+                        : ListView.builder(
+                            itemCount: communicationChats.length,
+                            itemBuilder: (context, index) {
+                              final chatRoom = communicationChats[index];
+                              return Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 5.0),
+                                child: ChatCard(
+                                  otherUserProfile:
+                                      chatRoom['profile'] as UserProfile,
+                                  lastMessageNotifier:
+                                      chatRoom['lastMessageNotifier']
+                                          as ValueNotifier<LastMessage>,
+                                  onTap: () {
+                                    _openProfile(
+                                      chatRoom['profile'] as UserProfile,
+                                      chatRoom['distance'] as String,
+                                      chatRoom['lastOnline'] as String,
+                                      chatRoom['isSaved'] as bool? ?? false,
+                                    );
+                                  },
+                                ),
+                              );
+                            },
+                          )
+                    : ListView(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.message_rounded,
-                                      color: AppColors.customBlack),
-                                  const SizedBox(width: 4),
-                                  Transform.translate(
-                                    offset: const Offset(-6, -3),
-                                    child: const Icon(
-                                        Icons.call_received_rounded,
-                                        size: 16,
-                                        color: AppColors.customBlack),
-                                  ),
-                                  const SizedBox(width: 0),
-                                  const Text(
-                                    "Incoming Requests",
-                                    style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.customBlack,
-                                    ),
-                                  ),
-                                ],
+                              const Icon(Icons.message_rounded,
+                                  color: AppColors.customBlack),
+                              const SizedBox(width: 4),
+                              Transform.translate(
+                                offset: const Offset(-6, -3),
+                                child: const Icon(Icons.call_received_rounded,
+                                    size: 16, color: AppColors.customBlack),
                               ),
-                              const SizedBox(height: 10),
-                              if (incomingRequests.isEmpty)
-                                const Center(
-                                  child: Text(
-                                    "(No incoming chat requests)",
-                                    style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.normal,
-                                      color: AppColors.customBlack,
-                                    ),
-                                  ),
-                                )
-                              else
-                                ...incomingRequests.map((chatRoom) => Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 4.0),
-                                      child: ChatCard(
-                                        otherUserProfile:
-                                            chatRoom['profile'] as UserProfile,
-                                        lastMessageNotifier:
-                                            chatRoom['lastMessageNotifier']
-                                                as ValueNotifier<LastMessage>,
-                                        onTap: () {
-                                          _openProfile(
-                                              chatRoom['profile']
-                                                  as UserProfile,
-                                              chatRoom['distance'] as String,
-                                              chatRoom['lastOnline'] as String,
-                                              chatRoom['isSaved'] as bool? ??
-                                                  false);
-                                        },
-                                      ),
-                                    )),
-                              const SizedBox(height: 30),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Text(
-                                    "Outgoing Requests",
-                                    style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.customBlack,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Icon(Icons.message_rounded,
-                                      color: AppColors.customBlack),
-                                  const SizedBox(width: 4),
-                                  Transform.translate(
-                                    offset: const Offset(-6, -3),
-                                    child: const Icon(Icons.call_made_rounded,
-                                        size: 16, color: AppColors.customBlack),
-                                  ),
-                                ],
+                              const SizedBox(width: 0),
+                              const Text(
+                                "Incoming Requests",
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.customBlack,
+                                ),
                               ),
-                              const SizedBox(height: 10),
-                              if (outgoingRequests.isEmpty)
-                                const Center(
-                                  child: Text(
-                                    "(No outgoing chat requests)",
-                                    style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.normal,
-                                      color: AppColors.customBlack,
-                                    ),
-                                  ),
-                                )
-                              else
-                                ...outgoingRequests.map((chatRoom) => Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 4.0),
-                                      child: ChatCard(
-                                        otherUserProfile:
-                                            chatRoom['profile'] as UserProfile,
-                                        lastMessageNotifier:
-                                            chatRoom['lastMessageNotifier']
-                                                as ValueNotifier<LastMessage>,
-                                        onTap: () {
-                                          _openProfile(
-                                              chatRoom['profile']
-                                                  as UserProfile,
-                                              chatRoom['distance'] as String,
-                                              chatRoom['lastOnline'] as String,
-                                              chatRoom['isSaved'] as bool? ??
-                                                  false);
-                                        },
-                                      ),
-                                    )),
                             ],
                           ),
-              ),
-            ],
-          ),
-          if (_isProfileOpen && _selectedProfile != null)
-            Positioned.fill(
-              child: Stack(
-                children: [
-                  GestureDetector(
-                    onTap: _closeProfile,
-                    child: Container(
-                      color: Colors.transparent,
-                    ),
-                  ),
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(0.0),
-                      child: Material(
-                        borderRadius:
-                            BorderRadius.circular(UIConstants.outerRadius),
-                        color: Colors.transparent,
-                        child: ProfileWidget(
-                          profile: _selectedProfile!,
-                          clickedOnOtherUser: true,
-                          distance: _selectedDistance ?? 0.0,
-                          lastOnline: _lastOnline ?? '',
-                          isProfileSaved: _isSaved ?? false,
-                          startInChat: _startInChat,
-                        ),
+                          const SizedBox(height: 10),
+                          if (incomingRequests.isEmpty)
+                            const Center(
+                              child: Text(
+                                "(No incoming chat requests)",
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.normal,
+                                  color: AppColors.customBlack,
+                                ),
+                              ),
+                            )
+                          else
+                            ...incomingRequests.map((chatRoom) => Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 4.0),
+                                  child: ChatCard(
+                                    otherUserProfile:
+                                        chatRoom['profile'] as UserProfile,
+                                    lastMessageNotifier:
+                                        chatRoom['lastMessageNotifier']
+                                            as ValueNotifier<LastMessage>,
+                                    onTap: () {
+                                      _openProfile(
+                                        chatRoom['profile'] as UserProfile,
+                                        chatRoom['distance'] as String,
+                                        chatRoom['lastOnline'] as String,
+                                        chatRoom['isSaved'] as bool? ?? false,
+                                      );
+                                    },
+                                  ),
+                                )),
+                          const SizedBox(height: 30),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                "Outgoing Requests",
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.customBlack,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Icon(Icons.message_rounded,
+                                  color: AppColors.customBlack),
+                              const SizedBox(width: 4),
+                              Transform.translate(
+                                offset: const Offset(-6, -3),
+                                child: const Icon(Icons.call_made_rounded,
+                                    size: 16, color: AppColors.customBlack),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          if (outgoingRequests.isEmpty)
+                            const Center(
+                              child: Text(
+                                "(No outgoing chat requests)",
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.normal,
+                                  color: AppColors.customBlack,
+                                ),
+                              ),
+                            )
+                          else
+                            ...outgoingRequests.map((chatRoom) => Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 4.0),
+                                  child: ChatCard(
+                                    otherUserProfile:
+                                        chatRoom['profile'] as UserProfile,
+                                    lastMessageNotifier:
+                                        chatRoom['lastMessageNotifier']
+                                            as ValueNotifier<LastMessage>,
+                                    onTap: () {
+                                      _openProfile(
+                                        chatRoom['profile'] as UserProfile,
+                                        chatRoom['distance'] as String,
+                                        chatRoom['lastOnline'] as String,
+                                        chatRoom['isSaved'] as bool? ?? false,
+                                      );
+                                    },
+                                  ),
+                                )),
+                        ],
                       ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          ),
         ],
       ),
     );

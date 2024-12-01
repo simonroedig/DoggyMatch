@@ -9,8 +9,49 @@ import 'package:doggymatch_flutter/services/profile_service.dart';
 class UserProfileState extends ChangeNotifier {
   final _authProfile = ProfileService();
 
+  UserProfile? _selectedProfile;
+  double? _selectedDistance;
+  String? _lastOnline;
+  bool? _isProfileSaved;
+  bool _isProfileOpen = false;
+  bool _startInChat = false;
+
+  // Add these getters
+  UserProfile? get selectedProfile => _selectedProfile;
+  double? get selectedDistance => _selectedDistance;
+  String? get lastOnline => _lastOnline;
+  bool? get isProfileSaved => _isProfileSaved;
+  bool get isProfileOpen => _isProfileOpen;
+  bool get startInChat => _startInChat;
+
   String? userIdToOpen;
   bool openedProfileViaSubpageBool = false;
+
+  void openProfile(
+    UserProfile profile,
+    double distance,
+    String lastOnline,
+    bool isSaved, {
+    bool startInChat = false,
+  }) {
+    _selectedProfile = profile;
+    _selectedDistance = distance;
+    _lastOnline = lastOnline;
+    _isProfileSaved = isSaved;
+    _isProfileOpen = true;
+    _startInChat = _startInChat;
+    notifyListeners();
+  }
+
+  void closeProfile() {
+    _selectedProfile = null;
+    _selectedDistance = null;
+    _lastOnline = null;
+    _isProfileSaved = null;
+    _isProfileOpen = false;
+    _startInChat = false;
+    notifyListeners();
+  }
 
   static const String placeholderImageUrl =
       'https://firebasestorage.googleapis.com/v0/b/doggymatch-bb17f.appspot.com/o/placeholder.png?alt=media&token=6c364b4d-0e8b-4b34-b29e-58dc6dadcc65';
@@ -60,11 +101,9 @@ class UserProfileState extends ChangeNotifier {
       filterLastOnline: 3);
 
   int _currentIndex = 0;
-  bool _isProfileOpen = false;
 
   UserProfile get userProfile => _userProfile;
   int get currentIndex => _currentIndex;
-  bool get isProfileOpen => _isProfileOpen;
 
   UserProfileState() {
     _initializeUserProfile();
@@ -223,18 +262,6 @@ class UserProfileState extends ChangeNotifier {
 
   void updateCurrentIndex(int index) {
     _currentIndex = index;
-    notifyListeners();
-  }
-
-  void openProfile() {
-    log('Open profile via profile state');
-    _isProfileOpen = true;
-    notifyListeners();
-  }
-
-  void closeProfile() {
-    _isProfileOpen = false;
-    log('Close profile via profile state');
     notifyListeners();
   }
 }

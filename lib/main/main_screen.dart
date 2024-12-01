@@ -1,82 +1,108 @@
-// ignore_for_file: deprecated_member_use
+// main_screen.dart
 
-import 'package:doggymatch_flutter/classes/profile.dart';
-import 'package:doggymatch_flutter/notifiers/profile_close_notifier.dart';
+import 'package:doggymatch_flutter/root_pages/profile_page_widgets/settings_page.dart';
 import 'package:flutter/material.dart';
-import 'package:doggymatch_flutter/main/colors.dart';
-import 'package:doggymatch_flutter/welcome_pages/register_page_2.dart';
-import 'package:doggymatch_flutter/states/user_profile_state.dart';
-import 'package:doggymatch_flutter/root_pages/search_page.dart';
-import 'package:doggymatch_flutter/root_pages/chat_page.dart';
-import 'package:doggymatch_flutter/root_pages/profile_page.dart';
-import 'package:doggymatch_flutter/main/custom_bottom_navigation.dart';
 import 'package:provider/provider.dart';
-import 'package:doggymatch_flutter/root_pages/community_page.dart'; // Add this import
 
-class MainScreen extends StatelessWidget {
+import 'package:doggymatch_flutter/main/colors.dart';
+import 'package:doggymatch_flutter/main/custom_bottom_navigation.dart';
+import 'package:doggymatch_flutter/root_pages/chat_page.dart';
+import 'package:doggymatch_flutter/root_pages/community_page.dart';
+import 'package:doggymatch_flutter/root_pages/profile_page.dart';
+import 'package:doggymatch_flutter/root_pages/profile_page_widgets/profile_widget.dart';
+import 'package:doggymatch_flutter/root_pages/search_page.dart';
+import 'package:doggymatch_flutter/states/user_profile_state.dart';
+import 'package:doggymatch_flutter/welcome_pages/register_page_2.dart';
+import 'package:doggymatch_flutter/classes/profile.dart';
+import 'package:doggymatch_flutter/main/custom_app_bar.dart';
+
+class MainScreen extends StatefulWidget {
   final bool fromRegister;
 
-  MainScreen({super.key, this.fromRegister = false});
+  MainScreen({Key? key, this.fromRegister = false}) : super(key: key);
 
-  final ProfileCloseNotifier profileCloseNotifier = ProfileCloseNotifier();
+  @override
+  _MainScreenState createState() => _MainScreenState();
+}
 
-  bool _isProfileIncomplete(UserProfile profile) {
-    return profile.userName.isEmpty ||
-        profile.aboutText.isEmpty ||
-        profile.birthday == null;
-  }
-
+class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () async {
-        final userProfileState = context.read<UserProfileState>();
-
-        if (userProfileState.openedProfileViaSubpageBool) {
-          Navigator.pop(context);
-          userProfileState.resetOpenedProfileViaSubpage();
-          if (userProfileState.currentIndex == 2) {
-            userProfileState.closeProfile();
-          }
-
-          return true; // Allow the default back button action
-        }
-
-        if (userProfileState.isProfileOpen) {
-          userProfileState.closeProfile();
-          profileCloseNotifier.triggerCloseProfile(); // Signal to close profile
-          return false; // Prevent the default back button action
-        }
-
-        return true; // Allow the default back button action
-      },
+      onWillPop: _onWillPop,
       child: Scaffold(
         backgroundColor: AppColors.bg,
+        appBar: CustomAppBar(
+          // You may need to adjust parameters or make the app bar dynamic
+          showFilterIcon: false,
+          showSearchIcon: false,
+          onSettingsPressed: _navigateToSettings,
+        ),
         body: Consumer<UserProfileState>(
           builder: (context, userProfileState, child) {
             final profile = userProfileState.userProfile;
 
-            // Redirect to RegisterPage2 if profile is incomplete
-            if (fromRegister) {
+            if (profile.uid.isEmpty) {
+              // Profile is not ready, show a loading indicator
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (widget.fromRegister) {
               return RegisterPage2(profile: profile);
             }
 
             List<Widget> pages = [
-              SearchPage(profileCloseNotifier: profileCloseNotifier),
-              ChatPage(profileCloseNotifier: profileCloseNotifier),
+              SearchPage(onProfileSelected: _openProfile),
+              ChatPage(onProfileSelected: _openProfile),
               ProfilePage(
-                  profile: profile, profileCloseNotifier: profileCloseNotifier),
-              CommunityPage(profileCloseNotifier: profileCloseNotifier),
+                profile: profile,
+                onProfileSelected: _openProfile,
+              ),
+              CommunityPage(onProfileSelected: _openProfile),
             ];
 
-            // Use IndexedStack instead of AnimatedSwitcher
-            return IndexedStack(
-              index: userProfileState.currentIndex,
-              children: pages,
+            return Stack(
+              children: [
+                IndexedStack(
+                  index: userProfileState.currentIndex,
+                  children: pages,
+                ),
+                if (userProfileState.isProfileOpen &&
+                    userProfileState.selectedProfile != null)
+                  GestureDetector(
+                    onTap: () {},
+                    child: Container(
+                      color: Colors.black.withOpacity(0),
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxHeight: MediaQuery.of(context).size.height -
+                                  kToolbarHeight -
+                                  MediaQuery.of(context).padding.top -
+                                  kBottomNavigationBarHeight,
+                            ),
+                            child: ProfileWidget(
+                              profile: userProfileState.selectedProfile!,
+                              clickedOnOtherUser: true,
+                              distance:
+                                  userProfileState.selectedDistance ?? 0.0,
+                              lastOnline: userProfileState.lastOnline ?? '',
+                              isProfileSaved:
+                                  userProfileState.isProfileSaved ?? false,
+                              startInChat: userProfileState.startInChat,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             );
           },
         ),
-        bottomNavigationBar: fromRegister
+        bottomNavigationBar: widget.fromRegister
             ? null
             : Consumer<UserProfileState>(
                 builder: (context, userProfileState, child) {
@@ -85,7 +111,6 @@ class MainScreen extends StatelessWidget {
                     onTabTapped: (index) {
                       if (userProfileState.isProfileOpen) {
                         userProfileState.closeProfile();
-                        profileCloseNotifier.triggerCloseProfile();
                       } else {
                         userProfileState.updateCurrentIndex(index);
                       }
@@ -102,12 +127,58 @@ class MainScreen extends StatelessWidget {
                         return;
                       }
                       userProfileState.closeProfile();
-                      profileCloseNotifier.triggerCloseProfile();
                     },
                   );
                 },
               ),
       ),
     );
+  }
+
+  void _navigateToSettings() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const SettingsPage(),
+      ),
+    );
+  }
+
+  void _openProfile(
+    UserProfile profile,
+    String distance,
+    String lastOnline,
+    bool isSaved, {
+    bool startInChat = false,
+  }) {
+    final userProfileState =
+        Provider.of<UserProfileState>(context, listen: false);
+    userProfileState.openProfile(
+      profile,
+      double.parse(distance),
+      lastOnline,
+      isSaved,
+      startInChat: startInChat,
+    );
+  }
+
+  Future<bool> _onWillPop() async {
+    final userProfileState =
+        Provider.of<UserProfileState>(context, listen: false);
+
+    if (userProfileState.openedProfileViaSubpageBool) {
+      Navigator.pop(context);
+      userProfileState.resetOpenedProfileViaSubpage();
+      if (userProfileState.currentIndex == 2) {
+        userProfileState.closeProfile();
+      }
+      return true; // Allow the default back button action
+    }
+
+    if (userProfileState.isProfileOpen) {
+      userProfileState.closeProfile();
+      return false; // Prevent the default back button action
+    }
+
+    return true; // Allow the default back button action
   }
 }

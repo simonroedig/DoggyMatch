@@ -103,6 +103,10 @@ class AnnouncementService {
   }
 
   Future<Map<String, dynamic>?> getAnnouncementForUser(String uid) async {
+    if (uid.isEmpty) {
+      log('Cannot fetch announcements: UID is null or empty.');
+      return null;
+    }
     try {
       final docRef = _firestore.collection('users').doc(uid);
       final announcementCollection = docRef.collection('user_announcements');

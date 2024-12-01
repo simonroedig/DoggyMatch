@@ -250,9 +250,9 @@ class _ChatCardState extends State<ChatCard> with TickerProviderStateMixin {
                                     ),
                                     const SizedBox(width: 0),
                                     // Last Message Text
-                                    Transform.translate(
-                                      offset: const Offset(-4.0, 0.0),
-                                      child: Expanded(
+                                    Expanded(
+                                      child: Transform.translate(
+                                        offset: const Offset(-4.0, 0.0),
                                         child: Text(
                                           lastMessage.text,
                                           style: TextStyle(
