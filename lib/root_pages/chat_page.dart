@@ -28,7 +28,8 @@ class ChatPage extends StatefulWidget {
   _ChatPageState createState() => _ChatPageState();
 }
 
-class _ChatPageState extends State<ChatPage> {
+class _ChatPageState extends State<ChatPage>
+    with AutomaticKeepAliveClientMixin {
   final _authProfile = ProfileService();
   final String _currentUserId = FirebaseAuth.instance.currentUser!.uid;
   bool isChatSelected = true;
@@ -43,6 +44,9 @@ class _ChatPageState extends State<ChatPage> {
   StreamSubscription<QuerySnapshot>? _chatRoomsSubscription;
   List<Map<String, dynamic>> _chatRooms = [];
   bool _isLoading = true;
+
+  @override
+  bool get wantKeepAlive => true; // Tell Flutter to keep this widget alive
 
   @override
   void initState() {
@@ -254,6 +258,8 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(
+        context); // Important: call super.build when using AutomaticKeepAliveClientMixin
     final List<Map<String, dynamic>> incomingRequests = _chatRooms
         .where((chatRoom) => chatRoom['chatRoomState'] == "INCOMING")
         .toList();

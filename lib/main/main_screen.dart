@@ -1,7 +1,5 @@
 // ignore_for_file: deprecated_member_use
 
-import 'dart:developer';
-
 import 'package:doggymatch_flutter/classes/profile.dart';
 import 'package:doggymatch_flutter/notifiers/profile_close_notifier.dart';
 import 'package:flutter/material.dart';
@@ -59,7 +57,6 @@ class MainScreen extends StatelessWidget {
             final profile = userProfileState.userProfile;
 
             // Redirect to RegisterPage2 if profile is incomplete
-
             if (fromRegister) {
               return RegisterPage2(profile: profile);
             }
@@ -69,18 +66,13 @@ class MainScreen extends StatelessWidget {
               ChatPage(profileCloseNotifier: profileCloseNotifier),
               ProfilePage(
                   profile: profile, profileCloseNotifier: profileCloseNotifier),
-              CommunityPage(
-                  profileCloseNotifier:
-                      profileCloseNotifier), // Add CommunityPage here (index 3)
+              CommunityPage(profileCloseNotifier: profileCloseNotifier),
             ];
 
-            return Stack(
-              children: [
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  child: pages[userProfileState.currentIndex],
-                ),
-              ],
+            // Use IndexedStack instead of AnimatedSwitcher
+            return IndexedStack(
+              index: userProfileState.currentIndex,
+              children: pages,
             );
           },
         ),
@@ -93,8 +85,7 @@ class MainScreen extends StatelessWidget {
                     onTabTapped: (index) {
                       if (userProfileState.isProfileOpen) {
                         userProfileState.closeProfile();
-                        profileCloseNotifier
-                            .triggerCloseProfile(); // Signal to close profile
+                        profileCloseNotifier.triggerCloseProfile();
                       } else {
                         userProfileState.updateCurrentIndex(index);
                       }
@@ -105,17 +96,13 @@ class MainScreen extends StatelessWidget {
                         Navigator.pop(context);
                         userProfileState.resetOpenedProfileViaSubpage();
 
-                        // only close profile (hide the X in the bottom nav bar) if the profile was opened from
-                        // the profile page itself
                         if (userProfileState.currentIndex == 2) {
                           userProfileState.closeProfile();
                         }
                         return;
                       }
-                      log("Close button callback triggered in MainScreen");
                       userProfileState.closeProfile();
-                      profileCloseNotifier
-                          .triggerCloseProfile(); // Signal to close profile
+                      profileCloseNotifier.triggerCloseProfile();
                     },
                   );
                 },

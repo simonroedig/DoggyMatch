@@ -24,7 +24,8 @@ class CommunityPage extends StatefulWidget {
   _CommunityPageState createState() => _CommunityPageState();
 }
 
-class _CommunityPageState extends State<CommunityPage> {
+class _CommunityPageState extends State<CommunityPage>
+    with AutomaticKeepAliveClientMixin {
   bool isFriendsSelected = true;
   int selectedFriendsOption = 0; // 0 = Friends, 1 = Received, 2 = Sent
   UserProfile? _selectedProfile;
@@ -33,6 +34,9 @@ class _CommunityPageState extends State<CommunityPage> {
   bool? _isSaved;
 
   bool _hasOpenedProfileFromUserId = false;
+
+  @override
+  bool get wantKeepAlive => true; // Tell Flutter to keep this widget alive
 
   @override
   void initState() {
@@ -134,6 +138,8 @@ class _CommunityPageState extends State<CommunityPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(
+        context); // Important: call super.build when using AutomaticKeepAliveClientMixin
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: const CustomAppBar(

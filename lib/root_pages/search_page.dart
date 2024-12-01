@@ -36,7 +36,8 @@ class SearchPage extends StatefulWidget {
   SearchPageState createState() => SearchPageState();
 }
 
-class SearchPageState extends State<SearchPage> {
+class SearchPageState extends State<SearchPage>
+    with AutomaticKeepAliveClientMixin {
   bool _isFilterOpen = false;
   int _selectedToggleIndex = 0; // 0 - Profiles, 1 - Announcements, 2 - Posts
   UserProfile? _selectedProfile;
@@ -49,6 +50,9 @@ class SearchPageState extends State<SearchPage> {
   // State variables for toggles
   PostFilterOption _selectedPostFilterOption = PostFilterOption.allPosts;
   ShoutsFilterOption _selectedShoutFilterOption = ShoutsFilterOption.allShouts;
+
+  @override
+  bool get wantKeepAlive => true; // Tell Flutter to keep this widget alive
 
   @override
   void initState() {
@@ -214,6 +218,8 @@ class SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(
+        context); // Important: call super.build when using AutomaticKeepAliveClientMixin
     return WillPopScope(
       onWillPop: _onWillPop,
       child: ChangeNotifierProvider(
