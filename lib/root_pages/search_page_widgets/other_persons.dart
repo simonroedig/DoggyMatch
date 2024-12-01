@@ -323,15 +323,6 @@ class _OtherPersonsState extends State<OtherPersons>
     );
   }
 
-  Future<Map<String, dynamic>> _getUserStatus(String uid) async {
-    bool isSaved = await _authProfile.isProfileSaved(uid);
-    String friendStatus = await determineFriendStatus(uid);
-    return {
-      'isSaved': isSaved,
-      'friendStatus': friendStatus,
-    };
-  }
-
   Widget _buildUserCard(Map<String, dynamic> data, bool isDogOwner,
       Color profileColor, String filterDistance) {
     // Calculate the distance
@@ -351,17 +342,6 @@ class _OtherPersonsState extends State<OtherPersons>
         developer.log('PERSONS Selected Profile UID: ${data['uid']}');
         developer.log('PERSONS Selected Profile Data: $data');
         developer.log('Own UID: ${_authService.getCurrentUserId()}');
-
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          },
-          useRootNavigator: true,
-        );
 
         try {
           // Create a UserProfile instance from the data map
@@ -402,10 +382,8 @@ class _OtherPersonsState extends State<OtherPersons>
           // Call the callback to notify SearchPage
           widget.onProfileSelected(
               selectedProfile, distance, lastOnline, isSaved);
-        } finally {
-          if (mounted) {
-            Navigator.of(context, rootNavigator: true).pop(); // Pop the dialog
-          }
+        } catch (e) {
+          developer.log('Error in onTap: $e');
         }
       },
       child: Stack(
