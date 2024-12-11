@@ -1,6 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/services/auth_gate.dart';
 import 'package:provider/provider.dart';
@@ -11,7 +12,22 @@ import 'package:doggymatch_flutter/services/profile_service.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp();
+  // Initialize Firebase with options for web if on web platform
+  if (kIsWeb) {
+    await Firebase.initializeApp(
+      options: const FirebaseOptions(
+          apiKey: "AIzaSyBhphtWt7ClCnvKQawOSdRG4pFyrt8E3qo",
+          authDomain: "doggymatch-bb17f.firebaseapp.com",
+          projectId: "doggymatch-bb17f",
+          storageBucket: "doggymatch-bb17f.appspot.com",
+          messagingSenderId: "193586085616",
+          appId: "1:193586085616:web:122ae30fb65d415a738c35",
+          measurementId: "G-77YE3J8R26"),
+    );
+  } else {
+    // Default initialization for other platforms
+    await Firebase.initializeApp();
+  }
 
   runApp(const MyApp());
 }
