@@ -422,7 +422,7 @@ class AnnouncementCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(width: 10.0),
+                    const SizedBox(width: 8.0),
                     Expanded(
                       child: Container(
                         height: 74,

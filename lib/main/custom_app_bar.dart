@@ -4,13 +4,13 @@ import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 
-class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
+class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   final bool isFilterOpen;
   final VoidCallback? toggleFilter;
   final bool showFilterIcon;
   final VoidCallback? onSettingsPressed;
   final bool isProfileOpen;
-  final bool showSearchIcon; // New parameter for search icon
+  final bool showSearchIcon;
 
   const CustomAppBar({
     super.key,
@@ -23,13 +23,27 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   });
 
   @override
+  State<CustomAppBar> createState() => _CustomAppBarState();
+
+  @override
   Size get preferredSize => const Size.fromHeight(80.0);
+}
+
+class _CustomAppBarState extends State<CustomAppBar> {
+  final AssetImage _logoImage = const AssetImage('assets/icons/logo.png');
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Pre-cache the logo image here
+    precacheImage(_logoImage, context);
+  }
 
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
-    const double additionalPadding =
-        8.0; // Adjust this as needed for your design
+    const double additionalPadding = 8.0;
+
     return AppBar(
       backgroundColor: AppColors.bg,
       elevation: 0,
@@ -38,10 +52,11 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       automaticallyImplyLeading: false,
       flexibleSpace: Padding(
         padding: EdgeInsets.only(
-            top: statusBarHeight + additionalPadding,
-            left: 16.0,
-            right: 16.0,
-            bottom: 10.0),
+          top: statusBarHeight + additionalPadding,
+          left: 16.0,
+          right: 16.0,
+          bottom: 10.0,
+        ),
         child: Center(
           child: Stack(
             clipBehavior: Clip.none,
@@ -51,8 +66,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 height: 60.0,
                 decoration: BoxDecoration(
                   color: AppColors.brownLightest,
-                  borderRadius: BorderRadius.circular(
-                      UIConstants.outerRadius), // before 80
+                  borderRadius: BorderRadius.circular(UIConstants.outerRadius),
                   border: Border.all(
                     color: AppColors.customBlack,
                     width: 3.0,
@@ -64,9 +78,11 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   children: [
                     Row(
                       children: [
-                        Image.asset(
-                          'assets/icons/logo.png',
+                        // Use the precached AssetImage
+                        Image(
+                          image: _logoImage,
                           height: 60,
+                          gaplessPlayback: true,
                         ),
                         const SizedBox(width: 10),
                         const Column(
@@ -97,31 +113,30 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                         ),
                       ],
                     ),
-                    if (showSearchIcon)
+                    if (widget.showSearchIcon)
                       IconButton(
                         icon: const Icon(Icons.search_rounded, size: 30.0),
-                        onPressed: () {}, // Add action if needed
+                        onPressed: () {},
                         color: const Color.fromARGB(0, 34, 34, 34),
                       )
-                    else if (showFilterIcon)
+                    else if (widget.showFilterIcon)
                       IconButton(
                         icon: Icon(
-                          isFilterOpen
+                          widget.isFilterOpen
                               ? Icons.close_rounded
                               : Icons.filter_list_rounded,
                           size: 30.0,
                         ),
-                        onPressed: isProfileOpen
-                            ? null
-                            : toggleFilter, // Disable if profile is open
+                        onPressed:
+                            widget.isProfileOpen ? null : widget.toggleFilter,
                         color: AppColors.customBlack,
                       )
                     else
                       IconButton(
                         icon: const Icon(Icons.settings_rounded, size: 30.0),
-                        onPressed: isProfileOpen
+                        onPressed: widget.isProfileOpen
                             ? null
-                            : onSettingsPressed, // Disable if profile is open
+                            : widget.onSettingsPressed,
                         color: AppColors.customBlack,
                       ),
                   ],
