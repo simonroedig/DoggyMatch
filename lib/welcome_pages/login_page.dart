@@ -1,9 +1,11 @@
 import 'package:doggymatch_flutter/main/ui_constants.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/main_screen.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:doggymatch_flutter/welcome_pages/welcome_page.dart';
 import 'package:doggymatch_flutter/services/auth_service.dart';
+import 'package:flutter_svg/svg.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -91,7 +93,7 @@ class _LoginPageState extends State<LoginPage> {
                     obscureText: false,
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 8),
                 Center(
                   child: _buildInputField(
                     label: 'Password..',
@@ -119,6 +121,19 @@ class _LoginPageState extends State<LoginPage> {
               ],
             ),
           ),
+          // Add this Positioned widget for the image
+          Positioned(
+            bottom: 10, // Position it slightly above the bottom of the screen
+            left: 0, // Position it on the left side of the screen
+            child: SizedBox(
+              width: 200,
+              height: 200,
+              child: Image.asset(
+                'assets/icons/doggymatch_icon.png',
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -127,8 +142,8 @@ class _LoginPageState extends State<LoginPage> {
   // Background image widget
   Widget _buildBackgroundImage() {
     return Positioned.fill(
-      child: Image.asset(
-        'assets/icons/login_register_bg.png',
+      child: SvgPicture.asset(
+        'assets/icons/login.svg',
         fit: BoxFit.cover,
       ),
     );
@@ -194,23 +209,25 @@ class _LoginPageState extends State<LoginPage> {
           _signin(email, password);
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.lightPurple,
+          backgroundColor:
+              AppColors.customBlack, // Match the logout button color
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(UIConstants.outerRadius),
+            borderRadius: BorderRadius.circular(
+                UIConstants.innerRadius), // Match logout button radius
           ),
           side: const BorderSide(
-            color: AppColors.customBlack,
-            width: 3,
+            color: AppColors.customBlack, // Match border color
+            width: 3, // Match border width
           ),
-          elevation: 0, // Remove shadow
+          elevation: 0, // Consistent shadow
         ),
         child: const Text(
           'Login >',
           style: TextStyle(
-            color: AppColors.bg,
+            color: AppColors.bg, // Match text color
             fontFamily: 'Poppins',
-            fontWeight: FontWeight.w600,
-            fontSize: 18,
+            fontWeight: FontWeight.bold, // Match text weight
+            fontSize: 16, // Match text size
           ),
         ),
       ),
@@ -227,9 +244,103 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   _signin(String email, String password) async {
-    final user = await _auth.signInWithEmailAndPassword(email, password);
-    if (user != null) {
-      goToHome();
-    } else {}
+    try {
+      final user = await _auth.signInWithEmailAndPassword(email, password);
+      if (user != null) {
+        goToHome(); // Navigate to the main screen if login is successful
+      }
+    } on FirebaseAuthException catch (e) {
+      // Debug logs to see the error code in the terminal
+      debugPrint('FirebaseAuthException: ${e.code}');
+
+      String errorMessage;
+      // Handle different error codes from FirebaseAuthException
+      switch (e.code) {
+        case 'user-not-found':
+          errorMessage = 'Wrong email or password. Please try again.';
+          break;
+        case 'wrong-password':
+          errorMessage = 'Incorrect password. Please try again.';
+          break;
+        case 'invalid-email':
+          errorMessage = 'Invalid email format. Please check and try again.';
+          break;
+        case 'invalid-credential':
+          errorMessage = 'Invalid credentials. Please check and try again.';
+          break;
+        case 'user-disabled':
+          errorMessage = 'This account has been disabled. Contact support.';
+          break;
+        default:
+          errorMessage = 'Some error occurred. Please try again later.';
+          break;
+      }
+      _showErrorDialog(errorMessage); // Display the error message in a dialog
+    } catch (e) {
+      // Handle other unforeseen errors
+      debugPrint('Unexpected error: $e');
+      _showErrorDialog('Some error occurred. Please try again later.');
+    }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColors.bg,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(UIConstants.popUpRadius),
+            side: const BorderSide(
+              color: AppColors.customBlack,
+              width: 3.0,
+            ),
+          ),
+          title: const Center(
+            child: Text(
+              'Login Error',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: AppColors.customBlack,
+              ),
+            ),
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 14,
+              color: AppColors.customBlack,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          actions: <Widget>[
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.customBlack,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
+                child: const Text(
+                  'OK',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.bg,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

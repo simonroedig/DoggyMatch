@@ -30,7 +30,8 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
 }
 
 class _CustomAppBarState extends State<CustomAppBar> {
-  final AssetImage _logoImage = const AssetImage('assets/icons/logo.png');
+  final AssetImage _logoImage =
+      const AssetImage('assets/icons/doggymatch_icon.png');
 
   @override
   void didChangeDependencies() {
@@ -81,7 +82,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
                         // Use the precached AssetImage
                         Image(
                           image: _logoImage,
-                          height: 60,
+                          height: 40,
                           gaplessPlayback: true,
                         ),
                         const SizedBox(width: 10),

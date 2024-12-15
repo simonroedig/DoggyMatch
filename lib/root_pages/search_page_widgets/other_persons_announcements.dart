@@ -95,7 +95,7 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements>
       // Existing logic for other shouts (e.g., allShouts)
       final userProfileState =
           Provider.of<UserProfileState>(context, listen: false);
-      final String? currentUserId = _authService.getCurrentUserId();
+      //final String? currentUserId = _authService.getCurrentUserId();
 
       List<Map<String, dynamic>> users = [];
       List<Map<String, dynamic>> announcements = [];
@@ -115,12 +115,18 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements>
             final userAnnouncements =
                 await _fetchUserAnnouncements(user['uid']);
             for (var announcement in userAnnouncements) {
+              announcements.add({
+                'user': user['firestoreData'],
+                'announcement': announcement,
+              });
+              /*
               if (currentUserId != user['uid']) {
                 announcements.add({
                   'user': user['firestoreData'],
                   'announcement': announcement,
                 });
               }
+              */
             }
           }
         }

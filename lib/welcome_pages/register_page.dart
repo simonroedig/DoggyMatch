@@ -1,9 +1,13 @@
 import 'package:doggymatch_flutter/main/main_screen.dart';
 import 'package:doggymatch_flutter/main/ui_constants.dart';
+import 'package:doggymatch_flutter/welcome_pages/login_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:doggymatch_flutter/welcome_pages/welcome_page.dart';
 import 'package:doggymatch_flutter/services/auth_service.dart';
+import 'package:flutter_svg/svg.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -76,13 +80,12 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 90),
                 const Center(
                   child: Text(
-                    'Sign Up\nto get started!',
-                    textAlign: TextAlign.center,
+                    'Sign Up to get started!',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 25,
                       fontWeight: FontWeight.w600,
                       fontFamily: 'Poppins',
                       color: AppColors.deepPurple,
@@ -97,7 +100,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     obscureText: false,
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 8),
                 Center(
                   child: _buildInputField(
                     label: 'Password..',
@@ -118,7 +121,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 8),
                 Center(
                   child: _buildInputField(
                     label: 'Confirm Password..',
@@ -148,16 +151,27 @@ class _RegisterPageState extends State<RegisterPage> {
               ],
             ),
           ),
+          Positioned(
+            bottom: 10,
+            left: 0,
+            child: SizedBox(
+              width: 200,
+              height: 200,
+              child: Image.asset(
+                'assets/icons/doggymatch_icon.png',
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  // Background image widget
   Widget _buildBackgroundImage() {
     return Positioned.fill(
-      child: Image.asset(
-        'assets/icons/login_register_bg.png',
+      child: SvgPicture.asset(
+        'assets/icons/login.svg',
         fit: BoxFit.cover,
       ),
     );
@@ -217,7 +231,9 @@ class _RegisterPageState extends State<RegisterPage> {
     if (password.isEmpty && confirmPassword.isEmpty) {
       return AppColors.customBlack;
     }
-    return password == confirmPassword ? Colors.green : Colors.red;
+    return password == confirmPassword
+        ? AppColors.customGreen
+        : AppColors.customRed;
   }
 
   Widget _buildRegisterButton(double screenWidth) {
@@ -226,32 +242,30 @@ class _RegisterPageState extends State<RegisterPage> {
       height: 50.0,
       child: ElevatedButton(
         onPressed: () {
-          // Access the text input
           final email = _emailController.text;
           final password = _passwordController.text;
           final confirmPassword = _confirmPasswordController.text;
 
-          // Handle register logic
           _signup(email, password, confirmPassword);
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.lightPurple,
+          backgroundColor: AppColors.customBlack,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(UIConstants.outerRadius),
+            borderRadius: BorderRadius.circular(UIConstants.innerRadius),
           ),
           side: const BorderSide(
             color: AppColors.customBlack,
             width: 3,
           ),
-          elevation: 0, // Remove shadow
+          elevation: 0,
         ),
         child: const Text(
           'Register >',
           style: TextStyle(
             color: AppColors.bg,
             fontFamily: 'Poppins',
-            fontWeight: FontWeight.w600,
-            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
           ),
         ),
       ),
@@ -269,13 +283,135 @@ class _RegisterPageState extends State<RegisterPage> {
 
   _signup(String email, String password, String confirmPassword) async {
     if (password != confirmPassword) {
+      _showErrorDialog('Passwords do not match. Please try again.');
       return;
     }
 
-    final user = await _auth.createUserWithEmailAndPassword(email, password);
-    if (user != null) {
-      _auth.createUserDocument(user);
-      goToHome();
-    } else {}
+    try {
+      final user = await _auth.createUserWithEmailAndPassword(email, password);
+      if (user != null) {
+        _auth.createUserDocument(user);
+        goToHome();
+      }
+    } on FirebaseAuthException catch (e) {
+      debugPrint('FirebaseAuthException: ${e.code}');
+      String errorMessage;
+
+      switch (e.code) {
+        case 'email-already-in-use':
+          errorMessage =
+              'This email is already in use. Please try another or LOG-IN.';
+          break;
+        case 'weak-password':
+          errorMessage =
+              'Your password is too weak. Please try a stronger one.';
+          break;
+        case 'invalid-email':
+          errorMessage = 'Invalid email format. Please check and try again.';
+          break;
+        default:
+          errorMessage = 'Some error occurred. Please try again later.';
+          break;
+      }
+      _showErrorDialog(errorMessage);
+    } catch (e) {
+      debugPrint('Unexpected error: $e');
+      _showErrorDialog('Some error occurred. Please try again later.');
+    }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColors.bg,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(UIConstants.popUpRadius),
+            side: const BorderSide(
+              color: AppColors.customBlack,
+              width: 3.0,
+            ),
+          ),
+          title: const Center(
+            child: Text(
+              'Registration Error',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: AppColors.customBlack,
+              ),
+            ),
+          ),
+          content: message.contains('LOG-IN')
+              ? RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 14,
+                      color: AppColors.customBlack,
+                    ),
+                    children: [
+                      const TextSpan(
+                          text:
+                              'This email is already in use. Please try another or '),
+                      TextSpan(
+                        text: 'LOGIN.',
+                        style: const TextStyle(
+                          color: AppColors.customBlack,
+                          fontWeight: FontWeight.bold,
+                          decoration: TextDecoration.underline,
+                        ),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            Navigator.of(context).pop(); // Close the dialog
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const LoginPage(),
+                              ),
+                            );
+                          },
+                      ),
+                    ],
+                  ),
+                )
+              : Text(
+                  message,
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 14,
+                    color: AppColors.customBlack,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+          actions: <Widget>[
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.customBlack,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
+                child: const Text(
+                  'OK',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.bg,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

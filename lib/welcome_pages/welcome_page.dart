@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:doggymatch_flutter/welcome_pages/register_page.dart';
 import 'package:doggymatch_flutter/welcome_pages/login_page.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
@@ -24,9 +25,23 @@ class WelcomePage extends StatelessWidget {
   // Extract background image into a separate function
   Widget _buildBackgroundImage() {
     return Positioned.fill(
-      child: Image.asset(
-        'assets/icons/WelcomeBG.png',
+      child: SvgPicture.asset(
+        'assets/icons/welcome.svg',
         fit: BoxFit.cover,
+      ),
+    );
+  }
+
+  // Updated logo positioning method
+  Widget _buildLogo() {
+    return SizedBox(
+      height: 400,
+      child: Center(
+        child: Image.asset(
+          'assets/icons/doggymatch_icon.png',
+          width: 400, // Adjust the size of the logo as needed
+          height: 400,
+        ),
       ),
     );
   }
@@ -35,15 +50,15 @@ class WelcomePage extends StatelessWidget {
   Widget _buildContent(BuildContext context, double screenWidth) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 60.0),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            _buildWelcomeText(),
-            _buildActionButtons(context, screenWidth),
-          ],
-        ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          _buildWelcomeText(),
+          _buildLogo(),
+          _buildDescrContainer(),
+          _buildActionButtons(context, screenWidth),
+        ],
       ),
     );
   }
@@ -74,6 +89,24 @@ class WelcomePage extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildDescrContainer() {
+    return SizedBox(
+      child: Center(
+        child: Text(
+          "Connecting dog lovers, owners, and sitters for playdates, care, and community.",
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            fontFamily: 'Poppins',
+            color: AppColors.deepPurple,
+            height: 1.0,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ),
     );
   }
 

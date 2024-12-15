@@ -147,7 +147,7 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts>
       userProfileState.userProfile.longitude,
       userProfileState.userProfile.filterLastOnline,
     );
-    users = users.where((user) => user['uid'] != currentUserId).toList();
+    //users = users.where((user) => user['uid'] != currentUserId).toList();
 
     for (var user in users) {
       final userPosts = await _fetchUserPosts(user['uid']);
@@ -963,7 +963,7 @@ class _PostCardState extends State<PostCard> {
                                 commentsCount == 0
                                     ? 'No Comments'
                                     : commentsCount == 1
-                                        ? '1 $commentsCount Comment'
+                                        ? '$commentsCount Comment'
                                         : '$commentsCount Comments',
                                 textAlign: TextAlign.center,
                                 style: const TextStyle(

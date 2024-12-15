@@ -11,7 +11,7 @@ import 'package:doggymatch_flutter/root_pages/chat_page.dart';
 import 'package:doggymatch_flutter/root_pages/profile_page.dart';
 import 'package:doggymatch_flutter/main/custom_bottom_navigation.dart';
 import 'package:provider/provider.dart';
-import 'package:doggymatch_flutter/root_pages/community_page.dart'; // Add this import
+import 'package:doggymatch_flutter/root_pages/community_page.dart';
 
 class MainScreen extends StatelessWidget {
   final bool fromRegister;
@@ -41,14 +41,10 @@ class MainScreen extends StatelessWidget {
 
         if (userProfileState.isProfileOpen) {
           userProfileState.closeProfile();
-          profileCloseNotifier1
-              .triggerCloseProfile(); // Signal to close profile
-          profileCloseNotifier2
-              .triggerCloseProfile(); // Signal to close profile
-          profileCloseNotifier3
-              .triggerCloseProfile(); // Signal to close profile
-          profileCloseNotifier4
-              .triggerCloseProfile(); // Signal to close profile
+          profileCloseNotifier1.triggerCloseProfile();
+          profileCloseNotifier2.triggerCloseProfile();
+          profileCloseNotifier3.triggerCloseProfile();
+          profileCloseNotifier4.triggerCloseProfile();
           return false; // Prevent the default back button action
         }
 
@@ -63,6 +59,15 @@ class MainScreen extends StatelessWidget {
             if (profile.uid.isEmpty) {
               // Profile is not ready, show a loading indicator
               return const Center(child: CircularProgressIndicator());
+            }
+
+            // Check if only uid and email exist in the profile
+            if (profile.uid.isNotEmpty &&
+                profile.email.isNotEmpty &&
+                profile.userName.isEmpty &&
+                profile.aboutText.isEmpty &&
+                profile.location.isEmpty) {
+              return RegisterPage2(profile: profile);
             }
 
             // Redirect to RegisterPage2 if profile is incomplete
@@ -86,45 +91,57 @@ class MainScreen extends StatelessWidget {
             );
           },
         ),
-        bottomNavigationBar: fromRegister
-            ? null
-            : Consumer<UserProfileState>(
-                builder: (context, userProfileState, child) {
-                  return CustomBottomNavigationBar(
-                    activeIndex: userProfileState.currentIndex,
-                    onTabTapped: (index) {
-                      if (userProfileState.isProfileOpen) {
-                        userProfileState.closeProfile();
-                        profileCloseNotifier1.triggerCloseProfile();
-                        profileCloseNotifier2.triggerCloseProfile();
-                        profileCloseNotifier3.triggerCloseProfile();
-                        profileCloseNotifier4.triggerCloseProfile();
-                      } else {
-                        userProfileState.updateCurrentIndex(index);
-                      }
-                    },
-                    showCloseButton: userProfileState.isProfileOpen,
-                    onCloseButtonTapped: () {
-                      if (userProfileState.openedProfileViaSubpageBool) {
-                        Navigator.pop(context);
-                        userProfileState.resetOpenedProfileViaSubpage();
+        bottomNavigationBar: Consumer<UserProfileState>(
+          builder: (context, userProfileState, child) {
+            final profile = userProfileState.userProfile;
 
-                        if (userProfileState.currentIndex == 2) {
-                          userProfileState.closeProfile();
-                        }
-                        return;
-                      }
-                      log('HHHHHHHHHHHHHHHHHHHHH');
+            // Check if the profile is incomplete
+            if (profile.uid.isNotEmpty &&
+                profile.email.isNotEmpty &&
+                profile.userName.isEmpty &&
+                profile.aboutText.isEmpty &&
+                profile.location.isEmpty) {
+              // log debug message
+              log('Profile is incomplete');
+              // this means the suer did not go through the registration process
+              return const SizedBox.shrink();
+            }
 
-                      userProfileState.closeProfile();
-                      profileCloseNotifier1.triggerCloseProfile();
-                      profileCloseNotifier2.triggerCloseProfile();
-                      profileCloseNotifier3.triggerCloseProfile();
-                      profileCloseNotifier4.triggerCloseProfile();
-                    },
-                  );
-                },
-              ),
+            return CustomBottomNavigationBar(
+              activeIndex: userProfileState.currentIndex,
+              onTabTapped: (index) {
+                if (userProfileState.isProfileOpen) {
+                  userProfileState.closeProfile();
+                  profileCloseNotifier1.triggerCloseProfile();
+                  profileCloseNotifier2.triggerCloseProfile();
+                  profileCloseNotifier3.triggerCloseProfile();
+                  profileCloseNotifier4.triggerCloseProfile();
+                } else {
+                  userProfileState.updateCurrentIndex(index);
+                }
+              },
+              showCloseButton: userProfileState.isProfileOpen,
+              onCloseButtonTapped: () {
+                if (userProfileState.openedProfileViaSubpageBool) {
+                  Navigator.pop(context);
+                  userProfileState.resetOpenedProfileViaSubpage();
+
+                  if (userProfileState.currentIndex == 2) {
+                    userProfileState.closeProfile();
+                  }
+                  return;
+                }
+                log('HHHHHHHHHHHHHHHHHHHHH');
+
+                userProfileState.closeProfile();
+                profileCloseNotifier1.triggerCloseProfile();
+                profileCloseNotifier2.triggerCloseProfile();
+                profileCloseNotifier3.triggerCloseProfile();
+                profileCloseNotifier4.triggerCloseProfile();
+              },
+            );
+          },
+        ),
       ),
     );
   }

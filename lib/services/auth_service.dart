@@ -62,30 +62,39 @@ class AuthService {
           .createUserWithEmailAndPassword(email: email, password: password);
       return userCredential;
     } catch (e) {
-      return null;
+      dev.log('Error register in: $e');
+      rethrow;
     }
   }
 
-  Future createUserDocument(UserCredential userCredential) async {
+  Future<void> createUserDocument(UserCredential userCredential) async {
     if (userCredential.user != null) {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userCredential.user!.uid)
-          .set({
-        'email': userCredential.user!.email,
-        'uid': userCredential.user!.uid,
-      });
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .set({
+          'email': userCredential.user!.email,
+          'uid': userCredential.user!.uid,
+        });
+      } catch (e) {
+        // Log the error for debugging purposes
+        dev.log('Error creating user document: $e');
+        rethrow; // Ensure exceptions are passed up to the caller if needed
+      }
     }
   }
 
-  Future signInWithEmailAndPassword(String email, String password) async {
+  Future<User?> signInWithEmailAndPassword(
+      String email, String password) async {
     try {
       final UserCredential userCredential = await _auth
           .signInWithEmailAndPassword(email: email, password: password);
-      dev.log('userCredential: $userCredential');
       return userCredential.user;
     } catch (e) {
-      return null;
+      // log the error
+      dev.log('Error signing in: $e');
+      rethrow; // Ensure exceptions are passed up to the caller
     }
   }
 

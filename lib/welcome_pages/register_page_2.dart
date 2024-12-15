@@ -1,3 +1,4 @@
+import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:doggymatch_flutter/states/user_profile_state.dart';
@@ -232,23 +233,25 @@ class _RegisterPage2State extends State<RegisterPage2> {
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.lightPurple,
+                  backgroundColor:
+                      AppColors.customBlack, // Match Login button color
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+                    borderRadius: BorderRadius.circular(
+                        UIConstants.innerRadius), // Match radius
                   ),
                   side: const BorderSide(
-                    color: AppColors.customBlack,
-                    width: 3,
+                    color: AppColors.customBlack, // Match border color
+                    width: 3, // Match border width
                   ),
-                  elevation: 0,
+                  elevation: 0, // Consistent shadow
                 ),
                 child: const Text(
-                  '>',
+                  'Continue >',
                   style: TextStyle(
-                    color: AppColors.bg,
+                    color: AppColors.bg, // Match text color
                     fontFamily: 'Poppins',
-                    fontWeight: FontWeight.w600,
-                    fontSize: 18,
+                    fontWeight: FontWeight.bold, // Match text weight
+                    fontSize: 16, // Match text size
                   ),
                 ),
               ),
@@ -270,7 +273,7 @@ class _RegisterPage2State extends State<RegisterPage2> {
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.greyLightest,
-          borderRadius: BorderRadius.circular(50.0),
+          borderRadius: BorderRadius.circular(UIConstants.outerRadius),
           border: Border.all(
             color: isSelected ? AppColors.customBlack : AppColors.grey,
             width: 3.0,
