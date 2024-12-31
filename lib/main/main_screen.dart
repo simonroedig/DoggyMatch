@@ -85,9 +85,21 @@ class MainScreen extends StatelessWidget {
             ];
 
             // Use IndexedStack instead of AnimatedSwitcher
+            /*
             return IndexedStack(
               index: userProfileState.currentIndex,
               children: pages,
+            );
+            */
+            return Stack(
+              children: [
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  // Provide a unique key to each page so the AnimatedSwitcher
+                  // knows when the child changes
+                  child: pages[userProfileState.currentIndex],
+                ),
+              ],
             );
           },
         ),
