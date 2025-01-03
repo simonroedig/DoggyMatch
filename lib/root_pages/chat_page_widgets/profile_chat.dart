@@ -248,15 +248,21 @@ class _ProfileChatState extends State<ProfileChat> with WidgetsBindingObserver {
               switch (value) {
                 case 'delete':
                   showDeleteConfirmationDialog(
-                      context, widget.otherUserProfile.userName);
+                      context,
+                      widget.otherUserProfile.userName,
+                      widget.otherUserProfile.uid);
                   break;
+                /*
                 case 'hide':
                   showHideConfirmationDialog(
                       context, widget.otherUserProfile.userName);
                   break;
+                  */
                 case 'report':
                   showReportConfirmationDialog(
-                      context, widget.otherUserProfile.userName);
+                      context,
+                      widget.otherUserProfile.userName,
+                      widget.otherUserProfile.uid);
                   break;
               }
             },
@@ -265,7 +271,7 @@ class _ProfileChatState extends State<ProfileChat> with WidgetsBindingObserver {
                 value: 'delete',
                 child: Center(
                   child: Text(
-                    'Delete',
+                    'Delete Chat',
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontWeight: FontWeight.bold,
@@ -274,6 +280,7 @@ class _ProfileChatState extends State<ProfileChat> with WidgetsBindingObserver {
                   ),
                 ),
               ),
+              /*
               const PopupMenuItem<String>(
                 value: 'hide',
                 child: Center(
@@ -287,11 +294,12 @@ class _ProfileChatState extends State<ProfileChat> with WidgetsBindingObserver {
                   ),
                 ),
               ),
+              */
               const PopupMenuItem<String>(
                 value: 'report',
                 child: Center(
                   child: Text(
-                    'Report',
+                    'Report & Block',
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontWeight: FontWeight.bold,

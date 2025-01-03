@@ -3,6 +3,7 @@
 // ignore_for_file: library_private_types_in_public_api, use_super_parameters
 
 import 'package:doggymatch_flutter/main/ui_constants.dart';
+import 'package:doggymatch_flutter/root_pages/chat_page_widgets/chat_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:doggymatch_flutter/classes/profile.dart';
@@ -282,12 +283,71 @@ class _ChatCardState extends State<ChatCard> with TickerProviderStateMixin {
                 ),
                 const SizedBox(width: 0.0),
                 // Kebab Menu Icon
-                IconButton(
-                  icon: const Icon(Icons.more_vert_rounded,
-                      color: AppColors.customBlack, size: 24),
-                  onPressed: () {
-                    // Handle kebab menu actions here
+                PopupMenuButton<String>(
+                  icon: const Icon(
+                    Icons.more_vert_rounded,
+                    color: AppColors.customBlack,
+                    size: 24,
+                  ),
+                  onSelected: (String value) {
+                    switch (value) {
+                      case 'delete':
+                        showDeleteConfirmationDialog(
+                          context,
+                          widget.otherUserProfile.userName,
+                          widget
+                              .otherUserProfile.uid, // Add the missing argument
+                        );
+                        break;
+                      case 'report':
+                        showReportConfirmationDialog(
+                          context,
+                          widget.otherUserProfile.userName,
+                          widget
+                              .otherUserProfile.uid, // Add the missing argument
+                        );
+                        break;
+                    }
                   },
+                  itemBuilder: (BuildContext context) =>
+                      <PopupMenuEntry<String>>[
+                    const PopupMenuItem<String>(
+                      value: 'delete',
+                      child: Center(
+                        child: Text(
+                          'Delete Chat',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.customBlack,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const PopupMenuItem<String>(
+                      value: 'report',
+                      child: Center(
+                        child: Text(
+                          'Report & Block',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.customRed,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                  offset: const Offset(-10, 40),
+                  color: AppColors.bg,
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(UIConstants.popUpRadius),
+                    side: const BorderSide(
+                      color: AppColors.customBlack,
+                      width: 3.0,
+                    ),
+                  ),
                 ),
               ],
             ),

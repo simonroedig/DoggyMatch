@@ -152,4 +152,30 @@ class ChatService extends ChangeNotifier {
       return true;
     }
   }
+
+  Future<void> deleteChatRoom(String otherUserID) async {
+    final String currentUserID = _auth.currentUser!.uid;
+
+    // Construct chatroom ID from sender and receiver ID (sorted to ensure uniqueness)
+    List<String> ids = [currentUserID, otherUserID];
+    ids.sort();
+    String chatRoomID = ids.join('_');
+
+    try {
+      // also delete every single message
+      QuerySnapshot messagesSnapshot = await _firestore
+          .collection('chatrooms')
+          .doc(chatRoomID)
+          .collection('messages')
+          .get();
+      await Future.forEach(messagesSnapshot.docs, (message) async {
+        await message.reference.delete();
+      });
+      // Delete the chatroom document
+      await _firestore.collection('chatrooms').doc(chatRoomID).delete();
+      log('Chatroom $chatRoomID successfully deleted.');
+    } catch (e) {
+      log('Error deleting chatroom $chatRoomID: $e');
+    }
+  }
 }

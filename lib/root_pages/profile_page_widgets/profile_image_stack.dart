@@ -1,5 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api
 
+import 'package:doggymatch_flutter/main/ui_constants.dart';
+import 'package:doggymatch_flutter/root_pages/chat_page_widgets/chat_dialogs.dart';
 import 'package:doggymatch_flutter/states/user_profile_state.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
@@ -63,14 +65,46 @@ class _ProfileImageStackState extends State<ProfileImageStack> {
             Positioned(
               top: 0.0,
               right: 0.0,
-              child: IconButton(
+              child: PopupMenuButton<String>(
                 icon: const Icon(
                   Icons.more_vert_rounded,
                   color: AppColors.customBlack,
                 ),
-                onPressed: () {
-                  // Handle more options here
+                onSelected: (String value) {
+                  switch (value) {
+                    case 'report':
+                      showReportConfirmationDialog(
+                        context,
+                        widget.profile.userName,
+                        widget.profile.uid,
+                      );
+                      break;
+                  }
                 },
+                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                  const PopupMenuItem<String>(
+                    value: 'report',
+                    child: Center(
+                      child: Text(
+                        'Report & Block',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.customRed,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+                offset: const Offset(-10, 40),
+                color: AppColors.bg,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(UIConstants.popUpRadius),
+                  side: const BorderSide(
+                    color: AppColors.customBlack,
+                    width: 3.0,
+                  ),
+                ),
               ),
             ),
         ],
