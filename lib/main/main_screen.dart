@@ -84,13 +84,13 @@ class MainScreen extends StatelessWidget {
               CommunityPage(profileCloseNotifier: profileCloseNotifier4),
             ];
 
-            // Use IndexedStack instead of AnimatedSwitcher
-            /*
+            // Use IndexedStack instead of AnimatedSwitcher HERE (XXX)
+
             return IndexedStack(
               index: userProfileState.currentIndex,
               children: pages,
             );
-            */
+            /*
             return Stack(
               children: [
                 AnimatedSwitcher(
@@ -101,6 +101,7 @@ class MainScreen extends StatelessWidget {
                 ),
               ],
             );
+            */
           },
         ),
         bottomNavigationBar: Consumer<UserProfileState>(

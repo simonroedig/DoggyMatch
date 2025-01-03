@@ -59,8 +59,48 @@ class SearchPageState extends State<SearchPage>
     super.initState();
     developer.log('Widget Initialized: $runtimeType');
     widget.profileCloseNotifier.addListener(_onProfileClose);
+
+    // NEW: Listen for userIdToOpen changes in UserProfileState.
+    final userProfileState =
+        Provider.of<UserProfileState>(context, listen: false);
+    userProfileState.addListener(_onUserProfileStateChanged);
   }
 
+  void _onUserProfileStateChanged() async {
+    if (!mounted) return;
+    final userProfileState =
+        Provider.of<UserProfileState>(context, listen: false);
+
+    if (userProfileState.userIdToOpen != null) {
+      final userId = userProfileState.userIdToOpen!;
+
+      try {
+        final profileData =
+            await ProfileService().fetchOtherUserProfile(userId);
+        if (profileData != null) {
+          final distance = calculateDistance(
+            userProfileState.userProfile.latitude,
+            userProfileState.userProfile.longitude,
+            profileData.latitude,
+            profileData.longitude,
+          ).toStringAsFixed(1);
+
+          final lastOnline = calculateLastOnlineLong(profileData.lastOnline);
+          final isSaved = await ProfileService().isProfileSaved(userId);
+
+          // Actually open the profile
+          _openProfile(profileData, distance, lastOnline, isSaved);
+        }
+      } catch (e) {
+        // handle error if needed
+      }
+
+      // Reset so we don't keep reopening
+      userProfileState.resetUserIdToOpen();
+    }
+  }
+
+  /*
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -76,6 +116,7 @@ class SearchPageState extends State<SearchPage>
       }
     }
   }
+  */
 
   void _openProfileById(String userId) {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -111,6 +152,9 @@ class SearchPageState extends State<SearchPage>
   void dispose() {
     widget.profileCloseNotifier.removeListener(_onProfileClose);
     developer.log('Widget Disposed: $runtimeType');
+    final userProfileState =
+        Provider.of<UserProfileState>(context, listen: false);
+    userProfileState.removeListener(_onUserProfileStateChanged);
     super.dispose();
   }
 
@@ -122,12 +166,14 @@ class SearchPageState extends State<SearchPage>
   }
 
   void _toggleFilter() {
+    if (!mounted) return;
     setState(() {
       _isFilterOpen = !_isFilterOpen;
     });
   }
 
   void closeProfile() {
+    if (!mounted) return;
     setState(() {
       _selectedProfile = null;
     });
@@ -147,6 +193,7 @@ class SearchPageState extends State<SearchPage>
   }
 
   void _applyFilterChanges() {
+    if (!mounted) return;
     setState(() {
       _isFilterOpen = false;
     });
@@ -154,6 +201,7 @@ class SearchPageState extends State<SearchPage>
   }
 
   void _onToggle(int selectedIndex) {
+    if (!mounted) return;
     setState(() {
       _selectedToggleIndex = selectedIndex;
     });
@@ -192,6 +240,8 @@ class SearchPageState extends State<SearchPage>
   // Update this function to accept PostFilterOption
   void _onPostsToggle(PostFilterOption selectedOption) {
     if (_selectedPostFilterOption != selectedOption) {
+      if (!mounted) return;
+
       setState(() {
         _selectedPostFilterOption = selectedOption;
       });
@@ -208,6 +258,8 @@ class SearchPageState extends State<SearchPage>
   // Update this function to accept ShoutsFilterOption instead of bool
   void _onAnnouncementsToggle(ShoutsFilterOption selectedOption) {
     if (_selectedShoutFilterOption != selectedOption) {
+      if (!mounted) return;
+
       setState(() {
         _selectedShoutFilterOption = selectedOption;
       });
@@ -228,6 +280,8 @@ class SearchPageState extends State<SearchPage>
 
   Future<bool> _onWillPop() async {
     if (_isFilterOpen) {
+      if (!mounted) return false;
+
       setState(() {
         _isFilterOpen = false;
       });
