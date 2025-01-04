@@ -344,7 +344,9 @@ class AnnouncementCard extends StatelessWidget {
             location: user['location'],
             latitude: user['latitude'].toDouble(),
             longitude: user['longitude'].toDouble(),
-            filterDistance: user['filterDistance'],
+            filterDistance: user['filterDistance'] != null
+                ? (user['filterDistance'] as num).toDouble()
+                : 10.0,
             birthday: user['birthday'] != null
                 ? DateTime.parse(user['birthday'])
                 : null,

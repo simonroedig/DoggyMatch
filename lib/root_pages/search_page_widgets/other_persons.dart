@@ -360,7 +360,9 @@ class _OtherPersonsState extends State<OtherPersons>
             location: data['location'],
             latitude: data['latitude'].toDouble(),
             longitude: data['longitude'].toDouble(),
-            filterDistance: data['filterDistance'],
+            filterDistance: data['filterDistance'] != null
+                ? (data['filterDistance'] as num).toDouble()
+                : 10.0,
             birthday: data['birthday'] != null
                 ? DateTime.parse(data['birthday'])
                 : null,
