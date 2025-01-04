@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/friend_and_save_icon.dart';
 import 'package:doggymatch_flutter/services/friends_service.dart';
+import 'package:doggymatch_flutter/services/report_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/services/auth_service.dart';
@@ -102,6 +103,16 @@ class _OtherPersonsState extends State<OtherPersons>
       // Exclude the current user's profile from the list
       users = users.where((user) => user['uid'] != currentUserId).toList();
 
+      // 3. Filter out blocked users
+      // Remove blocked users from the existing list
+      for (int i = users.length - 1; i >= 0; i--) {
+        final bool isUserBlocked =
+            await ReportService().isBlocked(users[i]['uid']);
+        if (isUserBlocked) {
+          users.removeAt(i);
+        }
+      }
+
       if (mounted) {
         setState(() {
           _users = users;
@@ -131,6 +142,15 @@ class _OtherPersonsState extends State<OtherPersons>
       List<Map<String, dynamic>> users =
           await _authProfile.fetchSavedUserProfiles();
 
+      // if blocked user, remove from list
+      for (int i = users.length - 1; i >= 0; i--) {
+        final bool isUserBlocked =
+            await ReportService().isBlocked(users[i]['uid']);
+        if (isUserBlocked) {
+          users.removeAt(i);
+        }
+      }
+
       if (mounted) {
         setState(() {
           _users = users;
@@ -158,6 +178,14 @@ class _OtherPersonsState extends State<OtherPersons>
     try {
       List<Map<String, dynamic>> users =
           await _friendsService.fetchAllFriends();
+
+      for (int i = users.length - 1; i >= 0; i--) {
+        final bool isUserBlocked =
+            await ReportService().isBlocked(users[i]['uid']);
+        if (isUserBlocked) {
+          users.removeAt(i);
+        }
+      }
 
       if (mounted) {
         setState(() {
@@ -187,6 +215,14 @@ class _OtherPersonsState extends State<OtherPersons>
       List<Map<String, dynamic>> users =
           await _friendsService.fetchAllFriendRequestReceived();
 
+      for (int i = users.length - 1; i >= 0; i--) {
+        final bool isUserBlocked =
+            await ReportService().isBlocked(users[i]['uid']);
+        if (isUserBlocked) {
+          users.removeAt(i);
+        }
+      }
+
       if (mounted) {
         setState(() {
           _users = users;
@@ -215,6 +251,14 @@ class _OtherPersonsState extends State<OtherPersons>
     try {
       List<Map<String, dynamic>> users =
           await _friendsService.fetchAllFriendRequestSent();
+
+      for (int i = users.length - 1; i >= 0; i--) {
+        final bool isUserBlocked =
+            await ReportService().isBlocked(users[i]['uid']);
+        if (isUserBlocked) {
+          users.removeAt(i);
+        }
+      }
 
       if (mounted) {
         setState(() {

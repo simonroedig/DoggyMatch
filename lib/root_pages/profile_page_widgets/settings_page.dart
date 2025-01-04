@@ -1,13 +1,19 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:doggymatch_flutter/main/colors.dart';
 import 'package:doggymatch_flutter/main/main.dart';
 import 'package:doggymatch_flutter/main/ui_constants.dart';
-import 'package:flutter/material.dart';
-import 'package:doggymatch_flutter/main/colors.dart';
-import 'package:doggymatch_flutter/welcome_pages/welcome_page.dart';
 import 'package:doggymatch_flutter/services/auth_service.dart';
-import 'package:provider/provider.dart';
 import 'package:doggymatch_flutter/states/user_profile_state.dart';
+import 'package:doggymatch_flutter/welcome_pages/welcome_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'dart:developer' as developer;
+
+// Import the new page
+import 'blocked_users_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -65,6 +71,7 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
       body: Stack(
         children: [
+          // Main content
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -203,6 +210,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ),
                 const SizedBox(height: 30.0),
+                // Logout button
                 Center(
                   child: SizedBox(
                     width: screenWidth * 0.4,
@@ -213,8 +221,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         Navigator.of(context).pushAndRemoveUntil(
                           MaterialPageRoute(
                               builder: (context) => const MyApp()),
-                          (Route<dynamic> route) =>
-                              false, // Removes all previous routes
+                          (Route<dynamic> route) => false,
                         );
                       },
                       style: ElevatedButton.styleFrom(
@@ -227,7 +234,6 @@ class _SettingsPageState extends State<SettingsPage> {
                           color: AppColors.customBlack,
                           width: 3,
                         ),
-                        //elevation: 0, // Remove shadow
                       ),
                       child: const Text(
                         '< Logout',
@@ -244,101 +250,139 @@ class _SettingsPageState extends State<SettingsPage> {
               ],
             ),
           ),
+
+          // Blocked Users & Delete Account Buttons at bottom
           Positioned(
             bottom: 16.0,
             left: 16.0,
             right: 16.0,
-            child: SizedBox(
-              width: screenWidth * 0.8,
-              height: 50.0,
-              child: ElevatedButton(
-                onPressed: () async {
-                  final firstConfirmation = await showDialog<bool>(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Confirm Deletion'),
-                      content: const Text(
-                          'Are you sure you want to delete your account?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(false),
-                          child: const Text('No'),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Blocked Users button -> navigates to new page
+                SizedBox(
+                  width: screenWidth * 0.9,
+                  height: 50.0,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const BlockedUsersPage(),
                         ),
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(true),
-                          child: const Text('Yes'),
-                        ),
-                      ],
-                    ),
-                  );
-
-                  if (firstConfirmation == true) {
-                    final secondConfirmation = await showDialog<bool>(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Are You Absolutely Sure?'),
-                        content: const Text(
-                            'This action is irreversible. Do you really want to delete your account?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(false),
-                            child: const Text('No'),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(true),
-                            child: const Text('Yes, Delete'),
-                          ),
-                        ],
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.customBlack,
+                      shape: RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(UIConstants.innerRadius),
                       ),
-                    );
+                      side: const BorderSide(
+                        color: AppColors.customBlack,
+                        width: 3,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.block_rounded,
+                      color: AppColors.bg, // same color as logout text
+                      size: 26,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8.0),
 
-                    if (secondConfirmation == true) {
-                      // Call the new method to delete account and user data
-                      final success = await _auth.deleteAccountAndData(context);
-                      if (!mounted) {
-                        return; // Ensure the widget is still mounted before continuing
-                      }
+                // Delete Account button
+                SizedBox(
+                  width: screenWidth * 0.9,
+                  height: 50.0,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final firstConfirmation = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Confirm Deletion'),
+                          content: const Text(
+                              'Are you sure you want to delete your account?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(false),
+                              child: const Text('No'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(true),
+                              child: const Text('Yes'),
+                            ),
+                          ],
+                        ),
+                      );
 
-                      if (success) {
-                        Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(
-                              builder: (context) => const MyApp()),
-                          (Route<dynamic> route) =>
-                              false, // Removes all previous routes
-                        );
-                      } else {
-                        // Handle deletion failure
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Failed to delete account.'),
+                      if (firstConfirmation == true) {
+                        final secondConfirmation = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Are You Absolutely Sure?'),
+                            content: const Text(
+                                'This action is irreversible. Do you really want to delete your account?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.of(context).pop(false),
+                                child: const Text('No'),
+                              ),
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.of(context).pop(true),
+                                child: const Text('Yes, Delete'),
+                              ),
+                            ],
                           ),
                         );
+
+                        if (secondConfirmation == true) {
+                          final success =
+                              await _auth.deleteAccountAndData(context);
+                          if (!mounted) return;
+
+                          if (success) {
+                            Navigator.of(context).pushAndRemoveUntil(
+                              MaterialPageRoute(
+                                  builder: (context) => const MyApp()),
+                              (Route<dynamic> route) => false,
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Failed to delete account.'),
+                              ),
+                            );
+                          }
+                        }
                       }
-                    }
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.customRed,
-                  shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(UIConstants.innerRadius),
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.customRed,
+                      shape: RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(UIConstants.innerRadius),
+                      ),
+                      side: const BorderSide(
+                        color: AppColors.customBlack,
+                        width: 3,
+                      ),
+                    ),
+                    child: const Text(
+                      'Delete Account? 😢',
+                      style: TextStyle(
+                        color: AppColors.bg,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w600,
+                        fontSize: 18,
+                      ),
+                    ),
                   ),
-                  side: const BorderSide(
-                    color: AppColors.customBlack,
-                    width: 3,
-                  ),
-                  //elevation: 0, // Remove shadow
                 ),
-                child: const Text(
-                  'Delete Account? 😢',
-                  style: TextStyle(
-                    color: AppColors.bg,
-                    fontFamily: 'Poppins',
-                    fontWeight: FontWeight.w600,
-                    fontSize: 18,
-                  ),
-                ),
-              ),
+              ],
             ),
           ),
         ],

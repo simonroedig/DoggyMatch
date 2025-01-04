@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/friend_and_save_icon.dart';
 import 'package:doggymatch_flutter/services/friends_service.dart';
+import 'package:doggymatch_flutter/services/report_service.dart';
 import 'package:doggymatch_flutter/shared_helper/icon_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -111,6 +112,14 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements>
             userProfileState.userProfile.filterLastOnline,
           );
 
+          for (int i = users.length - 1; i >= 0; i--) {
+            final bool isUserBlocked =
+                await ReportService().isBlocked(users[i]['uid']);
+            if (isUserBlocked) {
+              users.removeAt(i);
+            }
+          }
+
           for (var user in users) {
             final userAnnouncements =
                 await _fetchUserAnnouncements(user['uid']);
@@ -170,6 +179,12 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements>
       for (var friend in friends) {
         final friendId = friend['uid'];
         final friendProfileData = friend['firestoreData'];
+
+        // if the friend is blocked, skip to the next friend
+        final isFriendBlocked = await ReportService().isBlocked(friendId);
+        if (isFriendBlocked) {
+          continue;
+        }
 
         // Fetch announcements for each friend
         final friendAnnouncements = await _fetchUserAnnouncements(friendId);

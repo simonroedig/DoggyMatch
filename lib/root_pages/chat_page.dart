@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:developer' as developer;
 import 'package:doggymatch_flutter/main/ui_constants.dart';
 import 'package:doggymatch_flutter/root_pages/profile_page_widgets/profile_widget.dart';
+import 'package:doggymatch_flutter/services/report_service.dart';
 import 'package:flutter/material.dart';
 import 'package:doggymatch_flutter/main/custom_app_bar.dart';
 import 'package:doggymatch_flutter/main/colors.dart';
@@ -163,6 +164,12 @@ class _ChatPageState extends State<ChatPage>
         final otherUserId = (chatRoom.data())['members']
             .where((id) => id != _currentUserId)
             .first;
+
+        // if the other user is blocked, skip this chat room
+        final reportService = ReportService();
+        if (await reportService.isBlocked(otherUserId)) {
+          continue;
+        }
 
         final UserProfile? otherUserProfile =
             await _authProfile.fetchOtherUserProfile(otherUserId);

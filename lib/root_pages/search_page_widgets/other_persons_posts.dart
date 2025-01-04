@@ -10,6 +10,7 @@ import 'package:doggymatch_flutter/root_pages/search_page_widgets/friend_and_sav
 import 'package:doggymatch_flutter/root_pages/search_page_widgets/posts_dialogs.dart';
 import 'package:doggymatch_flutter/services/post_service.dart';
 import 'package:doggymatch_flutter/services/friends_service.dart'; // Add this import
+import 'package:doggymatch_flutter/services/report_service.dart';
 import 'package:doggymatch_flutter/shared_helper/icon_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -149,6 +150,14 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts>
     );
     //users = users.where((user) => user['uid'] != currentUserId).toList();
 
+    for (int i = users.length - 1; i >= 0; i--) {
+      final bool isUserBlocked =
+          await ReportService().isBlocked(users[i]['uid']);
+      if (isUserBlocked) {
+        users.removeAt(i);
+      }
+    }
+
     for (var user in users) {
       final userPosts = await _fetchUserPosts(user['uid']);
       if (userPosts.isNotEmpty) {
@@ -192,6 +201,12 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts>
       final friendId = friend['uid'];
       final friendProfileData = friend['firestoreData'];
 
+      // if the friend is blocked, skip to the next friend
+      final isFriendBlocked = await ReportService().isBlocked(friendId);
+      if (isFriendBlocked) {
+        continue;
+      }
+
       // Fetch posts for each friend
       final friendPosts = await _fetchUserPosts(friendId);
 
@@ -223,6 +238,12 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts>
         final parts = postId.split('|');
         if (parts.length != 2) continue;
         final postOwnerId = parts[0];
+
+        // if the friend is blocked, skip to the next friend
+        final isBlocked = await ReportService().isBlocked(postOwnerId);
+        if (isBlocked) {
+          continue;
+        }
 
         // Fetch the post data
         final postDoc = await FirebaseFirestore.instance
@@ -270,6 +291,12 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts>
         final parts = postId.split('|');
         if (parts.length != 2) continue;
         final postOwnerId = parts[0];
+
+        // if the friend is blocked, skip to the next friend
+        final isBlocked = await ReportService().isBlocked(postOwnerId);
+        if (isBlocked) {
+          continue;
+        }
 
         // Fetch the post data
         final postDoc = await FirebaseFirestore.instance
