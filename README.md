@@ -34,9 +34,9 @@ What began as a learning project eventually became a **fully functional social m
 
 ## 🛠️ Tech Stack
 
-- **Flutter** – Cross-platform development for Android & iOS  
-- **Firebase** – Authentication, Firestore, Storage, and Realtime updates  
-- **Figma** – UI/UX planning and frontloading before development  
+- 💙 **Flutter** – Cross-platform development for Android & iOS  
+- 🔥 **Firebase**  – Authentication, Firestore, Storage, and Realtime updates  
+- 🎨 **Figma** – UI/UX planning and frontloading before development  
 
 Through this project I gained extensive hands-on experience with:
 - Account creation & authentication flows  
@@ -50,14 +50,14 @@ Through this project I gained extensive hands-on experience with:
 
 | Screen | Preview |
 |--------|---------|
-| Search – nearby profiles | <img src="images/search_profiles.jpg" width="250"/> |
-| Search – filter menu | <img src="images/search_filters.jpg" width="250"/> |
-| Search – shouts | <img src="images/search_shouts.jpg" width="250"/> |
-| Search – posts | <img src="images/search_posts.jpg" width="250"/> |
-| Chat – requests view | <img src="images/chat_requests.jpg" width="250"/> |
-| Community – friends & saved | <img src="images/community.jpg" width="250"/> |
-| Profile – own profile | <img src="images/profile.jpg" width="250"/> |
-| Profile – edit | <img src="images/profile_edit.jpg" width="250"/> |
+| Search – nearby profiles | <img src="images/search_profiles.jpg" width="180"/> |
+| Search – filter menu | <img src="images/search_filters.jpg" width="180"/> |
+| Search – shouts | <img src="images/search_shouts.jpg" width="180"/> |
+| Search – posts | <img src="images/search_posts.jpg" width="180"/> |
+| Chat – requests view | <img src="images/chat_requests.jpg" width="180"/> |
+| Community – friends & saved | <img src="images/community.jpg" width="180"/> |
+| Profile – own profile | <img src="images/profile.jpg" width="180"/> |
+| Profile – edit | <img src="images/profile_edit.jpg" width="180"/> |
 | Figma board | ![Figma Board](images/figma_board.jpg) |
 
 ---
