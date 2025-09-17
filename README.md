@@ -1,5 +1,7 @@
 # 🐾 DoggyMatch
 
+<img src="images/search_profiles.jpg" width="100"/>
+
 DoggyMatch is a full-fledged **social networking app** I built with **Flutter** and **Firebase** that connects **dog owners** with **dog sitters**, and also helps owners connect with each other.  
 
 I started this project as a way to **teach myself mobile app development** and explore how to build a cross-platform application from the ground up.  
