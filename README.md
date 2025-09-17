@@ -50,14 +50,14 @@ Through this project I gained extensive hands-on experience with:
 
 | Screen | Preview |
 |--------|---------|
-| Search – nearby profiles | ![Search Screen – Profiles](images/search_profiles.jpg) |
-| Search – filter menu | ![Search Screen – Filters](images/search_filters.jpg) |
-| Search – shouts | ![Search Screen – Shouts](images/search_shouts.jpg) |
-| Search – posts | ![Search Screen – Posts](images/search_posts.jpg) |
-| Chat – requests view | ![Chat Screen – Requests](images/chat_requests.jpg) |
-| Community – friends & saved | ![Community Screen](images/community.jpg) |
-| Profile – own profile | ![Profile Screen](images/profile.jpg) |
-| Profile – edit | ![Edit Profile Screen](images/profile_edit.jpg) |
+| Search – nearby profiles | <img src="images/search_profiles.jpg" width="250"/> |
+| Search – filter menu | <img src="images/search_filters.jpg" width="250"/> |
+| Search – shouts | <img src="images/search_shouts.jpg" width="250"/> |
+| Search – posts | <img src="images/search_posts.jpg" width="250"/> |
+| Chat – requests view | <img src="images/chat_requests.jpg" width="250"/> |
+| Community – friends & saved | <img src="images/community.jpg" width="250"/> |
+| Profile – own profile | <img src="images/profile.jpg" width="250"/> |
+| Profile – edit | <img src="images/profile_edit.jpg" width="250"/> |
 | Figma board | ![Figma Board](images/figma_board.jpg) |
 
 ---
