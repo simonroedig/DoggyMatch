@@ -6,8 +6,10 @@ import 'package:doggymatch_flutter/main/colors.dart';
 
 class ChatRequestToggle extends StatefulWidget {
   final Function(bool) onToggle; // Callback for when the toggle is changed
+  final bool currentSelected; // Current state passed from parent
 
-  const ChatRequestToggle({super.key, required this.onToggle});
+  const ChatRequestToggle(
+      {super.key, required this.onToggle, this.currentSelected = true});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -15,7 +17,25 @@ class ChatRequestToggle extends StatefulWidget {
 }
 
 class _ChatRequestToggleState extends State<ChatRequestToggle> {
-  bool isChatSelected = true;
+  late bool isChatSelected;
+
+  @override
+  void initState() {
+    super.initState();
+    isChatSelected = widget.currentSelected;
+  }
+
+  @override
+  void didUpdateWidget(covariant ChatRequestToggle oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.currentSelected != oldWidget.currentSelected) {
+      if (mounted) {
+        setState(() {
+          isChatSelected = widget.currentSelected;
+        });
+      }
+    }
+  }
 
   void toggleSwitch() {
     if (mounted) {

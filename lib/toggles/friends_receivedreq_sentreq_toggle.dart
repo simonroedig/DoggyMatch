@@ -6,8 +6,10 @@ import 'package:doggymatch_flutter/main/colors.dart';
 
 class FriendsReceivedReqSentReqToggle extends StatefulWidget {
   final Function(int) onToggle; // Callback for when the toggle changes
+  final int currentOption; // Current option passed from parent
 
-  const FriendsReceivedReqSentReqToggle({super.key, required this.onToggle});
+  const FriendsReceivedReqSentReqToggle(
+      {super.key, required this.onToggle, this.currentOption = 0});
 
   @override
   _FriendsReceivedReqSentReqToggleState createState() =>
@@ -16,7 +18,25 @@ class FriendsReceivedReqSentReqToggle extends StatefulWidget {
 
 class _FriendsReceivedReqSentReqToggleState
     extends State<FriendsReceivedReqSentReqToggle> {
-  int currentState = 0; // 0 = Friends, 1 = Received, 2 = Sent
+  late int currentState; // 0 = Friends, 1 = Received, 2 = Sent
+
+  @override
+  void initState() {
+    super.initState();
+    currentState = widget.currentOption;
+  }
+
+  @override
+  void didUpdateWidget(covariant FriendsReceivedReqSentReqToggle oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.currentOption != oldWidget.currentOption) {
+      if (mounted) {
+        setState(() {
+          currentState = widget.currentOption;
+        });
+      }
+    }
+  }
 
   void toggleSwitch(int index) {
     if (mounted) {

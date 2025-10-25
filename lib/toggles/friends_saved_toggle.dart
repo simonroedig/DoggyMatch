@@ -8,15 +8,35 @@ import 'package:doggymatch_flutter/main/colors.dart';
 
 class FriendsSavedToggle extends StatefulWidget {
   final Function(bool) onToggle; // Callback for when the toggle is changed
+  final bool currentSelected; // Current state passed from parent
 
-  const FriendsSavedToggle({super.key, required this.onToggle});
+  const FriendsSavedToggle(
+      {super.key, required this.onToggle, this.currentSelected = true});
 
   @override
   _FriendsSavedToggleState createState() => _FriendsSavedToggleState();
 }
 
 class _FriendsSavedToggleState extends State<FriendsSavedToggle> {
-  bool isFriendsSelected = true;
+  late bool isFriendsSelected;
+
+  @override
+  void initState() {
+    super.initState();
+    isFriendsSelected = widget.currentSelected;
+  }
+
+  @override
+  void didUpdateWidget(covariant FriendsSavedToggle oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.currentSelected != oldWidget.currentSelected) {
+      if (mounted) {
+        setState(() {
+          isFriendsSelected = widget.currentSelected;
+        });
+      }
+    }
+  }
 
   void toggleSwitch() {
     if (mounted) {

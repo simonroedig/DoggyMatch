@@ -39,6 +39,10 @@ class _CommunityPageState extends State<CommunityPage>
   @override
   bool get wantKeepAlive => true; // Tell Flutter to keep this widget alive
 
+  // Track the starting position for swipe detection
+  late double _startDragX;
+  late double _startDragY;
+
   @override
   void initState() {
     super.initState();
@@ -137,6 +141,61 @@ class _CommunityPageState extends State<CommunityPage>
     Provider.of<UserProfileState>(context, listen: false).closeProfile();
   }
 
+  void _handleHorizontalDragStart(DragStartDetails details) {
+    _startDragX = details.globalPosition.dx;
+    _startDragY = details.globalPosition.dy;
+  }
+
+  void _handleHorizontalDragEnd(DragEndDetails details) {
+    const double minDragDistance = 50.0; // Minimum distance to trigger swipe
+    final double dragDistance = _startDragX - details.globalPosition.dx;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isTopHalf = _startDragY < screenHeight / 2;
+
+    if (dragDistance.abs() < minDragDistance) {
+      return; // Not a swipe, just a tap
+    }
+
+    if (!mounted) return;
+
+    // On Saved profiles: any swipe goes back to Friends
+    if (!isFriendsSelected) {
+      if (dragDistance > minDragDistance || dragDistance < -minDragDistance) {
+        setState(() {
+          isFriendsSelected = true;
+          selectedFriendsOption = 0; // Reset to Friends
+        });
+      }
+      return;
+    }
+
+    // On Friends page:
+    if (isTopHalf) {
+      // Top half: Swipe to toggle Friends/Saved
+      if (dragDistance > minDragDistance) {
+        // Swipe right to left -> Saved
+        setState(() {
+          isFriendsSelected = false;
+        });
+      } else if (dragDistance < -minDragDistance) {
+        // Swipe left to right -> Friends (no-op, already there)
+      }
+    } else {
+      // Bottom half: Swipe between Friends/Received/Sent
+      if (dragDistance > minDragDistance) {
+        // Swipe right to left -> next option
+        setState(() {
+          selectedFriendsOption = (selectedFriendsOption + 1) % 3;
+        });
+      } else if (dragDistance < -minDragDistance) {
+        // Swipe left to right -> previous option
+        setState(() {
+          selectedFriendsOption = (selectedFriendsOption - 1 + 3) % 3;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(
@@ -154,46 +213,51 @@ class _CommunityPageState extends State<CommunityPage>
           Column(
             children: [
               const SizedBox(height: 5),
-              FriendsSavedToggle(onToggle: handleToggle),
+              FriendsSavedToggle(
+                  onToggle: handleToggle, currentSelected: isFriendsSelected),
               if (isFriendsSelected) ...[
                 const SizedBox(height: 15),
                 FriendsReceivedReqSentReqToggle(
-                    onToggle: handleFriendsOptionToggle),
+                    onToggle: handleFriendsOptionToggle,
+                    currentOption: selectedFriendsOption),
               ],
               const SizedBox(height: 15),
               Expanded(
-                // Use ValueKey to force rebuild based on the toggle state
-                child: isFriendsSelected
-                    ? selectedFriendsOption == 0
-                        ? OtherPersons(
-                            key: const ValueKey(
-                                "friends"), // Unique key for Friends
-                            onProfileSelected: _openProfile,
-                            showAllProfiles: false,
-                            showFriendProfiles: true,
-                          )
-                        : selectedFriendsOption == 1
-                            ? OtherPersons(
-                                key: const ValueKey(
-                                    "received_requests"), // Unique key for Received Requests
-                                onProfileSelected: _openProfile,
-                                showAllProfiles: false,
-                                showReceivedFriendRequestProfiles: true,
-                              )
-                            : OtherPersons(
-                                key: const ValueKey(
-                                    "sent_requests"), // Unique key for Sent Requests
-                                onProfileSelected: _openProfile,
-                                showAllProfiles: false,
-                                showSentFriendRequestProfiles: true,
-                              )
-                    : OtherPersons(
-                        key: const ValueKey(
-                            "saved_profiles"), // Unique key for Saved Profiles
-                        onProfileSelected: _openProfile,
-                        showAllProfiles: false,
-                        showSavedProfiles: true,
-                      ),
+                child: GestureDetector(
+                  onHorizontalDragStart: _handleHorizontalDragStart,
+                  onHorizontalDragEnd: _handleHorizontalDragEnd,
+                  child: isFriendsSelected
+                      ? selectedFriendsOption == 0
+                          ? OtherPersons(
+                              key: const ValueKey(
+                                  "friends"), // Unique key for Friends
+                              onProfileSelected: _openProfile,
+                              showAllProfiles: false,
+                              showFriendProfiles: true,
+                            )
+                          : selectedFriendsOption == 1
+                              ? OtherPersons(
+                                  key: const ValueKey(
+                                      "received_requests"), // Unique key for Received Requests
+                                  onProfileSelected: _openProfile,
+                                  showAllProfiles: false,
+                                  showReceivedFriendRequestProfiles: true,
+                                )
+                              : OtherPersons(
+                                  key: const ValueKey(
+                                      "sent_requests"), // Unique key for Sent Requests
+                                  onProfileSelected: _openProfile,
+                                  showAllProfiles: false,
+                                  showSentFriendRequestProfiles: true,
+                                )
+                      : OtherPersons(
+                          key: const ValueKey(
+                              "saved_profiles"), // Unique key for Saved Profiles
+                          onProfileSelected: _openProfile,
+                          showAllProfiles: false,
+                          showSavedProfiles: true,
+                        ),
+                ),
               ),
             ],
           ),
