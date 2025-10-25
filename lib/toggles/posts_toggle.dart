@@ -7,15 +7,36 @@ import 'package:doggymatch_flutter/root_pages/search_page_widgets/ENUM_post_filt
 
 class PostsToggle extends StatefulWidget {
   final Function(PostFilterOption) onToggle;
+  final PostFilterOption currentOption;
 
-  const PostsToggle({Key? key, required this.onToggle}) : super(key: key);
+  const PostsToggle({
+    Key? key,
+    required this.onToggle,
+    required this.currentOption,
+  }) : super(key: key);
 
   @override
   _OwnAllPostsToggleState createState() => _OwnAllPostsToggleState();
 }
 
 class _OwnAllPostsToggleState extends State<PostsToggle> {
-  PostFilterOption _currentOption = PostFilterOption.allPosts;
+  late PostFilterOption _currentOption;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentOption = widget.currentOption;
+  }
+
+  @override
+  void didUpdateWidget(PostsToggle oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.currentOption != oldWidget.currentOption) {
+      setState(() {
+        _currentOption = widget.currentOption;
+      });
+    }
+  }
 
   void toggleSwitch() {
     if (mounted) {

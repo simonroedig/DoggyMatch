@@ -9,9 +9,13 @@ import 'package:provider/provider.dart';
 
 class AnnouncementsToggle extends StatefulWidget {
   final Function(ShoutsFilterOption) onToggle;
+  final ShoutsFilterOption currentOption;
 
-  const AnnouncementsToggle({Key? key, required this.onToggle})
-      : super(key: key);
+  const AnnouncementsToggle({
+    Key? key,
+    required this.onToggle,
+    required this.currentOption,
+  }) : super(key: key);
 
   @override
   _OwnAllAnnouncementsToggleState createState() =>
@@ -19,7 +23,23 @@ class AnnouncementsToggle extends StatefulWidget {
 }
 
 class _OwnAllAnnouncementsToggleState extends State<AnnouncementsToggle> {
-  ShoutsFilterOption _currentOption = ShoutsFilterOption.allShouts;
+  late ShoutsFilterOption _currentOption;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentOption = widget.currentOption;
+  }
+
+  @override
+  void didUpdateWidget(AnnouncementsToggle oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.currentOption != oldWidget.currentOption) {
+      setState(() {
+        _currentOption = widget.currentOption;
+      });
+    }
+  }
 
   void toggleSwitch() {
     if (mounted) {

@@ -56,6 +56,7 @@ class SearchPageState extends State<SearchPage>
 
   // Track the starting position for swipe detection
   late double _startDragX;
+  late double _startDragY;
 
   @override
   void initState() {
@@ -205,6 +206,7 @@ class SearchPageState extends State<SearchPage>
 
   void _handleHorizontalDragStart(DragStartDetails details) {
     _startDragX = details.globalPosition.dx;
+    _startDragY = details.globalPosition.dy;
   }
 
   void _handleHorizontalDragEnd(DragEndDetails details) {
@@ -217,17 +219,67 @@ class SearchPageState extends State<SearchPage>
 
     if (!mounted) return;
 
-    // Swipe left (negative dragDistance) -> next tab
-    if (dragDistance < -minDragDistance) {
-      setState(() {
-        _selectedToggleIndex = (_selectedToggleIndex - 1) % 3;
-      });
-    }
-    // Swipe right (positive dragDistance) -> previous tab
-    else if (dragDistance > minDragDistance) {
-      setState(() {
-        _selectedToggleIndex = (_selectedToggleIndex + 1) % 3;
-      });
+    // Check if we're in Shouts or Posts state to determine split swipe logic
+    if (_selectedToggleIndex == 1 || _selectedToggleIndex == 2) {
+      // Get the middle of the screen to determine top/bottom half
+      final screenHeight = MediaQuery.of(context).size.height;
+      final isTopHalf = _startDragY < screenHeight / 2;
+
+      if (isTopHalf) {
+        // Top half: swipe between Profiles, Shouts, Posts (main toggle)
+        if (dragDistance < -minDragDistance) {
+          setState(() {
+            _selectedToggleIndex = (_selectedToggleIndex - 1) % 3;
+          });
+        } else if (dragDistance > minDragDistance) {
+          setState(() {
+            _selectedToggleIndex = (_selectedToggleIndex + 1) % 3;
+          });
+        }
+      } else {
+        // Bottom half: swipe within secondary toggle (announcements or posts filter)
+        if (_selectedToggleIndex == 1) {
+          // Shouts: cycle through ShoutsFilterOption
+          if (dragDistance < -minDragDistance) {
+            // Swipe left (right to left) -> next option
+            final options = ShoutsFilterOption.values;
+            final currentIndex = options.indexOf(_selectedShoutFilterOption);
+            _onAnnouncementsToggle(
+                options[(currentIndex + 1) % options.length]);
+          } else if (dragDistance > minDragDistance) {
+            // Swipe right (left to right) -> previous option
+            final options = ShoutsFilterOption.values;
+            final currentIndex = options.indexOf(_selectedShoutFilterOption);
+            _onAnnouncementsToggle(
+                options[(currentIndex - 1 + options.length) % options.length]);
+          }
+        } else if (_selectedToggleIndex == 2) {
+          // Posts: cycle through PostFilterOption
+          if (dragDistance < -minDragDistance) {
+            // Swipe left (right to left) -> next option
+            final options = PostFilterOption.values;
+            final currentIndex = options.indexOf(_selectedPostFilterOption);
+            _onPostsToggle(options[(currentIndex + 1) % options.length]);
+          } else if (dragDistance > minDragDistance) {
+            // Swipe right (left to right) -> previous option
+            final options = PostFilterOption.values;
+            final currentIndex = options.indexOf(_selectedPostFilterOption);
+            _onPostsToggle(
+                options[(currentIndex - 1 + options.length) % options.length]);
+          }
+        }
+      }
+    } else {
+      // Profiles: simple swipe between tabs (no secondary toggle)
+      if (dragDistance < -minDragDistance) {
+        setState(() {
+          _selectedToggleIndex = (_selectedToggleIndex - 1) % 3;
+        });
+      } else if (dragDistance > minDragDistance) {
+        setState(() {
+          _selectedToggleIndex = (_selectedToggleIndex + 1) % 3;
+        });
+      }
     }
   }
 
@@ -369,6 +421,7 @@ class SearchPageState extends State<SearchPage>
                                 children: [
                                   AnnouncementsToggle(
                                     onToggle: _onAnnouncementsToggle,
+                                    currentOption: _selectedShoutFilterOption,
                                   ),
                                   const SizedBox(width: 16),
                                   IconButton(
@@ -399,6 +452,7 @@ class SearchPageState extends State<SearchPage>
                                 children: [
                                   PostsToggle(
                                     onToggle: _onPostsToggle,
+                                    currentOption: _selectedPostFilterOption,
                                   ),
                                   const SizedBox(width: 16),
                                   IconButton(
