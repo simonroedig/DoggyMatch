@@ -334,7 +334,18 @@ class _ChatPageState extends State<ChatPage>
                       ? const Center(child: CircularProgressIndicator())
                       : isChatSelected
                           ? communicationChats.isEmpty
-                              ? const Center(child: Text('No chats available'))
+                              ? GestureDetector(
+                                  onTap: () {},
+                                  child: Stack(
+                                    children: [
+                                      Container(
+                                        color: Colors.transparent,
+                                      ),
+                                      const Center(
+                                          child: Text('No chats available')),
+                                    ],
+                                  ),
+                                )
                               : ListView.builder(
                                   itemCount: communicationChats.length,
                                   itemBuilder: (context, index) {
@@ -390,15 +401,25 @@ class _ChatPageState extends State<ChatPage>
                                 ),
                                 const SizedBox(height: 10),
                                 if (incomingRequests.isEmpty)
-                                  const Center(
-                                    child: Text(
-                                      "(No incoming chat requests)",
-                                      style: TextStyle(
-                                        fontFamily: 'Poppins',
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.normal,
-                                        color: AppColors.customBlack,
-                                      ),
+                                  GestureDetector(
+                                    onTap: () {},
+                                    child: Stack(
+                                      children: [
+                                        Container(
+                                          color: Colors.transparent,
+                                        ),
+                                        const Center(
+                                          child: Text(
+                                            "(No incoming chat requests)",
+                                            style: TextStyle(
+                                              fontFamily: 'Poppins',
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.normal,
+                                              color: AppColors.customBlack,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   )
                                 else
@@ -450,15 +471,25 @@ class _ChatPageState extends State<ChatPage>
                                 ),
                                 const SizedBox(height: 10),
                                 if (outgoingRequests.isEmpty)
-                                  const Center(
-                                    child: Text(
-                                      "(No outgoing chat requests)",
-                                      style: TextStyle(
-                                        fontFamily: 'Poppins',
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.normal,
-                                        color: AppColors.customBlack,
-                                      ),
+                                  GestureDetector(
+                                    onTap: () {},
+                                    child: Stack(
+                                      children: [
+                                        Container(
+                                          color: Colors.transparent,
+                                        ),
+                                        const Center(
+                                          child: Text(
+                                            "(No outgoing chat requests)",
+                                            style: TextStyle(
+                                              fontFamily: 'Poppins',
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.normal,
+                                              color: AppColors.customBlack,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   )
                                 else

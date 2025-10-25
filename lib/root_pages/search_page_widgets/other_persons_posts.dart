@@ -365,14 +365,26 @@ class _OtherPersonsPostsState extends State<OtherPersonsPosts>
           noPostsMessage = 'You have not saved any posts yet.';
           break;
       }
-      return Center(
-        child: Text(
-          noPostsMessage,
-          style: const TextStyle(
-            fontFamily: 'Poppins',
-            fontSize: 16.0,
-            color: AppColors.customBlack,
-          ),
+      return GestureDetector(
+        onTap: () {}, // Capture tap to prevent event bubbling
+        child: Stack(
+          children: [
+            // Transparent full-height container to capture swipes
+            Container(
+              color: Colors.transparent,
+            ),
+            // Center the message text
+            Center(
+              child: Text(
+                noPostsMessage,
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 16.0,
+                  color: AppColors.customBlack,
+                ),
+              ),
+            ),
+          ],
         ),
       );
     }

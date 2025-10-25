@@ -254,33 +254,47 @@ class _OtherPersonsAnnouncementsState extends State<OtherPersonsAnnouncements>
     }
 
     if (_announcements.isEmpty) {
-      return Center(
-        child: RichText(
-          textAlign: TextAlign.center,
-          text: TextSpan(
-            text: widget.selectedOption == ShoutsFilterOption.friendsShouts
-                ? 'You do not have an active shout \n\nCreate a new one'
-                : 'No shouts found 😔\n\nAdjust your filter settings\nand spread the word about ',
-            style: const TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 10.0,
-              fontWeight: FontWeight.normal,
-              color: AppColors.customBlack,
+      return GestureDetector(
+        onTap: () {}, // Capture tap to prevent event bubbling
+        child: Stack(
+          children: [
+            // Transparent full-height container to capture swipes
+            Container(
+              color: Colors.transparent,
             ),
-            children: <TextSpan>[
-              TextSpan(
-                text: widget.selectedOption == ShoutsFilterOption.friendsShouts
-                    ? ''
-                    : 'DoggyMatch',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
+            // Center the message text
+            Center(
+              child: RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  text: widget.selectedOption ==
+                          ShoutsFilterOption.friendsShouts
+                      ? 'You do not have an active shout \n\nCreate a new one'
+                      : 'No shouts found 😔\n\nAdjust your filter settings\nand spread the word about ',
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 14.0,
+                    fontWeight: FontWeight.normal,
+                    color: AppColors.customBlack,
+                  ),
+                  children: <TextSpan>[
+                    TextSpan(
+                      text: widget.selectedOption ==
+                              ShoutsFilterOption.friendsShouts
+                          ? ''
+                          : 'DoggyMatch',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const TextSpan(
+                      text: ' 🐶❤️',
+                    ),
+                  ],
                 ),
               ),
-              const TextSpan(
-                text: ' 🐶❤️',
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       );
     }

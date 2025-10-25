@@ -309,29 +309,41 @@ class _OtherPersonsState extends State<OtherPersons>
     }
 
     if (_users.isEmpty) {
-      return Center(
-        child: RichText(
-          textAlign: TextAlign.center,
-          text: TextSpan(
-            text: noUsersTextCallback,
-            style: const TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 10.0,
-              fontWeight: FontWeight.normal,
-              color: AppColors.customBlack,
+      return GestureDetector(
+        onTap: () {}, // Capture tap to prevent event bubbling
+        child: Stack(
+          children: [
+            // Transparent full-height container to capture swipes
+            Container(
+              color: Colors.transparent,
             ),
-            children: const <TextSpan>[
-              TextSpan(
-                text: 'DoggyMatch',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
+            // Center the message text
+            Center(
+              child: RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  text: noUsersTextCallback,
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 14.0,
+                    fontWeight: FontWeight.normal,
+                    color: AppColors.customBlack,
+                  ),
+                  children: const <TextSpan>[
+                    TextSpan(
+                      text: 'DoggyMatch',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    TextSpan(
+                      text: ' 🐶❤️',
+                    ),
+                  ],
                 ),
               ),
-              TextSpan(
-                text: ' 🐶❤️',
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       );
     }
