@@ -54,6 +54,9 @@ class SearchPageState extends State<SearchPage>
   @override
   bool get wantKeepAlive => true; // Tell Flutter to keep this widget alive
 
+  // Track the starting position for swipe detection
+  late double _startDragX;
+
   @override
   void initState() {
     super.initState();
@@ -200,6 +203,34 @@ class SearchPageState extends State<SearchPage>
     //Provider.of<UserProfileState>(context, listen: false).refreshUserProfile();
   }
 
+  void _handleHorizontalDragStart(DragStartDetails details) {
+    _startDragX = details.globalPosition.dx;
+  }
+
+  void _handleHorizontalDragEnd(DragEndDetails details) {
+    const double minDragDistance = 50.0; // Minimum distance to trigger swipe
+    final double dragDistance = _startDragX - details.globalPosition.dx;
+
+    if (dragDistance.abs() < minDragDistance) {
+      return; // Not a swipe, just a tap
+    }
+
+    if (!mounted) return;
+
+    // Swipe left (negative dragDistance) -> next tab
+    if (dragDistance < -minDragDistance) {
+      setState(() {
+        _selectedToggleIndex = (_selectedToggleIndex - 1) % 3;
+      });
+    }
+    // Swipe right (positive dragDistance) -> previous tab
+    else if (dragDistance > minDragDistance) {
+      setState(() {
+        _selectedToggleIndex = (_selectedToggleIndex + 1) % 3;
+      });
+    }
+  }
+
   void _onToggle(int selectedIndex) {
     if (!mounted) return;
     setState(() {
@@ -314,78 +345,83 @@ class SearchPageState extends State<SearchPage>
                   const SizedBox(height: 5),
                   ProfileAnnouncementPostsToggle(
                     onToggle: _onToggle,
+                    currentIndex: _selectedToggleIndex,
                   ),
                   SizedBox(height: _selectedToggleIndex == 0 ? 15 : 5),
                   Expanded(
-                    child: IndexedStack(
-                      index: _selectedToggleIndex,
-                      children: [
-                        // Index 0 - Profiles
-                        OtherPersons(
-                          onProfileSelected: _openProfile,
-                          showAllProfiles: true,
-                          showSavedProfiles: false,
-                        ),
-                        // Index 1 - Shouts (Announcements)
-                        Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                AnnouncementsToggle(
-                                  onToggle: _onAnnouncementsToggle,
-                                ),
-                                const SizedBox(width: 16),
-                                IconButton(
-                                  iconSize: 47,
-                                  icon: const Icon(
-                                    Icons.add_circle_outline_rounded,
-                                    color: AppColors.customBlack,
+                    child: GestureDetector(
+                      onHorizontalDragStart: _handleHorizontalDragStart,
+                      onHorizontalDragEnd: _handleHorizontalDragEnd,
+                      child: IndexedStack(
+                        index: _selectedToggleIndex,
+                        children: [
+                          // Index 0 - Profiles
+                          OtherPersons(
+                            onProfileSelected: _openProfile,
+                            showAllProfiles: true,
+                            showSavedProfiles: false,
+                          ),
+                          // Index 1 - Shouts (Announcements)
+                          Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  AnnouncementsToggle(
+                                    onToggle: _onAnnouncementsToggle,
                                   ),
-                                  onPressed: _navigateToNewAnnouncement,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 0),
-                            Expanded(
-                              child: OtherPersonsAnnouncements(
-                                key: ValueKey(_selectedShoutFilterOption),
-                                selectedOption: _selectedShoutFilterOption,
-                                onProfileSelected: _openProfile,
-                              ),
-                            ),
-                          ],
-                        ),
-                        // Index 2 - Posts
-                        Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                PostsToggle(
-                                  onToggle: _onPostsToggle,
-                                ),
-                                const SizedBox(width: 16),
-                                IconButton(
-                                  iconSize: 47,
-                                  icon: const Icon(
-                                    Icons.add_circle_outline_rounded,
-                                    color: AppColors.customBlack,
+                                  const SizedBox(width: 16),
+                                  IconButton(
+                                    iconSize: 47,
+                                    icon: const Icon(
+                                      Icons.add_circle_outline_rounded,
+                                      color: AppColors.customBlack,
+                                    ),
+                                    onPressed: _navigateToNewAnnouncement,
                                   ),
-                                  onPressed: _navigateToNewPost,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 0),
-                            Expanded(
-                              child: OtherPersonsPosts(
-                                selectedOption: _selectedPostFilterOption,
-                                onProfileSelected: _openProfile,
+                                ],
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
+                              const SizedBox(height: 0),
+                              Expanded(
+                                child: OtherPersonsAnnouncements(
+                                  key: ValueKey(_selectedShoutFilterOption),
+                                  selectedOption: _selectedShoutFilterOption,
+                                  onProfileSelected: _openProfile,
+                                ),
+                              ),
+                            ],
+                          ),
+                          // Index 2 - Posts
+                          Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  PostsToggle(
+                                    onToggle: _onPostsToggle,
+                                  ),
+                                  const SizedBox(width: 16),
+                                  IconButton(
+                                    iconSize: 47,
+                                    icon: const Icon(
+                                      Icons.add_circle_outline_rounded,
+                                      color: AppColors.customBlack,
+                                    ),
+                                    onPressed: _navigateToNewPost,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 0),
+                              Expanded(
+                                child: OtherPersonsPosts(
+                                  selectedOption: _selectedPostFilterOption,
+                                  onProfileSelected: _openProfile,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],

@@ -4,8 +4,10 @@ import 'package:doggymatch_flutter/main/colors.dart';
 
 class ProfileAnnouncementPostsToggle extends StatefulWidget {
   final Function(int) onToggle; // Callback for when the toggle is changed
+  final int currentIndex; // Current index passed from parent
 
-  const ProfileAnnouncementPostsToggle({super.key, required this.onToggle});
+  const ProfileAnnouncementPostsToggle(
+      {super.key, required this.onToggle, this.currentIndex = 0});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -15,7 +17,25 @@ class ProfileAnnouncementPostsToggle extends StatefulWidget {
 
 class _ProfileAnnouncementPostsToggleState
     extends State<ProfileAnnouncementPostsToggle> {
-  int selectedIndex = 0; // 0 - Profiles, 1 - Announcements (Shouts), 2 - Posts
+  late int selectedIndex; // 0 - Profiles, 1 - Announcements (Shouts), 2 - Posts
+
+  @override
+  void initState() {
+    super.initState();
+    selectedIndex = widget.currentIndex;
+  }
+
+  @override
+  void didUpdateWidget(covariant ProfileAnnouncementPostsToggle oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.currentIndex != oldWidget.currentIndex) {
+      if (mounted) {
+        setState(() {
+          selectedIndex = widget.currentIndex;
+        });
+      }
+    }
+  }
 
   void toggleSwitch(int index) {
     if (mounted) {
